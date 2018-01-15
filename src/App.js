@@ -1,94 +1,114 @@
-import React, { Component } from 'react'
-import SimpleStorageContract from '../build/contracts/SimpleStorage.json'
+import React, {Component} from 'react';
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import VotingContract from '../build/contracts/Voting.json'
 import getWeb3 from './utils/getWeb3'
 
-import './css/oswald.css'
-import './css/open-sans.css'
-import './css/pure-min.css'
-import './App.css'
+
 
 class App extends Component {
-  constructor(props) {
-    super(props)
+    constructor(props) {
+        super(props);
+        this.state = {data: [{name: 'Jose', votes: 0},
+                {name: 'Nick', votes: 0},
+                {name: 'Pedro', votes: 0}], value: '', instance: null, accounts: null, web3: null, electionRunning: true};
 
-    this.state = {
-      storageValue: 0,
-      web3: null
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.updateBoard = this.updateBoard.bind(this);
+
     }
-  }
 
-  componentWillMount() {
-    // Get network provider and web3 instance.
-    // See utils/getWeb3 for more info.
+    componentWillMount() {
+        getWeb3.then(results => {this.setState({web3: results.web3}); this.initializeContract()})
+            .catch((e) => {
+                console.log("Error finding web3.");
+                console.log(e);
+        });
+    }
 
-    getWeb3
-    .then(results => {
-      this.setState({
-        web3: results.web3
-      })
+    initializeContract() {
+        const contract = require("truffle-contract");
+        const Voting = contract(VotingContract);
+        Voting.setProvider(this.state.web3.currentProvider);
 
-      // Instantiate contract once web3 provided.
-      this.instantiateContract()
-    })
-    .catch(() => {
-      console.log('Error finding web3.')
-    })
-  }
 
-  instantiateContract() {
-    /*
-     * SMART CONTRACT EXAMPLE
-     *
-     * Normally these functions would be called in the context of a
-     * state management library, but for convenience I've placed them here.
-     */
+        this.state.web3.eth.getAccounts((error, accounts) => {
+           Voting.deployed().then((instance) => {
+               this.setState({instance : instance, accounts: accounts});
+           });
+        });
+    }
 
-    const contract = require('truffle-contract')
-    const simpleStorage = contract(SimpleStorageContract)
-    simpleStorage.setProvider(this.state.web3.currentProvider)
+    handleChange(event) {
+        this.setState({value: event.target.value});
+    }
 
-    // Declaring this for later so we can chain functions on SimpleStorage.
-    var simpleStorageInstance
+    handleSubmit(event)
+    {
+        this.state.instance.voteForCandidate(this.state.value, {from: this.state.accounts[0]})
+            .then((result) => {
+                result.logs.forEach((log) => {
+                   if(log.event === 'ElectionWinner') {
+                       let name = this.state.web3.toUtf8(log.args._candidate);
+                       this.setState({electionRunning: false, winner: name});
+                   }
+                });
+                this.updateBoard();
+            })
+            .catch((e) => {
+                alert("Invalid Submission");
+            });
+        this.setState({value : ''});
+        event.preventDefault();
+    }
 
-    // Get accounts.
-    this.state.web3.eth.getAccounts((error, accounts) => {
-      simpleStorage.deployed().then((instance) => {
-        simpleStorageInstance = instance
+    updateBoard()
+    {
+        var board = Object.assign([], this.state.data);
+        for(let i = 0; i < board.length; i++) {
+            this.state.instance.totalVotesFor.call(board[i].name).then((result) => {
+                board[i].votes = result;
+                this.setState({data: board});
+            });
+        }
+    }
 
-        // Stores a given value, 5 by default.
-        return simpleStorageInstance.set(5, {from: accounts[0]})
-      }).then((result) => {
-        // Get the value from the contract to prove it worked.
-        return simpleStorageInstance.get.call(accounts[0])
-      }).then((result) => {
-        // Update state with the result.
-        return this.setState({ storageValue: result.c[0] })
-      })
-    })
-  }
-
-  render() {
-    return (
-      <div className="App">
-        <nav className="navbar pure-menu pure-menu-horizontal">
-            <a href="#" className="pure-menu-heading pure-menu-link">Truffle Box</a>
-        </nav>
-
-        <main className="container">
-          <div className="pure-g">
-            <div className="pure-u-1-1">
-              <h1>Good to Go!</h1>
-              <p>Your Truffle Box is installed and ready.</p>
-              <h2>Smart Contract Example</h2>
-              <p>If your contracts compiled and migrated successfully, below will show a stored value of 5 (by default).</p>
-              <p>Try changing the value stored on <strong>line 59</strong> of App.js.</p>
-              <p>The stored value is: {this.state.storageValue}</p>
+    render() {
+        return (
+            <div>
+                <h1>Voting Contract DApp</h1>
+                <Table data={this.state.data} />
+                <p>Vote Here</p>
+                <div>
+                    {this.state.electionRunning ? (
+                        <form onSubmit={this.handleSubmit}>
+                            <label>
+                                Name:
+                                <input type="text" value={this.state.value} onChange={this.handleChange} />
+                            </label>
+                            <input type="submit" value="Submit " />
+                        </form>
+                    ) : (
+                        <h2>Election has ended! The winner is : {this.state.winner}</h2>
+                    )}
+                </div>
             </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
+        );
+    }
 }
 
-export default App
+class Table extends Component
+{
+    render() {
+        return (
+            <BootstrapTable data={this.props.data}>
+                <TableHeaderColumn dataField='name' isKey>Name</TableHeaderColumn>
+                <TableHeaderColumn dataField='votes'>Votes</TableHeaderColumn>
+            </BootstrapTable>
+        );
+    }
+}
+
+
+
+export default App;
