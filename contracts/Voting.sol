@@ -41,16 +41,18 @@ contract Voting {
     function voteForCandidate(bytes32 candidate) public canVote(candidate)
     {
         votesReceived[candidate] += 1;
-        VoteOccurrence(msg.sender, candidate);
+        Vote(candidate, votesReceived[candidate]);
 
         // if someone gets more than 1 vote they win!
         if(votesReceived[candidate] >= 2) {
-            ElectionWinner(candidate, votesReceived[candidate]);
+            Winner(candidate);
         }
     }
 
-    event VoteOccurrence(address indexed _from, bytes32 _candidate);
     event ElectionWinner(bytes32 _candidate, uint8 _totalVotes);
+    event VoteOccurrence(address sender, bytes32 _candidate);
+    event Vote(bytes32 _candidate, uint8 _totalVotes);
+    event Winner(bytes32 _candidate);
 
     function validCandidate(bytes32 candidate) view internal returns (bool) {
         for(uint i = 0; i < candidateList.length; i++) {
