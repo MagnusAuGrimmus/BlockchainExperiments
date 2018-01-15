@@ -21,11 +21,4 @@ contract ElectionTest
 
         Assert.equal(votesReceived, 1, "Vote function not working correctly");
     }
-
-    //function testWinner()
-    //{
-    //    var (name, votes) = election.winner();
-    //    Assert.equal(name, bytes32("A"), "Winner function not working correctly");
-    //    Assert.equal(votes, 1, "Winner function not working correctly");
-    //}
 }
