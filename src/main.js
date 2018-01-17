@@ -6,6 +6,23 @@ const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 
 const input = fs.readFileSync('../contracts/Voting.sol');
 const output = solc.compile(input.toString(), 1);
+
+if(output.errors) {
+    var errorCount = 0;
+    output.errors.forEach(function(entry) {
+        if(!entry.indexOf("Warning")) {
+            errorCount++;
+        }
+
+        console.log(entry);
+    });
+
+    // there's something wrong with the contract, bail
+    if(errorCount) {
+        return;
+    }
+}
+
 const contract = output.contracts[':Voting'];
 const abi = JSON.parse(output.contracts[':Voting'].interface);
 
