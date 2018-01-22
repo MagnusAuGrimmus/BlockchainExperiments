@@ -1,138 +1,120 @@
 pragma solidity ^0.4.18;
+import './Set.sol';
 
-contract ImageShare {
-  bytes32 shareBaseUri;
+contract ImageShare
+{
+  using Set for Set.Data;
+  bytes32 private shareBaseUri;
 
-  address systemPublicKey;
-  address shareCreator;
+  address private systemPublicKey;
+  address private shareCreator;
 
-  address[] authorizedRead;
-  address[] authorizedOwn;
+  Set.Data private authorizedRead;
+  Set.Data private authorizedOwn;
 
   event OwnerAdded(address indexed _user);
   event OwnerRevoked(address indexed _user);
   event ReaderAdded(address indexed _user);
   event ReaderRevoked(address indexed _user);
 
-  function addAuthorizedOwner(address user)
-    onlyOwners
-    public
-  {
-    authorizedOwn.push(user);
-    OwnerAdded(user);
-  }
-
-  function addAuthorizedReader(address user)
-    onlyOwners
-    public
-  {
-    authorizedRead.push(user);
-    ReaderAdded(user);
-  }
-
-  function revokeAuthorizedOwner(address user)
-    onlyOwners
-    public
-  {
-    if(removeUserFromList(user, authorizedOwn)) {
-      OwnerRevoked(user);
-    }
-  }
-
-  function getState()
-    constant
-    public
-    returns (bytes32 _shareBaseUri, uint256 _ownCount, uint256 _readCount)
-  {
-    return(shareBaseUri, countElementsInArray(authorizedOwn), countElementsInArray(authorizedRead));
+  modifier onlyOwners() {
+    require(systemPublicKey == msg.sender);
+    _;
   }
 
   function ImageShare(bytes32 _shareBaseUri, address _shareCreator) public {
     systemPublicKey = msg.sender;
 
-    authorizedOwn.push(_shareCreator);
+    authorizedOwn.add(_shareCreator);
     OwnerAdded(_shareCreator);
 
     shareBaseUri = _shareBaseUri;
     shareCreator = _shareCreator;
   }
 
-  modifier onlyOwners() {
-    require(isOwner(msg.sender));
-    _;
+  function addAuthorizedOwner(address user)
+    onlyOwners
+    public
+    returns (bool success)
+  {
+    if(authorizedOwn.add(user))
+    {
+      OwnerAdded(user);
+      return true;
+    }
+    return false;
+  }
+
+  function addAuthorizedReader(address user)
+    onlyOwners
+    public
+    returns (bool success)
+  {
+    if(authorizedRead.add(user))
+    {
+      ReaderAdded(user);
+      return true;
+    }
+    return false;
+  }
+
+  function revokeAuthorizedOwner(address user)
+    onlyOwners
+    public
+    returns (bool success)
+  {
+    if(authorizedOwn.remove(user))
+    {
+      OwnerRevoked(user);
+      return true;
+    }
+    return false;
+  }
+
+  function revokeAuthorizedReader(address user)
+    onlyOwners
+    public
+    returns (bool success)
+  {
+    if(authorizedRead.remove(user))
+    {
+      ReaderRevoked(user);
+      return true;
+    }
+    return false;
+  }
+
+
+  function getState()
+    constant
+    public
+    returns (bytes32 _shareBaseUri, uint256 _ownCount, uint256 _readCount)
+  {
+    return(shareBaseUri, authorizedOwn.size, authorizedRead.size);
   }
 
   function isReader(address user)
     internal
     view
-    returns (bool)
+    returns (bool success)
   {
-    return inUserList(user, authorizedRead);
+    return authorizedRead.contains(user);
   }
 
   function isOwner(address user)
     internal
     view
-    returns (bool)
+    returns (bool success)
   {
-    return inUserList(user, authorizedOwn);
+    return authorizedOwn.contains(user);
   }
 
-  function inUserList(address user, address[] userList)
-    internal
-    pure
-    returns (bool)
+  function canView(address user)
+    public
+    view
+    returns (bool success)
   {
-    for (uint i = 0; i < userList.length; i++) {
-      if(userList[i] == user) {
-        return true;
-      }
-    }
-
-    return false;
+    return isOwner(user) || isReader(user);
   }
 
-  function countElementsInArray(address[] userList)
-    pure
-    internal
-    returns (uint256)
-  {
-     uint256 userCount = 0;
-
-     for (uint i = 0; i < userList.length; i++) {
-        if(userList[i] != 0) {
-          userCount++;
-        }
-     }
-
-     return userCount;
-  }
-
-  function removeUserFromList(address user, address[] userList)
-    internal
-    returns (bool)
-  {
-     uint userIndex = 0;
-
-     // find the index of the indicated user
-     for (uint i = 0; i < userList.length; i++) {
-        if(userList[i] == user) {
-          userIndex = i;
-        }
-     }
-
-     if(userIndex == 0) {
-       return false;
-     }
-
-     // move everything left, overwriting the user we want out
-     for (uint j = userIndex; j < userList.length-1; j++){
-         userList[j] = userList[j+1];
-     }
-
-     // remove the last element of the array and update the length
-     delete userList[userList.length-1];
-
-     return true;
-  }
 }
