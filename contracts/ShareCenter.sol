@@ -1,5 +1,7 @@
 pragma solidity ^0.4.18;
-import "./Set.sol";
+import "./utils/Set.sol";
+import "./utils/IterableSet_Integer.sol";
+import "./utils/IterableSet_Address.sol";
 
 contract ShareCenter
 {
@@ -69,9 +71,9 @@ contract ShareCenter
         idCounter = 0;
     }
 
-    function addSystem(address system) public isOwner
+    function addSystem(address system) public isOwner returns (bool)
     {
-        authorizedSystems.add(system);
+        return authorizedSystems.add(system);
     }
 
     function addUser(address addr, bytes32 name) public isRegisteredSystem returns (bool)

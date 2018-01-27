@@ -71,24 +71,24 @@
       "type": "function"
     }
   ],
-  "bytecode": "0x6060604052341561000f57600080fd5b6102f68061001e6000396000f300606060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063874021431461005c5780639dc159aa146100ab578063fe6949e3146100fa575b600080fd5b610091600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610149565b604051808215151515815260200191505060405180910390f35b6100e0600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff169060200190919050506101de565b604051808215151515815260200191505060405180910390f35b61012f600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610271565b604051808215151515815260200191505060405180910390f35b60006101558383610271565b151561016457600090506101d8565b60008360010160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff021916908315150217905550826000016000815480929190600190039190505550600190505b92915050565b60006101ea8383610271565b156101f8576000905061026b565b60018360010160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff0219169083151502179055508260000160008154809291906001019190505550600190505b92915050565b60008260010160008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060009054906101000a900460ff169050929150505600a165627a7a72305820e91910937cbb1477bfd2f323d96a1560a902bfd6654a8f64fdf1c764b40e18a70029",
-  "deployedBytecode": "0x606060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063874021431461005c5780639dc159aa146100ab578063fe6949e3146100fa575b600080fd5b610091600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610149565b604051808215151515815260200191505060405180910390f35b6100e0600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff169060200190919050506101de565b604051808215151515815260200191505060405180910390f35b61012f600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610271565b604051808215151515815260200191505060405180910390f35b60006101558383610271565b151561016457600090506101d8565b60008360010160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff021916908315150217905550826000016000815480929190600190039190505550600190505b92915050565b60006101ea8383610271565b156101f8576000905061026b565b60018360010160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff0219169083151502179055508260000160008154809291906001019190505550600190505b92915050565b60008260010160008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060009054906101000a900460ff169050929150505600a165627a7a72305820e91910937cbb1477bfd2f323d96a1560a902bfd6654a8f64fdf1c764b40e18a70029",
-  "sourceMap": "26:677:1:-;;;;;;;;;;;;;;;;;",
-  "deployedSourceMap": "26:677:1:-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;480:221;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;258:216;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;128:124;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;480:221;546:4;570:21;579:4;585:5;570:8;:21::i;:::-;569:22;566:51;;;612:5;605:12;;;;566:51;647:5;627:4;:10;;:17;638:5;627:17;;;;;;;;;;;;;;;;:25;;;;;;;;;;;;;;;;;;662:4;:9;;;:11;;;;;;;;;;;;;;690:4;683:11;;480:221;;;;;:::o;258:216::-;321:4;344:21;353:4;359:5;344:8;:21::i;:::-;341:50;;;386:5;379:12;;;;341:50;421:4;401;:10;;:17;412:5;401:17;;;;;;;;;;;;;;;;:24;;;;;;;;;;;;;;;;;;435:4;:9;;;:11;;;;;;;;;;;;;463:4;456:11;;258:216;;;;;:::o;128:124::-;201:4;228;:10;;:17;239:5;228:17;;;;;;;;;;;;;;;;;;;;;;;;;221:24;;128:124;;;;:::o",
-  "source": "pragma solidity ^0.4.18;\n\nlibrary Set\n{\n    struct Data {\n        uint size;\n        mapping(address => bool) flags;\n    }\n\n    function contains(Data storage self, address value) public view returns (bool)\n    {\n        return self.flags[value];\n    }\n\n    function add(Data storage self, address value) public returns (bool)\n    {\n        if(contains(self, value))\n            return false;\n        self.flags[value] = true;\n        self.size++;\n        return true;\n    }\n\n    function remove(Data storage self, address value) public returns (bool)\n    {\n        if(!contains(self, value))\n            return false;\n        self.flags[value] = false;\n        self.size--;\n        return true;\n    }\n}\n\nlibrary IterableSet_Address\n{\n    struct Data {\n        mapping(address => uint) indices;\n        address[] list;\n    }\n\n    function size(Data storage self) public view returns (uint)\n    {\n        return self.list.length;\n    }\n\n    function contains(Data storage self, address value) public view returns (bool)\n    {\n        return self.list[self.indices[value]] == value;\n    }\n\n    function add(Data storage self, address value) public returns (bool)\n    {\n        if(contains(self, value))\n            return false;\n        self.indices[value] = self.list.push(value) - 1;\n        return true;\n    }\n\n    function remove(Data storage self, address value) public returns (bool)\n    {\n        if(!contains(self, value))\n            return false;\n        uint toRemove = self.indices[value];\n        address temp = self.list[self.list.length - 1];\n        self.indices[temp] = toRemove;\n        self.list[toRemove] = temp;\n        self.list.length--;\n        return true;\n    }\n}\n\nlibrary IterableSet_Integer\n{\n    struct Data {\n        mapping(uint => uint) indices;\n        uint[] list;\n    }\n\n    function size(Data storage self) public view returns (uint)\n    {\n        return self.list.length;\n    }\n\n    function contains(Data storage self, uint value) public view returns (bool)\n    {\n        return self.list[self.indices[value]] == value;\n    }\n\n    function add(Data storage self, uint value) public returns (bool)\n    {\n        if(contains(self, value))\n            return false;\n        self.indices[value] = self.list.push(value) - 1;\n        return true;\n    }\n\n    function remove(Data storage self, uint value) public returns (bool)\n    {\n        if(!contains(self, value))\n            return false;\n        uint toRemove = self.indices[value];\n        uint temp = self.list[self.list.length - 1];\n        self.indices[temp] = toRemove;\n        self.list[toRemove] = temp;\n        self.list.length--;\n        return true;\n    }\n}\n\n//library ImageShareSet\n//{\n//    struct ImageShare\n//    {\n//        uint id;\n//        bytes32 uri;\n//        Set.Data authorizedOwn;\n//        Set.Data authorizedRead;\n//    }\n//\n//    struct Data\n//    {\n//        mapping(uint => ImageShare) map;\n//        ImageShare[] shares;\n//    }\n//\n//    function contains(Data storage self, uint id) public view returns (bool)\n//    {\n//        return self.map[id].uri == 0x0;\n//    }\n//\n//    function add(Data storage self, ImageShare share) public returns (bool)\n//    {\n//        if(contains(self, id))\n//            return false;\n//        self.shares.add(share);\n//        return true;\n//    }\n//\n//    function remove(Data storage self, uint id) public returns (bool)\n//    {\n//        if(!contains(self, id))\n//            return false;\n//        ImageShare toRemove = self.map[id];\n//        ImageShare end = self.shares[self.shares.length - 1];\n//        end.index = toRemove.index;\n//        self.map[id].uri == 0x0;\n//        self.shares[toRemove.index] = end;\n//        self.shares.length--;\n//        return true;\n//    }\n//}",
-  "sourcePath": "/Users/averma/Documents/Imageshare/BlockchainExperiments/contracts/Set.sol",
+  "bytecode": "0x6060604052341561000f57600080fd5b6102f68061001e6000396000f300606060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063874021431461005c5780639dc159aa146100ab578063fe6949e3146100fa575b600080fd5b610091600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610149565b604051808215151515815260200191505060405180910390f35b6100e0600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff169060200190919050506101de565b604051808215151515815260200191505060405180910390f35b61012f600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610271565b604051808215151515815260200191505060405180910390f35b60006101558383610271565b151561016457600090506101d8565b60008360010160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff021916908315150217905550826000016000815480929190600190039190505550600190505b92915050565b60006101ea8383610271565b156101f8576000905061026b565b60018360010160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff0219169083151502179055508260000160008154809291906001019190505550600190505b92915050565b60008260010160008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060009054906101000a900460ff169050929150505600a165627a7a72305820cafe051ed7c722b6b319d36547c2c904366acbe9b618a50a4125827da9c6e7e50029",
+  "deployedBytecode": "0x606060405260043610610057576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063874021431461005c5780639dc159aa146100ab578063fe6949e3146100fa575b600080fd5b610091600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610149565b604051808215151515815260200191505060405180910390f35b6100e0600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff169060200190919050506101de565b604051808215151515815260200191505060405180910390f35b61012f600480803590602001909190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610271565b604051808215151515815260200191505060405180910390f35b60006101558383610271565b151561016457600090506101d8565b60008360010160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff021916908315150217905550826000016000815480929190600190039190505550600190505b92915050565b60006101ea8383610271565b156101f8576000905061026b565b60018360010160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff0219169083151502179055508260000160008154809291906001019190505550600190505b92915050565b60008260010160008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060009054906101000a900460ff169050929150505600a165627a7a72305820cafe051ed7c722b6b319d36547c2c904366acbe9b618a50a4125827da9c6e7e50029",
+  "sourceMap": "26:677:3:-;;;;;;;;;;;;;;;;;",
+  "deployedSourceMap": "26:677:3:-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;480:221;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;258:216;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;128:124;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;480:221;546:4;570:21;579:4;585:5;570:8;:21::i;:::-;569:22;566:51;;;612:5;605:12;;;;566:51;647:5;627:4;:10;;:17;638:5;627:17;;;;;;;;;;;;;;;;:25;;;;;;;;;;;;;;;;;;662:4;:9;;;:11;;;;;;;;;;;;;;690:4;683:11;;480:221;;;;;:::o;258:216::-;321:4;344:21;353:4;359:5;344:8;:21::i;:::-;341:50;;;386:5;379:12;;;;341:50;421:4;401;:10;;:17;412:5;401:17;;;;;;;;;;;;;;;;:24;;;;;;;;;;;;;;;;;;435:4;:9;;;:11;;;;;;;;;;;;;463:4;456:11;;258:216;;;;;:::o;128:124::-;201:4;228;:10;;:17;239:5;228:17;;;;;;;;;;;;;;;;;;;;;;;;;221:24;;128:124;;;;:::o",
+  "source": "pragma solidity ^0.4.18;\n\nlibrary Set\n{\n    struct Data {\n        uint size;\n        mapping(address => bool) flags;\n    }\n\n    function contains(Data storage self, address value) public view returns (bool)\n    {\n        return self.flags[value];\n    }\n\n    function add(Data storage self, address value) public returns (bool)\n    {\n        if(contains(self, value))\n            return false;\n        self.flags[value] = true;\n        self.size++;\n        return true;\n    }\n\n    function remove(Data storage self, address value) public returns (bool)\n    {\n        if(!contains(self, value))\n            return false;\n        self.flags[value] = false;\n        self.size--;\n        return true;\n    }\n}",
+  "sourcePath": "/Users/averma/Documents/Imageshare/BlockchainExperiments/contracts/utils/Set.sol",
   "ast": {
     "attributes": {
-      "absolutePath": "/Users/averma/Documents/Imageshare/BlockchainExperiments/contracts/Set.sol",
+      "absolutePath": "/Users/averma/Documents/Imageshare/BlockchainExperiments/contracts/utils/Set.sol",
       "exportedSymbols": {
         "Set": [
-          319
+          1001
         ],
         "IterableSet_Address": [
-          454
+          361
         ],
         "IterableSet_Integer": [
-          589
+          359
         ]
       }
     },
@@ -102,9 +102,9 @@
             ".18"
           ]
         },
-        "id": 231,
+        "id": 913,
         "name": "PragmaDirective",
-        "src": "0:24:1"
+        "src": "0:24:3"
       },
       {
         "attributes": {
@@ -118,17 +118,17 @@
           "documentation": null,
           "fullyImplemented": true,
           "linearizedBaseContracts": [
-            319
+            1001
           ],
           "name": "Set",
-          "scope": 590
+          "scope": 1002
         },
         "children": [
           {
             "attributes": {
               "canonicalName": "Set.Data",
               "name": "Data",
-              "scope": 319,
+              "scope": 1001,
               "visibility": "public"
             },
             "children": [
@@ -136,7 +136,7 @@
                 "attributes": {
                   "constant": false,
                   "name": "size",
-                  "scope": 238,
+                  "scope": 920,
                   "stateVariable": false,
                   "storageLocation": "default",
                   "type": "uint256",
@@ -149,20 +149,20 @@
                       "name": "uint",
                       "type": "uint256"
                     },
-                    "id": 232,
+                    "id": 914,
                     "name": "ElementaryTypeName",
-                    "src": "66:4:1"
+                    "src": "66:4:3"
                   }
                 ],
-                "id": 233,
+                "id": 915,
                 "name": "VariableDeclaration",
-                "src": "66:9:1"
+                "src": "66:9:3"
               },
               {
                 "attributes": {
                   "constant": false,
                   "name": "flags",
-                  "scope": 238,
+                  "scope": 920,
                   "stateVariable": false,
                   "storageLocation": "default",
                   "type": "mapping(address => bool)",
@@ -180,33 +180,33 @@
                           "name": "address",
                           "type": "address"
                         },
-                        "id": 234,
+                        "id": 916,
                         "name": "ElementaryTypeName",
-                        "src": "93:7:1"
+                        "src": "93:7:3"
                       },
                       {
                         "attributes": {
                           "name": "bool",
                           "type": "bool"
                         },
-                        "id": 235,
+                        "id": 917,
                         "name": "ElementaryTypeName",
-                        "src": "104:4:1"
+                        "src": "104:4:3"
                       }
                     ],
-                    "id": 236,
+                    "id": 918,
                     "name": "Mapping",
-                    "src": "85:24:1"
+                    "src": "85:24:3"
                   }
                 ],
-                "id": 237,
+                "id": 919,
                 "name": "VariableDeclaration",
-                "src": "85:30:1"
+                "src": "85:30:3"
               }
             ],
-            "id": 238,
+            "id": 920,
             "name": "StructDefinition",
-            "src": "44:78:1"
+            "src": "44:78:3"
           },
           {
             "attributes": {
@@ -218,7 +218,7 @@
               ],
               "name": "contains",
               "payable": false,
-              "scope": 319,
+              "scope": 1001,
               "stateMutability": "view",
               "superFunction": null,
               "visibility": "public"
@@ -230,7 +230,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "self",
-                      "scope": 253,
+                      "scope": 935,
                       "stateVariable": false,
                       "storageLocation": "storage",
                       "type": "struct Set.Data storage pointer",
@@ -242,23 +242,23 @@
                         "attributes": {
                           "contractScope": null,
                           "name": "Data",
-                          "referencedDeclaration": 238,
+                          "referencedDeclaration": 920,
                           "type": "struct Set.Data storage pointer"
                         },
-                        "id": 239,
+                        "id": 921,
                         "name": "UserDefinedTypeName",
-                        "src": "146:4:1"
+                        "src": "146:4:3"
                       }
                     ],
-                    "id": 240,
+                    "id": 922,
                     "name": "VariableDeclaration",
-                    "src": "146:17:1"
+                    "src": "146:17:3"
                   },
                   {
                     "attributes": {
                       "constant": false,
                       "name": "value",
-                      "scope": 253,
+                      "scope": 935,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "address",
@@ -271,19 +271,19 @@
                           "name": "address",
                           "type": "address"
                         },
-                        "id": 241,
+                        "id": 923,
                         "name": "ElementaryTypeName",
-                        "src": "165:7:1"
+                        "src": "165:7:3"
                       }
                     ],
-                    "id": 242,
+                    "id": 924,
                     "name": "VariableDeclaration",
-                    "src": "165:13:1"
+                    "src": "165:13:3"
                   }
                 ],
-                "id": 243,
+                "id": 925,
                 "name": "ParameterList",
-                "src": "145:34:1"
+                "src": "145:34:3"
               },
               {
                 "children": [
@@ -291,7 +291,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "",
-                      "scope": 253,
+                      "scope": 935,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "bool",
@@ -304,25 +304,25 @@
                           "name": "bool",
                           "type": "bool"
                         },
-                        "id": 244,
+                        "id": 926,
                         "name": "ElementaryTypeName",
-                        "src": "201:4:1"
+                        "src": "201:4:3"
                       }
                     ],
-                    "id": 245,
+                    "id": 927,
                     "name": "VariableDeclaration",
-                    "src": "201:4:1"
+                    "src": "201:4:3"
                   }
                 ],
-                "id": 246,
+                "id": 928,
                 "name": "ParameterList",
-                "src": "200:6:1"
+                "src": "200:6:3"
               },
               {
                 "children": [
                   {
                     "attributes": {
-                      "functionReturnParameters": 246
+                      "functionReturnParameters": 928
                     },
                     "children": [
                       {
@@ -343,7 +343,7 @@
                               "isPure": false,
                               "lValueRequested": false,
                               "member_name": "flags",
-                              "referencedDeclaration": 237,
+                              "referencedDeclaration": 919,
                               "type": "mapping(address => bool)"
                             },
                             "children": [
@@ -353,18 +353,18 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 240,
+                                  "referencedDeclaration": 922,
                                   "type": "struct Set.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 247,
+                                "id": 929,
                                 "name": "Identifier",
-                                "src": "228:4:1"
+                                "src": "228:4:3"
                               }
                             ],
-                            "id": 248,
+                            "id": 930,
                             "name": "MemberAccess",
-                            "src": "228:10:1"
+                            "src": "228:10:3"
                           },
                           {
                             "attributes": {
@@ -372,33 +372,33 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 242,
+                              "referencedDeclaration": 924,
                               "type": "address",
                               "value": "value"
                             },
-                            "id": 249,
+                            "id": 931,
                             "name": "Identifier",
-                            "src": "239:5:1"
+                            "src": "239:5:3"
                           }
                         ],
-                        "id": 250,
+                        "id": 932,
                         "name": "IndexAccess",
-                        "src": "228:17:1"
+                        "src": "228:17:3"
                       }
                     ],
-                    "id": 251,
+                    "id": 933,
                     "name": "Return",
-                    "src": "221:24:1"
+                    "src": "221:24:3"
                   }
                 ],
-                "id": 252,
+                "id": 934,
                 "name": "Block",
-                "src": "211:41:1"
+                "src": "211:41:3"
               }
             ],
-            "id": 253,
+            "id": 935,
             "name": "FunctionDefinition",
-            "src": "128:124:1"
+            "src": "128:124:3"
           },
           {
             "attributes": {
@@ -410,7 +410,7 @@
               ],
               "name": "add",
               "payable": false,
-              "scope": 319,
+              "scope": 1001,
               "stateMutability": "nonpayable",
               "superFunction": null,
               "visibility": "public"
@@ -422,7 +422,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "self",
-                      "scope": 285,
+                      "scope": 967,
                       "stateVariable": false,
                       "storageLocation": "storage",
                       "type": "struct Set.Data storage pointer",
@@ -434,23 +434,23 @@
                         "attributes": {
                           "contractScope": null,
                           "name": "Data",
-                          "referencedDeclaration": 238,
+                          "referencedDeclaration": 920,
                           "type": "struct Set.Data storage pointer"
                         },
-                        "id": 254,
+                        "id": 936,
                         "name": "UserDefinedTypeName",
-                        "src": "271:4:1"
+                        "src": "271:4:3"
                       }
                     ],
-                    "id": 255,
+                    "id": 937,
                     "name": "VariableDeclaration",
-                    "src": "271:17:1"
+                    "src": "271:17:3"
                   },
                   {
                     "attributes": {
                       "constant": false,
                       "name": "value",
-                      "scope": 285,
+                      "scope": 967,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "address",
@@ -463,19 +463,19 @@
                           "name": "address",
                           "type": "address"
                         },
-                        "id": 256,
+                        "id": 938,
                         "name": "ElementaryTypeName",
-                        "src": "290:7:1"
+                        "src": "290:7:3"
                       }
                     ],
-                    "id": 257,
+                    "id": 939,
                     "name": "VariableDeclaration",
-                    "src": "290:13:1"
+                    "src": "290:13:3"
                   }
                 ],
-                "id": 258,
+                "id": 940,
                 "name": "ParameterList",
-                "src": "270:34:1"
+                "src": "270:34:3"
               },
               {
                 "children": [
@@ -483,7 +483,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "",
-                      "scope": 285,
+                      "scope": 967,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "bool",
@@ -496,19 +496,19 @@
                           "name": "bool",
                           "type": "bool"
                         },
-                        "id": 259,
+                        "id": 941,
                         "name": "ElementaryTypeName",
-                        "src": "321:4:1"
+                        "src": "321:4:3"
                       }
                     ],
-                    "id": 260,
+                    "id": 942,
                     "name": "VariableDeclaration",
-                    "src": "321:4:1"
+                    "src": "321:4:3"
                   }
                 ],
-                "id": 261,
+                "id": 943,
                 "name": "ParameterList",
-                "src": "320:6:1"
+                "src": "320:6:3"
               },
               {
                 "children": [
@@ -536,7 +536,7 @@
                             "attributes": {
                               "argumentTypes": [
                                 {
-                                  "typeIdentifier": "t_struct$_Data_$238_storage_ptr",
+                                  "typeIdentifier": "t_struct$_Data_$920_storage_ptr",
                                   "typeString": "struct Set.Data storage pointer"
                                 },
                                 {
@@ -547,13 +547,13 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 253,
+                              "referencedDeclaration": 935,
                               "type": "function (struct Set.Data storage pointer,address) view returns (bool)",
                               "value": "contains"
                             },
-                            "id": 262,
+                            "id": 944,
                             "name": "Identifier",
-                            "src": "344:8:1"
+                            "src": "344:8:3"
                           },
                           {
                             "attributes": {
@@ -561,13 +561,13 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 255,
+                              "referencedDeclaration": 937,
                               "type": "struct Set.Data storage pointer",
                               "value": "self"
                             },
-                            "id": 263,
+                            "id": 945,
                             "name": "Identifier",
-                            "src": "353:4:1"
+                            "src": "353:4:3"
                           },
                           {
                             "attributes": {
@@ -575,22 +575,22 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 257,
+                              "referencedDeclaration": 939,
                               "type": "address",
                               "value": "value"
                             },
-                            "id": 264,
+                            "id": 946,
                             "name": "Identifier",
-                            "src": "359:5:1"
+                            "src": "359:5:3"
                           }
                         ],
-                        "id": 265,
+                        "id": 947,
                         "name": "FunctionCall",
-                        "src": "344:21:1"
+                        "src": "344:21:3"
                       },
                       {
                         "attributes": {
-                          "functionReturnParameters": 261
+                          "functionReturnParameters": 943
                         },
                         "children": [
                           {
@@ -606,19 +606,19 @@
                               "type": "bool",
                               "value": "false"
                             },
-                            "id": 266,
+                            "id": 948,
                             "name": "Literal",
-                            "src": "386:5:1"
+                            "src": "386:5:3"
                           }
                         ],
-                        "id": 267,
+                        "id": 949,
                         "name": "Return",
-                        "src": "379:12:1"
+                        "src": "379:12:3"
                       }
                     ],
-                    "id": 268,
+                    "id": 950,
                     "name": "IfStatement",
-                    "src": "341:50:1"
+                    "src": "341:50:3"
                   },
                   {
                     "children": [
@@ -651,7 +651,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "flags",
-                                  "referencedDeclaration": 237,
+                                  "referencedDeclaration": 919,
                                   "type": "mapping(address => bool)"
                                 },
                                 "children": [
@@ -661,18 +661,18 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 255,
+                                      "referencedDeclaration": 937,
                                       "type": "struct Set.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 269,
+                                    "id": 951,
                                     "name": "Identifier",
-                                    "src": "401:4:1"
+                                    "src": "401:4:3"
                                   }
                                 ],
-                                "id": 272,
+                                "id": 954,
                                 "name": "MemberAccess",
-                                "src": "401:10:1"
+                                "src": "401:10:3"
                               },
                               {
                                 "attributes": {
@@ -680,18 +680,18 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 257,
+                                  "referencedDeclaration": 939,
                                   "type": "address",
                                   "value": "value"
                                 },
-                                "id": 271,
+                                "id": 953,
                                 "name": "Identifier",
-                                "src": "412:5:1"
+                                "src": "412:5:3"
                               }
                             ],
-                            "id": 273,
+                            "id": 955,
                             "name": "IndexAccess",
-                            "src": "401:17:1"
+                            "src": "401:17:3"
                           },
                           {
                             "attributes": {
@@ -706,19 +706,19 @@
                               "type": "bool",
                               "value": "true"
                             },
-                            "id": 274,
+                            "id": 956,
                             "name": "Literal",
-                            "src": "421:4:1"
+                            "src": "421:4:3"
                           }
                         ],
-                        "id": 275,
+                        "id": 957,
                         "name": "Assignment",
-                        "src": "401:24:1"
+                        "src": "401:24:3"
                       }
                     ],
-                    "id": 276,
+                    "id": 958,
                     "name": "ExpressionStatement",
-                    "src": "401:24:1"
+                    "src": "401:24:3"
                   },
                   {
                     "children": [
@@ -742,7 +742,7 @@
                               "isPure": false,
                               "lValueRequested": true,
                               "member_name": "size",
-                              "referencedDeclaration": 233,
+                              "referencedDeclaration": 915,
                               "type": "uint256"
                             },
                             "children": [
@@ -752,32 +752,32 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 255,
+                                  "referencedDeclaration": 937,
                                   "type": "struct Set.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 277,
+                                "id": 959,
                                 "name": "Identifier",
-                                "src": "435:4:1"
+                                "src": "435:4:3"
                               }
                             ],
-                            "id": 279,
+                            "id": 961,
                             "name": "MemberAccess",
-                            "src": "435:9:1"
+                            "src": "435:9:3"
                           }
                         ],
-                        "id": 280,
+                        "id": 962,
                         "name": "UnaryOperation",
-                        "src": "435:11:1"
+                        "src": "435:11:3"
                       }
                     ],
-                    "id": 281,
+                    "id": 963,
                     "name": "ExpressionStatement",
-                    "src": "435:11:1"
+                    "src": "435:11:3"
                   },
                   {
                     "attributes": {
-                      "functionReturnParameters": 261
+                      "functionReturnParameters": 943
                     },
                     "children": [
                       {
@@ -793,24 +793,24 @@
                           "type": "bool",
                           "value": "true"
                         },
-                        "id": 282,
+                        "id": 964,
                         "name": "Literal",
-                        "src": "463:4:1"
+                        "src": "463:4:3"
                       }
                     ],
-                    "id": 283,
+                    "id": 965,
                     "name": "Return",
-                    "src": "456:11:1"
+                    "src": "456:11:3"
                   }
                 ],
-                "id": 284,
+                "id": 966,
                 "name": "Block",
-                "src": "331:143:1"
+                "src": "331:143:3"
               }
             ],
-            "id": 285,
+            "id": 967,
             "name": "FunctionDefinition",
-            "src": "258:216:1"
+            "src": "258:216:3"
           },
           {
             "attributes": {
@@ -822,7 +822,7 @@
               ],
               "name": "remove",
               "payable": false,
-              "scope": 319,
+              "scope": 1001,
               "stateMutability": "nonpayable",
               "superFunction": null,
               "visibility": "public"
@@ -834,7 +834,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "self",
-                      "scope": 318,
+                      "scope": 1000,
                       "stateVariable": false,
                       "storageLocation": "storage",
                       "type": "struct Set.Data storage pointer",
@@ -846,23 +846,23 @@
                         "attributes": {
                           "contractScope": null,
                           "name": "Data",
-                          "referencedDeclaration": 238,
+                          "referencedDeclaration": 920,
                           "type": "struct Set.Data storage pointer"
                         },
-                        "id": 286,
+                        "id": 968,
                         "name": "UserDefinedTypeName",
-                        "src": "496:4:1"
+                        "src": "496:4:3"
                       }
                     ],
-                    "id": 287,
+                    "id": 969,
                     "name": "VariableDeclaration",
-                    "src": "496:17:1"
+                    "src": "496:17:3"
                   },
                   {
                     "attributes": {
                       "constant": false,
                       "name": "value",
-                      "scope": 318,
+                      "scope": 1000,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "address",
@@ -875,19 +875,19 @@
                           "name": "address",
                           "type": "address"
                         },
-                        "id": 288,
+                        "id": 970,
                         "name": "ElementaryTypeName",
-                        "src": "515:7:1"
+                        "src": "515:7:3"
                       }
                     ],
-                    "id": 289,
+                    "id": 971,
                     "name": "VariableDeclaration",
-                    "src": "515:13:1"
+                    "src": "515:13:3"
                   }
                 ],
-                "id": 290,
+                "id": 972,
                 "name": "ParameterList",
-                "src": "495:34:1"
+                "src": "495:34:3"
               },
               {
                 "children": [
@@ -895,7 +895,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "",
-                      "scope": 318,
+                      "scope": 1000,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "bool",
@@ -908,19 +908,19 @@
                           "name": "bool",
                           "type": "bool"
                         },
-                        "id": 291,
+                        "id": 973,
                         "name": "ElementaryTypeName",
-                        "src": "546:4:1"
+                        "src": "546:4:3"
                       }
                     ],
-                    "id": 292,
+                    "id": 974,
                     "name": "VariableDeclaration",
-                    "src": "546:4:1"
+                    "src": "546:4:3"
                   }
                 ],
-                "id": 293,
+                "id": 975,
                 "name": "ParameterList",
-                "src": "545:6:1"
+                "src": "545:6:3"
               },
               {
                 "children": [
@@ -960,7 +960,7 @@
                                 "attributes": {
                                   "argumentTypes": [
                                     {
-                                      "typeIdentifier": "t_struct$_Data_$238_storage_ptr",
+                                      "typeIdentifier": "t_struct$_Data_$920_storage_ptr",
                                       "typeString": "struct Set.Data storage pointer"
                                     },
                                     {
@@ -971,13 +971,13 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 253,
+                                  "referencedDeclaration": 935,
                                   "type": "function (struct Set.Data storage pointer,address) view returns (bool)",
                                   "value": "contains"
                                 },
-                                "id": 294,
+                                "id": 976,
                                 "name": "Identifier",
-                                "src": "570:8:1"
+                                "src": "570:8:3"
                               },
                               {
                                 "attributes": {
@@ -985,13 +985,13 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 287,
+                                  "referencedDeclaration": 969,
                                   "type": "struct Set.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 295,
+                                "id": 977,
                                 "name": "Identifier",
-                                "src": "579:4:1"
+                                "src": "579:4:3"
                               },
                               {
                                 "attributes": {
@@ -999,27 +999,27 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 289,
+                                  "referencedDeclaration": 971,
                                   "type": "address",
                                   "value": "value"
                                 },
-                                "id": 296,
+                                "id": 978,
                                 "name": "Identifier",
-                                "src": "585:5:1"
+                                "src": "585:5:3"
                               }
                             ],
-                            "id": 297,
+                            "id": 979,
                             "name": "FunctionCall",
-                            "src": "570:21:1"
+                            "src": "570:21:3"
                           }
                         ],
-                        "id": 298,
+                        "id": 980,
                         "name": "UnaryOperation",
-                        "src": "569:22:1"
+                        "src": "569:22:3"
                       },
                       {
                         "attributes": {
-                          "functionReturnParameters": 293
+                          "functionReturnParameters": 975
                         },
                         "children": [
                           {
@@ -1035,19 +1035,19 @@
                               "type": "bool",
                               "value": "false"
                             },
-                            "id": 299,
+                            "id": 981,
                             "name": "Literal",
-                            "src": "612:5:1"
+                            "src": "612:5:3"
                           }
                         ],
-                        "id": 300,
+                        "id": 982,
                         "name": "Return",
-                        "src": "605:12:1"
+                        "src": "605:12:3"
                       }
                     ],
-                    "id": 301,
+                    "id": 983,
                     "name": "IfStatement",
-                    "src": "566:51:1"
+                    "src": "566:51:3"
                   },
                   {
                     "children": [
@@ -1080,7 +1080,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "flags",
-                                  "referencedDeclaration": 237,
+                                  "referencedDeclaration": 919,
                                   "type": "mapping(address => bool)"
                                 },
                                 "children": [
@@ -1090,18 +1090,18 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 287,
+                                      "referencedDeclaration": 969,
                                       "type": "struct Set.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 302,
+                                    "id": 984,
                                     "name": "Identifier",
-                                    "src": "627:4:1"
+                                    "src": "627:4:3"
                                   }
                                 ],
-                                "id": 305,
+                                "id": 987,
                                 "name": "MemberAccess",
-                                "src": "627:10:1"
+                                "src": "627:10:3"
                               },
                               {
                                 "attributes": {
@@ -1109,18 +1109,18 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 289,
+                                  "referencedDeclaration": 971,
                                   "type": "address",
                                   "value": "value"
                                 },
-                                "id": 304,
+                                "id": 986,
                                 "name": "Identifier",
-                                "src": "638:5:1"
+                                "src": "638:5:3"
                               }
                             ],
-                            "id": 306,
+                            "id": 988,
                             "name": "IndexAccess",
-                            "src": "627:17:1"
+                            "src": "627:17:3"
                           },
                           {
                             "attributes": {
@@ -1135,19 +1135,19 @@
                               "type": "bool",
                               "value": "false"
                             },
-                            "id": 307,
+                            "id": 989,
                             "name": "Literal",
-                            "src": "647:5:1"
+                            "src": "647:5:3"
                           }
                         ],
-                        "id": 308,
+                        "id": 990,
                         "name": "Assignment",
-                        "src": "627:25:1"
+                        "src": "627:25:3"
                       }
                     ],
-                    "id": 309,
+                    "id": 991,
                     "name": "ExpressionStatement",
-                    "src": "627:25:1"
+                    "src": "627:25:3"
                   },
                   {
                     "children": [
@@ -1171,7 +1171,7 @@
                               "isPure": false,
                               "lValueRequested": true,
                               "member_name": "size",
-                              "referencedDeclaration": 233,
+                              "referencedDeclaration": 915,
                               "type": "uint256"
                             },
                             "children": [
@@ -1181,32 +1181,32 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 287,
+                                  "referencedDeclaration": 969,
                                   "type": "struct Set.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 310,
+                                "id": 992,
                                 "name": "Identifier",
-                                "src": "662:4:1"
+                                "src": "662:4:3"
                               }
                             ],
-                            "id": 312,
+                            "id": 994,
                             "name": "MemberAccess",
-                            "src": "662:9:1"
+                            "src": "662:9:3"
                           }
                         ],
-                        "id": 313,
+                        "id": 995,
                         "name": "UnaryOperation",
-                        "src": "662:11:1"
+                        "src": "662:11:3"
                       }
                     ],
-                    "id": 314,
+                    "id": 996,
                     "name": "ExpressionStatement",
-                    "src": "662:11:1"
+                    "src": "662:11:3"
                   },
                   {
                     "attributes": {
-                      "functionReturnParameters": 293
+                      "functionReturnParameters": 975
                     },
                     "children": [
                       {
@@ -1222,29 +1222,29 @@
                           "type": "bool",
                           "value": "true"
                         },
-                        "id": 315,
+                        "id": 997,
                         "name": "Literal",
-                        "src": "690:4:1"
+                        "src": "690:4:3"
                       }
                     ],
-                    "id": 316,
+                    "id": 998,
                     "name": "Return",
-                    "src": "683:11:1"
+                    "src": "683:11:3"
                   }
                 ],
-                "id": 317,
+                "id": 999,
                 "name": "Block",
-                "src": "556:145:1"
+                "src": "556:145:3"
               }
             ],
-            "id": 318,
+            "id": 1000,
             "name": "FunctionDefinition",
-            "src": "480:221:1"
+            "src": "480:221:3"
           }
         ],
-        "id": 319,
+        "id": 1001,
         "name": "ContractDefinition",
-        "src": "26:677:1"
+        "src": "26:677:3"
       },
       {
         "attributes": {
@@ -1258,17 +1258,17 @@
           "documentation": null,
           "fullyImplemented": true,
           "linearizedBaseContracts": [
-            454
+            361
           ],
           "name": "IterableSet_Address",
-          "scope": 590
+          "scope": 362
         },
         "children": [
           {
             "attributes": {
               "canonicalName": "IterableSet_Address.Data",
               "name": "Data",
-              "scope": 454,
+              "scope": 361,
               "visibility": "public"
             },
             "children": [
@@ -1276,7 +1276,7 @@
                 "attributes": {
                   "constant": false,
                   "name": "indices",
-                  "scope": 327,
+                  "scope": 234,
                   "stateVariable": false,
                   "storageLocation": "default",
                   "type": "mapping(address => uint256)",
@@ -1294,7 +1294,7 @@
                           "name": "address",
                           "type": "address"
                         },
-                        "id": 320,
+                        "id": 227,
                         "name": "ElementaryTypeName",
                         "src": "769:7:1"
                       },
@@ -1303,17 +1303,17 @@
                           "name": "uint",
                           "type": "uint256"
                         },
-                        "id": 321,
+                        "id": 228,
                         "name": "ElementaryTypeName",
                         "src": "780:4:1"
                       }
                     ],
-                    "id": 322,
+                    "id": 229,
                     "name": "Mapping",
                     "src": "761:24:1"
                   }
                 ],
-                "id": 323,
+                "id": 230,
                 "name": "VariableDeclaration",
                 "src": "761:32:1"
               },
@@ -1321,7 +1321,7 @@
                 "attributes": {
                   "constant": false,
                   "name": "list",
-                  "scope": 327,
+                  "scope": 234,
                   "stateVariable": false,
                   "storageLocation": "default",
                   "type": "address[] storage pointer",
@@ -1340,22 +1340,22 @@
                           "name": "address",
                           "type": "address"
                         },
-                        "id": 324,
+                        "id": 231,
                         "name": "ElementaryTypeName",
                         "src": "803:7:1"
                       }
                     ],
-                    "id": 325,
+                    "id": 232,
                     "name": "ArrayTypeName",
                     "src": "803:9:1"
                   }
                 ],
-                "id": 326,
+                "id": 233,
                 "name": "VariableDeclaration",
                 "src": "803:14:1"
               }
             ],
-            "id": 327,
+            "id": 234,
             "name": "StructDefinition",
             "src": "739:85:1"
           },
@@ -1369,7 +1369,7 @@
               ],
               "name": "size",
               "payable": false,
-              "scope": 454,
+              "scope": 361,
               "stateMutability": "view",
               "superFunction": null,
               "visibility": "public"
@@ -1381,7 +1381,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "self",
-                      "scope": 339,
+                      "scope": 246,
                       "stateVariable": false,
                       "storageLocation": "storage",
                       "type": "struct IterableSet_Address.Data storage pointer",
@@ -1393,20 +1393,20 @@
                         "attributes": {
                           "contractScope": null,
                           "name": "Data",
-                          "referencedDeclaration": 327,
+                          "referencedDeclaration": 234,
                           "type": "struct IterableSet_Address.Data storage pointer"
                         },
-                        "id": 328,
+                        "id": 235,
                         "name": "UserDefinedTypeName",
                         "src": "844:4:1"
                       }
                     ],
-                    "id": 329,
+                    "id": 236,
                     "name": "VariableDeclaration",
                     "src": "844:17:1"
                   }
                 ],
-                "id": 330,
+                "id": 237,
                 "name": "ParameterList",
                 "src": "843:19:1"
               },
@@ -1416,7 +1416,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "",
-                      "scope": 339,
+                      "scope": 246,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "uint256",
@@ -1429,17 +1429,17 @@
                           "name": "uint",
                           "type": "uint256"
                         },
-                        "id": 331,
+                        "id": 238,
                         "name": "ElementaryTypeName",
                         "src": "884:4:1"
                       }
                     ],
-                    "id": 332,
+                    "id": 239,
                     "name": "VariableDeclaration",
                     "src": "884:4:1"
                   }
                 ],
-                "id": 333,
+                "id": 240,
                 "name": "ParameterList",
                 "src": "883:6:1"
               },
@@ -1447,7 +1447,7 @@
                 "children": [
                   {
                     "attributes": {
-                      "functionReturnParameters": 333
+                      "functionReturnParameters": 240
                     },
                     "children": [
                       {
@@ -1470,7 +1470,7 @@
                               "isPure": false,
                               "lValueRequested": false,
                               "member_name": "list",
-                              "referencedDeclaration": 326,
+                              "referencedDeclaration": 233,
                               "type": "address[] storage ref"
                             },
                             "children": [
@@ -1480,36 +1480,36 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 329,
+                                  "referencedDeclaration": 236,
                                   "type": "struct IterableSet_Address.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 334,
+                                "id": 241,
                                 "name": "Identifier",
                                 "src": "911:4:1"
                               }
                             ],
-                            "id": 335,
+                            "id": 242,
                             "name": "MemberAccess",
                             "src": "911:9:1"
                           }
                         ],
-                        "id": 336,
+                        "id": 243,
                         "name": "MemberAccess",
                         "src": "911:16:1"
                       }
                     ],
-                    "id": 337,
+                    "id": 244,
                     "name": "Return",
                     "src": "904:23:1"
                   }
                 ],
-                "id": 338,
+                "id": 245,
                 "name": "Block",
                 "src": "894:40:1"
               }
             ],
-            "id": 339,
+            "id": 246,
             "name": "FunctionDefinition",
             "src": "830:104:1"
           },
@@ -1523,7 +1523,7 @@
               ],
               "name": "contains",
               "payable": false,
-              "scope": 454,
+              "scope": 361,
               "stateMutability": "view",
               "superFunction": null,
               "visibility": "public"
@@ -1535,7 +1535,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "self",
-                      "scope": 359,
+                      "scope": 266,
                       "stateVariable": false,
                       "storageLocation": "storage",
                       "type": "struct IterableSet_Address.Data storage pointer",
@@ -1547,15 +1547,15 @@
                         "attributes": {
                           "contractScope": null,
                           "name": "Data",
-                          "referencedDeclaration": 327,
+                          "referencedDeclaration": 234,
                           "type": "struct IterableSet_Address.Data storage pointer"
                         },
-                        "id": 340,
+                        "id": 247,
                         "name": "UserDefinedTypeName",
                         "src": "958:4:1"
                       }
                     ],
-                    "id": 341,
+                    "id": 248,
                     "name": "VariableDeclaration",
                     "src": "958:17:1"
                   },
@@ -1563,7 +1563,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "value",
-                      "scope": 359,
+                      "scope": 266,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "address",
@@ -1576,17 +1576,17 @@
                           "name": "address",
                           "type": "address"
                         },
-                        "id": 342,
+                        "id": 249,
                         "name": "ElementaryTypeName",
                         "src": "977:7:1"
                       }
                     ],
-                    "id": 343,
+                    "id": 250,
                     "name": "VariableDeclaration",
                     "src": "977:13:1"
                   }
                 ],
-                "id": 344,
+                "id": 251,
                 "name": "ParameterList",
                 "src": "957:34:1"
               },
@@ -1596,7 +1596,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "",
-                      "scope": 359,
+                      "scope": 266,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "bool",
@@ -1609,17 +1609,17 @@
                           "name": "bool",
                           "type": "bool"
                         },
-                        "id": 345,
+                        "id": 252,
                         "name": "ElementaryTypeName",
                         "src": "1013:4:1"
                       }
                     ],
-                    "id": 346,
+                    "id": 253,
                     "name": "VariableDeclaration",
                     "src": "1013:4:1"
                   }
                 ],
-                "id": 347,
+                "id": 254,
                 "name": "ParameterList",
                 "src": "1012:6:1"
               },
@@ -1627,7 +1627,7 @@
                 "children": [
                   {
                     "attributes": {
-                      "functionReturnParameters": 347
+                      "functionReturnParameters": 254
                     },
                     "children": [
                       {
@@ -1663,7 +1663,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "list",
-                                  "referencedDeclaration": 326,
+                                  "referencedDeclaration": 233,
                                   "type": "address[] storage ref"
                                 },
                                 "children": [
@@ -1673,16 +1673,16 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 341,
+                                      "referencedDeclaration": 248,
                                       "type": "struct IterableSet_Address.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 348,
+                                    "id": 255,
                                     "name": "Identifier",
                                     "src": "1040:4:1"
                                   }
                                 ],
-                                "id": 349,
+                                "id": 256,
                                 "name": "MemberAccess",
                                 "src": "1040:9:1"
                               },
@@ -1704,7 +1704,7 @@
                                       "isPure": false,
                                       "lValueRequested": false,
                                       "member_name": "indices",
-                                      "referencedDeclaration": 323,
+                                      "referencedDeclaration": 230,
                                       "type": "mapping(address => uint256)"
                                     },
                                     "children": [
@@ -1714,16 +1714,16 @@
                                           "overloadedDeclarations": [
                                             null
                                           ],
-                                          "referencedDeclaration": 341,
+                                          "referencedDeclaration": 248,
                                           "type": "struct IterableSet_Address.Data storage pointer",
                                           "value": "self"
                                         },
-                                        "id": 350,
+                                        "id": 257,
                                         "name": "Identifier",
                                         "src": "1050:4:1"
                                       }
                                     ],
-                                    "id": 351,
+                                    "id": 258,
                                     "name": "MemberAccess",
                                     "src": "1050:12:1"
                                   },
@@ -1733,21 +1733,21 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 343,
+                                      "referencedDeclaration": 250,
                                       "type": "address",
                                       "value": "value"
                                     },
-                                    "id": 352,
+                                    "id": 259,
                                     "name": "Identifier",
                                     "src": "1063:5:1"
                                   }
                                 ],
-                                "id": 353,
+                                "id": 260,
                                 "name": "IndexAccess",
                                 "src": "1050:19:1"
                               }
                             ],
-                            "id": 354,
+                            "id": 261,
                             "name": "IndexAccess",
                             "src": "1040:30:1"
                           },
@@ -1757,31 +1757,31 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 343,
+                              "referencedDeclaration": 250,
                               "type": "address",
                               "value": "value"
                             },
-                            "id": 355,
+                            "id": 262,
                             "name": "Identifier",
                             "src": "1074:5:1"
                           }
                         ],
-                        "id": 356,
+                        "id": 263,
                         "name": "BinaryOperation",
                         "src": "1040:39:1"
                       }
                     ],
-                    "id": 357,
+                    "id": 264,
                     "name": "Return",
                     "src": "1033:46:1"
                   }
                 ],
-                "id": 358,
+                "id": 265,
                 "name": "Block",
                 "src": "1023:63:1"
               }
             ],
-            "id": 359,
+            "id": 266,
             "name": "FunctionDefinition",
             "src": "940:146:1"
           },
@@ -1795,7 +1795,7 @@
               ],
               "name": "add",
               "payable": false,
-              "scope": 454,
+              "scope": 361,
               "stateMutability": "nonpayable",
               "superFunction": null,
               "visibility": "public"
@@ -1807,7 +1807,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "self",
-                      "scope": 392,
+                      "scope": 299,
                       "stateVariable": false,
                       "storageLocation": "storage",
                       "type": "struct IterableSet_Address.Data storage pointer",
@@ -1819,15 +1819,15 @@
                         "attributes": {
                           "contractScope": null,
                           "name": "Data",
-                          "referencedDeclaration": 327,
+                          "referencedDeclaration": 234,
                           "type": "struct IterableSet_Address.Data storage pointer"
                         },
-                        "id": 360,
+                        "id": 267,
                         "name": "UserDefinedTypeName",
                         "src": "1105:4:1"
                       }
                     ],
-                    "id": 361,
+                    "id": 268,
                     "name": "VariableDeclaration",
                     "src": "1105:17:1"
                   },
@@ -1835,7 +1835,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "value",
-                      "scope": 392,
+                      "scope": 299,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "address",
@@ -1848,17 +1848,17 @@
                           "name": "address",
                           "type": "address"
                         },
-                        "id": 362,
+                        "id": 269,
                         "name": "ElementaryTypeName",
                         "src": "1124:7:1"
                       }
                     ],
-                    "id": 363,
+                    "id": 270,
                     "name": "VariableDeclaration",
                     "src": "1124:13:1"
                   }
                 ],
-                "id": 364,
+                "id": 271,
                 "name": "ParameterList",
                 "src": "1104:34:1"
               },
@@ -1868,7 +1868,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "",
-                      "scope": 392,
+                      "scope": 299,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "bool",
@@ -1881,17 +1881,17 @@
                           "name": "bool",
                           "type": "bool"
                         },
-                        "id": 365,
+                        "id": 272,
                         "name": "ElementaryTypeName",
                         "src": "1155:4:1"
                       }
                     ],
-                    "id": 366,
+                    "id": 273,
                     "name": "VariableDeclaration",
                     "src": "1155:4:1"
                   }
                 ],
-                "id": 367,
+                "id": 274,
                 "name": "ParameterList",
                 "src": "1154:6:1"
               },
@@ -1921,7 +1921,7 @@
                             "attributes": {
                               "argumentTypes": [
                                 {
-                                  "typeIdentifier": "t_struct$_Data_$327_storage_ptr",
+                                  "typeIdentifier": "t_struct$_Data_$234_storage_ptr",
                                   "typeString": "struct IterableSet_Address.Data storage pointer"
                                 },
                                 {
@@ -1932,11 +1932,11 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 359,
+                              "referencedDeclaration": 266,
                               "type": "function (struct IterableSet_Address.Data storage pointer,address) view returns (bool)",
                               "value": "contains"
                             },
-                            "id": 368,
+                            "id": 275,
                             "name": "Identifier",
                             "src": "1178:8:1"
                           },
@@ -1946,11 +1946,11 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 361,
+                              "referencedDeclaration": 268,
                               "type": "struct IterableSet_Address.Data storage pointer",
                               "value": "self"
                             },
-                            "id": 369,
+                            "id": 276,
                             "name": "Identifier",
                             "src": "1187:4:1"
                           },
@@ -1960,22 +1960,22 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 363,
+                              "referencedDeclaration": 270,
                               "type": "address",
                               "value": "value"
                             },
-                            "id": 370,
+                            "id": 277,
                             "name": "Identifier",
                             "src": "1193:5:1"
                           }
                         ],
-                        "id": 371,
+                        "id": 278,
                         "name": "FunctionCall",
                         "src": "1178:21:1"
                       },
                       {
                         "attributes": {
-                          "functionReturnParameters": 367
+                          "functionReturnParameters": 274
                         },
                         "children": [
                           {
@@ -1991,17 +1991,17 @@
                               "type": "bool",
                               "value": "false"
                             },
-                            "id": 372,
+                            "id": 279,
                             "name": "Literal",
                             "src": "1220:5:1"
                           }
                         ],
-                        "id": 373,
+                        "id": 280,
                         "name": "Return",
                         "src": "1213:12:1"
                       }
                     ],
-                    "id": 374,
+                    "id": 281,
                     "name": "IfStatement",
                     "src": "1175:50:1"
                   },
@@ -2036,7 +2036,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "indices",
-                                  "referencedDeclaration": 323,
+                                  "referencedDeclaration": 230,
                                   "type": "mapping(address => uint256)"
                                 },
                                 "children": [
@@ -2046,16 +2046,16 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 361,
+                                      "referencedDeclaration": 268,
                                       "type": "struct IterableSet_Address.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 375,
+                                    "id": 282,
                                     "name": "Identifier",
                                     "src": "1235:4:1"
                                   }
                                 ],
-                                "id": 378,
+                                "id": 285,
                                 "name": "MemberAccess",
                                 "src": "1235:12:1"
                               },
@@ -2065,16 +2065,16 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 363,
+                                  "referencedDeclaration": 270,
                                   "type": "address",
                                   "value": "value"
                                 },
-                                "id": 377,
+                                "id": 284,
                                 "name": "Identifier",
                                 "src": "1248:5:1"
                               }
                             ],
-                            "id": 379,
+                            "id": 286,
                             "name": "IndexAccess",
                             "src": "1235:19:1"
                           },
@@ -2133,7 +2133,7 @@
                                           "isPure": false,
                                           "lValueRequested": false,
                                           "member_name": "list",
-                                          "referencedDeclaration": 326,
+                                          "referencedDeclaration": 233,
                                           "type": "address[] storage ref"
                                         },
                                         "children": [
@@ -2143,21 +2143,21 @@
                                               "overloadedDeclarations": [
                                                 null
                                               ],
-                                              "referencedDeclaration": 361,
+                                              "referencedDeclaration": 268,
                                               "type": "struct IterableSet_Address.Data storage pointer",
                                               "value": "self"
                                             },
-                                            "id": 380,
+                                            "id": 287,
                                             "name": "Identifier",
                                             "src": "1257:4:1"
                                           }
                                         ],
-                                        "id": 381,
+                                        "id": 288,
                                         "name": "MemberAccess",
                                         "src": "1257:9:1"
                                       }
                                     ],
-                                    "id": 382,
+                                    "id": 289,
                                     "name": "MemberAccess",
                                     "src": "1257:14:1"
                                   },
@@ -2167,16 +2167,16 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 363,
+                                      "referencedDeclaration": 270,
                                       "type": "address",
                                       "value": "value"
                                     },
-                                    "id": 383,
+                                    "id": 290,
                                     "name": "Identifier",
                                     "src": "1272:5:1"
                                   }
                                 ],
-                                "id": 384,
+                                "id": 291,
                                 "name": "FunctionCall",
                                 "src": "1257:21:1"
                               },
@@ -2193,28 +2193,28 @@
                                   "type": "int_const 1",
                                   "value": "1"
                                 },
-                                "id": 385,
+                                "id": 292,
                                 "name": "Literal",
                                 "src": "1281:1:1"
                               }
                             ],
-                            "id": 386,
+                            "id": 293,
                             "name": "BinaryOperation",
                             "src": "1257:25:1"
                           }
                         ],
-                        "id": 387,
+                        "id": 294,
                         "name": "Assignment",
                         "src": "1235:47:1"
                       }
                     ],
-                    "id": 388,
+                    "id": 295,
                     "name": "ExpressionStatement",
                     "src": "1235:47:1"
                   },
                   {
                     "attributes": {
-                      "functionReturnParameters": 367
+                      "functionReturnParameters": 274
                     },
                     "children": [
                       {
@@ -2230,22 +2230,22 @@
                           "type": "bool",
                           "value": "true"
                         },
-                        "id": 389,
+                        "id": 296,
                         "name": "Literal",
                         "src": "1299:4:1"
                       }
                     ],
-                    "id": 390,
+                    "id": 297,
                     "name": "Return",
                     "src": "1292:11:1"
                   }
                 ],
-                "id": 391,
+                "id": 298,
                 "name": "Block",
                 "src": "1165:145:1"
               }
             ],
-            "id": 392,
+            "id": 299,
             "name": "FunctionDefinition",
             "src": "1092:218:1"
           },
@@ -2259,7 +2259,7 @@
               ],
               "name": "remove",
               "payable": false,
-              "scope": 454,
+              "scope": 361,
               "stateMutability": "nonpayable",
               "superFunction": null,
               "visibility": "public"
@@ -2271,7 +2271,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "self",
-                      "scope": 453,
+                      "scope": 360,
                       "stateVariable": false,
                       "storageLocation": "storage",
                       "type": "struct IterableSet_Address.Data storage pointer",
@@ -2283,15 +2283,15 @@
                         "attributes": {
                           "contractScope": null,
                           "name": "Data",
-                          "referencedDeclaration": 327,
+                          "referencedDeclaration": 234,
                           "type": "struct IterableSet_Address.Data storage pointer"
                         },
-                        "id": 393,
+                        "id": 300,
                         "name": "UserDefinedTypeName",
                         "src": "1332:4:1"
                       }
                     ],
-                    "id": 394,
+                    "id": 301,
                     "name": "VariableDeclaration",
                     "src": "1332:17:1"
                   },
@@ -2299,7 +2299,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "value",
-                      "scope": 453,
+                      "scope": 360,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "address",
@@ -2312,17 +2312,17 @@
                           "name": "address",
                           "type": "address"
                         },
-                        "id": 395,
+                        "id": 302,
                         "name": "ElementaryTypeName",
                         "src": "1351:7:1"
                       }
                     ],
-                    "id": 396,
+                    "id": 303,
                     "name": "VariableDeclaration",
                     "src": "1351:13:1"
                   }
                 ],
-                "id": 397,
+                "id": 304,
                 "name": "ParameterList",
                 "src": "1331:34:1"
               },
@@ -2332,7 +2332,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "",
-                      "scope": 453,
+                      "scope": 360,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "bool",
@@ -2345,17 +2345,17 @@
                           "name": "bool",
                           "type": "bool"
                         },
-                        "id": 398,
+                        "id": 305,
                         "name": "ElementaryTypeName",
                         "src": "1382:4:1"
                       }
                     ],
-                    "id": 399,
+                    "id": 306,
                     "name": "VariableDeclaration",
                     "src": "1382:4:1"
                   }
                 ],
-                "id": 400,
+                "id": 307,
                 "name": "ParameterList",
                 "src": "1381:6:1"
               },
@@ -2397,7 +2397,7 @@
                                 "attributes": {
                                   "argumentTypes": [
                                     {
-                                      "typeIdentifier": "t_struct$_Data_$327_storage_ptr",
+                                      "typeIdentifier": "t_struct$_Data_$234_storage_ptr",
                                       "typeString": "struct IterableSet_Address.Data storage pointer"
                                     },
                                     {
@@ -2408,11 +2408,11 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 359,
+                                  "referencedDeclaration": 266,
                                   "type": "function (struct IterableSet_Address.Data storage pointer,address) view returns (bool)",
                                   "value": "contains"
                                 },
-                                "id": 401,
+                                "id": 308,
                                 "name": "Identifier",
                                 "src": "1406:8:1"
                               },
@@ -2422,11 +2422,11 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 394,
+                                  "referencedDeclaration": 301,
                                   "type": "struct IterableSet_Address.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 402,
+                                "id": 309,
                                 "name": "Identifier",
                                 "src": "1415:4:1"
                               },
@@ -2436,27 +2436,27 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 396,
+                                  "referencedDeclaration": 303,
                                   "type": "address",
                                   "value": "value"
                                 },
-                                "id": 403,
+                                "id": 310,
                                 "name": "Identifier",
                                 "src": "1421:5:1"
                               }
                             ],
-                            "id": 404,
+                            "id": 311,
                             "name": "FunctionCall",
                             "src": "1406:21:1"
                           }
                         ],
-                        "id": 405,
+                        "id": 312,
                         "name": "UnaryOperation",
                         "src": "1405:22:1"
                       },
                       {
                         "attributes": {
-                          "functionReturnParameters": 400
+                          "functionReturnParameters": 307
                         },
                         "children": [
                           {
@@ -2472,24 +2472,24 @@
                               "type": "bool",
                               "value": "false"
                             },
-                            "id": 406,
+                            "id": 313,
                             "name": "Literal",
                             "src": "1448:5:1"
                           }
                         ],
-                        "id": 407,
+                        "id": 314,
                         "name": "Return",
                         "src": "1441:12:1"
                       }
                     ],
-                    "id": 408,
+                    "id": 315,
                     "name": "IfStatement",
                     "src": "1402:51:1"
                   },
                   {
                     "attributes": {
                       "assignments": [
-                        410
+                        317
                       ]
                     },
                     "children": [
@@ -2497,7 +2497,7 @@
                         "attributes": {
                           "constant": false,
                           "name": "toRemove",
-                          "scope": 453,
+                          "scope": 360,
                           "stateVariable": false,
                           "storageLocation": "default",
                           "type": "uint256",
@@ -2510,12 +2510,12 @@
                               "name": "uint",
                               "type": "uint256"
                             },
-                            "id": 409,
+                            "id": 316,
                             "name": "ElementaryTypeName",
                             "src": "1463:4:1"
                           }
                         ],
-                        "id": 410,
+                        "id": 317,
                         "name": "VariableDeclaration",
                         "src": "1463:13:1"
                       },
@@ -2537,7 +2537,7 @@
                               "isPure": false,
                               "lValueRequested": false,
                               "member_name": "indices",
-                              "referencedDeclaration": 323,
+                              "referencedDeclaration": 230,
                               "type": "mapping(address => uint256)"
                             },
                             "children": [
@@ -2547,16 +2547,16 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 394,
+                                  "referencedDeclaration": 301,
                                   "type": "struct IterableSet_Address.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 411,
+                                "id": 318,
                                 "name": "Identifier",
                                 "src": "1479:4:1"
                               }
                             ],
-                            "id": 412,
+                            "id": 319,
                             "name": "MemberAccess",
                             "src": "1479:12:1"
                           },
@@ -2566,28 +2566,28 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 396,
+                              "referencedDeclaration": 303,
                               "type": "address",
                               "value": "value"
                             },
-                            "id": 413,
+                            "id": 320,
                             "name": "Identifier",
                             "src": "1492:5:1"
                           }
                         ],
-                        "id": 414,
+                        "id": 321,
                         "name": "IndexAccess",
                         "src": "1479:19:1"
                       }
                     ],
-                    "id": 415,
+                    "id": 322,
                     "name": "VariableDeclarationStatement",
                     "src": "1463:35:1"
                   },
                   {
                     "attributes": {
                       "assignments": [
-                        417
+                        324
                       ]
                     },
                     "children": [
@@ -2595,7 +2595,7 @@
                         "attributes": {
                           "constant": false,
                           "name": "temp",
-                          "scope": 453,
+                          "scope": 360,
                           "stateVariable": false,
                           "storageLocation": "default",
                           "type": "address",
@@ -2608,12 +2608,12 @@
                               "name": "address",
                               "type": "address"
                             },
-                            "id": 416,
+                            "id": 323,
                             "name": "ElementaryTypeName",
                             "src": "1508:7:1"
                           }
                         ],
-                        "id": 417,
+                        "id": 324,
                         "name": "VariableDeclaration",
                         "src": "1508:12:1"
                       },
@@ -2635,7 +2635,7 @@
                               "isPure": false,
                               "lValueRequested": false,
                               "member_name": "list",
-                              "referencedDeclaration": 326,
+                              "referencedDeclaration": 233,
                               "type": "address[] storage ref"
                             },
                             "children": [
@@ -2645,16 +2645,16 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 394,
+                                  "referencedDeclaration": 301,
                                   "type": "struct IterableSet_Address.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 418,
+                                "id": 325,
                                 "name": "Identifier",
                                 "src": "1523:4:1"
                               }
                             ],
-                            "id": 419,
+                            "id": 326,
                             "name": "MemberAccess",
                             "src": "1523:9:1"
                           },
@@ -2693,7 +2693,7 @@
                                       "isPure": false,
                                       "lValueRequested": false,
                                       "member_name": "list",
-                                      "referencedDeclaration": 326,
+                                      "referencedDeclaration": 233,
                                       "type": "address[] storage ref"
                                     },
                                     "children": [
@@ -2703,21 +2703,21 @@
                                           "overloadedDeclarations": [
                                             null
                                           ],
-                                          "referencedDeclaration": 394,
+                                          "referencedDeclaration": 301,
                                           "type": "struct IterableSet_Address.Data storage pointer",
                                           "value": "self"
                                         },
-                                        "id": 420,
+                                        "id": 327,
                                         "name": "Identifier",
                                         "src": "1533:4:1"
                                       }
                                     ],
-                                    "id": 421,
+                                    "id": 328,
                                     "name": "MemberAccess",
                                     "src": "1533:9:1"
                                   }
                                 ],
-                                "id": 422,
+                                "id": 329,
                                 "name": "MemberAccess",
                                 "src": "1533:16:1"
                               },
@@ -2734,22 +2734,22 @@
                                   "type": "int_const 1",
                                   "value": "1"
                                 },
-                                "id": 423,
+                                "id": 330,
                                 "name": "Literal",
                                 "src": "1552:1:1"
                               }
                             ],
-                            "id": 424,
+                            "id": 331,
                             "name": "BinaryOperation",
                             "src": "1533:20:1"
                           }
                         ],
-                        "id": 425,
+                        "id": 332,
                         "name": "IndexAccess",
                         "src": "1523:31:1"
                       }
                     ],
-                    "id": 426,
+                    "id": 333,
                     "name": "VariableDeclarationStatement",
                     "src": "1508:46:1"
                   },
@@ -2784,7 +2784,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "indices",
-                                  "referencedDeclaration": 323,
+                                  "referencedDeclaration": 230,
                                   "type": "mapping(address => uint256)"
                                 },
                                 "children": [
@@ -2794,16 +2794,16 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 394,
+                                      "referencedDeclaration": 301,
                                       "type": "struct IterableSet_Address.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 427,
+                                    "id": 334,
                                     "name": "Identifier",
                                     "src": "1564:4:1"
                                   }
                                 ],
-                                "id": 430,
+                                "id": 337,
                                 "name": "MemberAccess",
                                 "src": "1564:12:1"
                               },
@@ -2813,16 +2813,16 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 417,
+                                  "referencedDeclaration": 324,
                                   "type": "address",
                                   "value": "temp"
                                 },
-                                "id": 429,
+                                "id": 336,
                                 "name": "Identifier",
                                 "src": "1577:4:1"
                               }
                             ],
-                            "id": 431,
+                            "id": 338,
                             "name": "IndexAccess",
                             "src": "1564:18:1"
                           },
@@ -2832,21 +2832,21 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 410,
+                              "referencedDeclaration": 317,
                               "type": "uint256",
                               "value": "toRemove"
                             },
-                            "id": 432,
+                            "id": 339,
                             "name": "Identifier",
                             "src": "1585:8:1"
                           }
                         ],
-                        "id": 433,
+                        "id": 340,
                         "name": "Assignment",
                         "src": "1564:29:1"
                       }
                     ],
-                    "id": 434,
+                    "id": 341,
                     "name": "ExpressionStatement",
                     "src": "1564:29:1"
                   },
@@ -2881,7 +2881,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "list",
-                                  "referencedDeclaration": 326,
+                                  "referencedDeclaration": 233,
                                   "type": "address[] storage ref"
                                 },
                                 "children": [
@@ -2891,16 +2891,16 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 394,
+                                      "referencedDeclaration": 301,
                                       "type": "struct IterableSet_Address.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 435,
+                                    "id": 342,
                                     "name": "Identifier",
                                     "src": "1603:4:1"
                                   }
                                 ],
-                                "id": 438,
+                                "id": 345,
                                 "name": "MemberAccess",
                                 "src": "1603:9:1"
                               },
@@ -2910,16 +2910,16 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 410,
+                                  "referencedDeclaration": 317,
                                   "type": "uint256",
                                   "value": "toRemove"
                                 },
-                                "id": 437,
+                                "id": 344,
                                 "name": "Identifier",
                                 "src": "1613:8:1"
                               }
                             ],
-                            "id": 439,
+                            "id": 346,
                             "name": "IndexAccess",
                             "src": "1603:19:1"
                           },
@@ -2929,21 +2929,21 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 417,
+                              "referencedDeclaration": 324,
                               "type": "address",
                               "value": "temp"
                             },
-                            "id": 440,
+                            "id": 347,
                             "name": "Identifier",
                             "src": "1625:4:1"
                           }
                         ],
-                        "id": 441,
+                        "id": 348,
                         "name": "Assignment",
                         "src": "1603:26:1"
                       }
                     ],
-                    "id": 442,
+                    "id": 349,
                     "name": "ExpressionStatement",
                     "src": "1603:26:1"
                   },
@@ -2981,7 +2981,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "list",
-                                  "referencedDeclaration": 326,
+                                  "referencedDeclaration": 233,
                                   "type": "address[] storage ref"
                                 },
                                 "children": [
@@ -2991,37 +2991,37 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 394,
+                                      "referencedDeclaration": 301,
                                       "type": "struct IterableSet_Address.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 443,
+                                    "id": 350,
                                     "name": "Identifier",
                                     "src": "1639:4:1"
                                   }
                                 ],
-                                "id": 446,
+                                "id": 353,
                                 "name": "MemberAccess",
                                 "src": "1639:9:1"
                               }
                             ],
-                            "id": 447,
+                            "id": 354,
                             "name": "MemberAccess",
                             "src": "1639:16:1"
                           }
                         ],
-                        "id": 448,
+                        "id": 355,
                         "name": "UnaryOperation",
                         "src": "1639:18:1"
                       }
                     ],
-                    "id": 449,
+                    "id": 356,
                     "name": "ExpressionStatement",
                     "src": "1639:18:1"
                   },
                   {
                     "attributes": {
-                      "functionReturnParameters": 400
+                      "functionReturnParameters": 307
                     },
                     "children": [
                       {
@@ -3037,27 +3037,27 @@
                           "type": "bool",
                           "value": "true"
                         },
-                        "id": 450,
+                        "id": 357,
                         "name": "Literal",
                         "src": "1674:4:1"
                       }
                     ],
-                    "id": 451,
+                    "id": 358,
                     "name": "Return",
                     "src": "1667:11:1"
                   }
                 ],
-                "id": 452,
+                "id": 359,
                 "name": "Block",
                 "src": "1392:293:1"
               }
             ],
-            "id": 453,
+            "id": 360,
             "name": "FunctionDefinition",
             "src": "1316:369:1"
           }
         ],
-        "id": 454,
+        "id": 361,
         "name": "ContractDefinition",
         "src": "705:982:1"
       },
@@ -3073,17 +3073,17 @@
           "documentation": null,
           "fullyImplemented": true,
           "linearizedBaseContracts": [
-            589
+            359
           ],
           "name": "IterableSet_Integer",
-          "scope": 590
+          "scope": 360
         },
         "children": [
           {
             "attributes": {
               "canonicalName": "IterableSet_Integer.Data",
               "name": "Data",
-              "scope": 589,
+              "scope": 359,
               "visibility": "public"
             },
             "children": [
@@ -3091,7 +3091,7 @@
                 "attributes": {
                   "constant": false,
                   "name": "indices",
-                  "scope": 462,
+                  "scope": 232,
                   "stateVariable": false,
                   "storageLocation": "default",
                   "type": "mapping(uint256 => uint256)",
@@ -3109,34 +3109,34 @@
                           "name": "uint",
                           "type": "uint256"
                         },
-                        "id": 455,
+                        "id": 225,
                         "name": "ElementaryTypeName",
-                        "src": "1753:4:1"
+                        "src": "1753:4:0"
                       },
                       {
                         "attributes": {
                           "name": "uint",
                           "type": "uint256"
                         },
-                        "id": 456,
+                        "id": 226,
                         "name": "ElementaryTypeName",
-                        "src": "1761:4:1"
+                        "src": "1761:4:0"
                       }
                     ],
-                    "id": 457,
+                    "id": 227,
                     "name": "Mapping",
-                    "src": "1745:21:1"
+                    "src": "1745:21:0"
                   }
                 ],
-                "id": 458,
+                "id": 228,
                 "name": "VariableDeclaration",
-                "src": "1745:29:1"
+                "src": "1745:29:0"
               },
               {
                 "attributes": {
                   "constant": false,
                   "name": "list",
-                  "scope": 462,
+                  "scope": 232,
                   "stateVariable": false,
                   "storageLocation": "default",
                   "type": "uint256[] storage pointer",
@@ -3155,24 +3155,24 @@
                           "name": "uint",
                           "type": "uint256"
                         },
-                        "id": 459,
+                        "id": 229,
                         "name": "ElementaryTypeName",
-                        "src": "1784:4:1"
+                        "src": "1784:4:0"
                       }
                     ],
-                    "id": 460,
+                    "id": 230,
                     "name": "ArrayTypeName",
-                    "src": "1784:6:1"
+                    "src": "1784:6:0"
                   }
                 ],
-                "id": 461,
+                "id": 231,
                 "name": "VariableDeclaration",
-                "src": "1784:11:1"
+                "src": "1784:11:0"
               }
             ],
-            "id": 462,
+            "id": 232,
             "name": "StructDefinition",
-            "src": "1723:79:1"
+            "src": "1723:79:0"
           },
           {
             "attributes": {
@@ -3184,7 +3184,7 @@
               ],
               "name": "size",
               "payable": false,
-              "scope": 589,
+              "scope": 359,
               "stateMutability": "view",
               "superFunction": null,
               "visibility": "public"
@@ -3196,7 +3196,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "self",
-                      "scope": 474,
+                      "scope": 244,
                       "stateVariable": false,
                       "storageLocation": "storage",
                       "type": "struct IterableSet_Integer.Data storage pointer",
@@ -3208,22 +3208,22 @@
                         "attributes": {
                           "contractScope": null,
                           "name": "Data",
-                          "referencedDeclaration": 462,
+                          "referencedDeclaration": 232,
                           "type": "struct IterableSet_Integer.Data storage pointer"
                         },
-                        "id": 463,
+                        "id": 233,
                         "name": "UserDefinedTypeName",
-                        "src": "1822:4:1"
+                        "src": "1822:4:0"
                       }
                     ],
-                    "id": 464,
+                    "id": 234,
                     "name": "VariableDeclaration",
-                    "src": "1822:17:1"
+                    "src": "1822:17:0"
                   }
                 ],
-                "id": 465,
+                "id": 235,
                 "name": "ParameterList",
-                "src": "1821:19:1"
+                "src": "1821:19:0"
               },
               {
                 "children": [
@@ -3231,7 +3231,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "",
-                      "scope": 474,
+                      "scope": 244,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "uint256",
@@ -3244,25 +3244,25 @@
                           "name": "uint",
                           "type": "uint256"
                         },
-                        "id": 466,
+                        "id": 236,
                         "name": "ElementaryTypeName",
-                        "src": "1862:4:1"
+                        "src": "1862:4:0"
                       }
                     ],
-                    "id": 467,
+                    "id": 237,
                     "name": "VariableDeclaration",
-                    "src": "1862:4:1"
+                    "src": "1862:4:0"
                   }
                 ],
-                "id": 468,
+                "id": 238,
                 "name": "ParameterList",
-                "src": "1861:6:1"
+                "src": "1861:6:0"
               },
               {
                 "children": [
                   {
                     "attributes": {
-                      "functionReturnParameters": 468
+                      "functionReturnParameters": 238
                     },
                     "children": [
                       {
@@ -3285,7 +3285,7 @@
                               "isPure": false,
                               "lValueRequested": false,
                               "member_name": "list",
-                              "referencedDeclaration": 461,
+                              "referencedDeclaration": 231,
                               "type": "uint256[] storage ref"
                             },
                             "children": [
@@ -3295,38 +3295,38 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 464,
+                                  "referencedDeclaration": 234,
                                   "type": "struct IterableSet_Integer.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 469,
+                                "id": 239,
                                 "name": "Identifier",
-                                "src": "1889:4:1"
+                                "src": "1889:4:0"
                               }
                             ],
-                            "id": 470,
+                            "id": 240,
                             "name": "MemberAccess",
-                            "src": "1889:9:1"
+                            "src": "1889:9:0"
                           }
                         ],
-                        "id": 471,
+                        "id": 241,
                         "name": "MemberAccess",
-                        "src": "1889:16:1"
+                        "src": "1889:16:0"
                       }
                     ],
-                    "id": 472,
+                    "id": 242,
                     "name": "Return",
-                    "src": "1882:23:1"
+                    "src": "1882:23:0"
                   }
                 ],
-                "id": 473,
+                "id": 243,
                 "name": "Block",
-                "src": "1872:40:1"
+                "src": "1872:40:0"
               }
             ],
-            "id": 474,
+            "id": 244,
             "name": "FunctionDefinition",
-            "src": "1808:104:1"
+            "src": "1808:104:0"
           },
           {
             "attributes": {
@@ -3338,7 +3338,7 @@
               ],
               "name": "contains",
               "payable": false,
-              "scope": 589,
+              "scope": 359,
               "stateMutability": "view",
               "superFunction": null,
               "visibility": "public"
@@ -3350,7 +3350,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "self",
-                      "scope": 494,
+                      "scope": 264,
                       "stateVariable": false,
                       "storageLocation": "storage",
                       "type": "struct IterableSet_Integer.Data storage pointer",
@@ -3362,23 +3362,23 @@
                         "attributes": {
                           "contractScope": null,
                           "name": "Data",
-                          "referencedDeclaration": 462,
+                          "referencedDeclaration": 232,
                           "type": "struct IterableSet_Integer.Data storage pointer"
                         },
-                        "id": 475,
+                        "id": 245,
                         "name": "UserDefinedTypeName",
-                        "src": "1936:4:1"
+                        "src": "1936:4:0"
                       }
                     ],
-                    "id": 476,
+                    "id": 246,
                     "name": "VariableDeclaration",
-                    "src": "1936:17:1"
+                    "src": "1936:17:0"
                   },
                   {
                     "attributes": {
                       "constant": false,
                       "name": "value",
-                      "scope": 494,
+                      "scope": 264,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "uint256",
@@ -3391,19 +3391,19 @@
                           "name": "uint",
                           "type": "uint256"
                         },
-                        "id": 477,
+                        "id": 247,
                         "name": "ElementaryTypeName",
-                        "src": "1955:4:1"
+                        "src": "1955:4:0"
                       }
                     ],
-                    "id": 478,
+                    "id": 248,
                     "name": "VariableDeclaration",
-                    "src": "1955:10:1"
+                    "src": "1955:10:0"
                   }
                 ],
-                "id": 479,
+                "id": 249,
                 "name": "ParameterList",
-                "src": "1935:31:1"
+                "src": "1935:31:0"
               },
               {
                 "children": [
@@ -3411,7 +3411,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "",
-                      "scope": 494,
+                      "scope": 264,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "bool",
@@ -3424,25 +3424,25 @@
                           "name": "bool",
                           "type": "bool"
                         },
-                        "id": 480,
+                        "id": 250,
                         "name": "ElementaryTypeName",
-                        "src": "1988:4:1"
+                        "src": "1988:4:0"
                       }
                     ],
-                    "id": 481,
+                    "id": 251,
                     "name": "VariableDeclaration",
-                    "src": "1988:4:1"
+                    "src": "1988:4:0"
                   }
                 ],
-                "id": 482,
+                "id": 252,
                 "name": "ParameterList",
-                "src": "1987:6:1"
+                "src": "1987:6:0"
               },
               {
                 "children": [
                   {
                     "attributes": {
-                      "functionReturnParameters": 482
+                      "functionReturnParameters": 252
                     },
                     "children": [
                       {
@@ -3478,7 +3478,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "list",
-                                  "referencedDeclaration": 461,
+                                  "referencedDeclaration": 231,
                                   "type": "uint256[] storage ref"
                                 },
                                 "children": [
@@ -3488,18 +3488,18 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 476,
+                                      "referencedDeclaration": 246,
                                       "type": "struct IterableSet_Integer.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 483,
+                                    "id": 253,
                                     "name": "Identifier",
-                                    "src": "2015:4:1"
+                                    "src": "2015:4:0"
                                   }
                                 ],
-                                "id": 484,
+                                "id": 254,
                                 "name": "MemberAccess",
-                                "src": "2015:9:1"
+                                "src": "2015:9:0"
                               },
                               {
                                 "attributes": {
@@ -3519,7 +3519,7 @@
                                       "isPure": false,
                                       "lValueRequested": false,
                                       "member_name": "indices",
-                                      "referencedDeclaration": 458,
+                                      "referencedDeclaration": 228,
                                       "type": "mapping(uint256 => uint256)"
                                     },
                                     "children": [
@@ -3529,18 +3529,18 @@
                                           "overloadedDeclarations": [
                                             null
                                           ],
-                                          "referencedDeclaration": 476,
+                                          "referencedDeclaration": 246,
                                           "type": "struct IterableSet_Integer.Data storage pointer",
                                           "value": "self"
                                         },
-                                        "id": 485,
+                                        "id": 255,
                                         "name": "Identifier",
-                                        "src": "2025:4:1"
+                                        "src": "2025:4:0"
                                       }
                                     ],
-                                    "id": 486,
+                                    "id": 256,
                                     "name": "MemberAccess",
-                                    "src": "2025:12:1"
+                                    "src": "2025:12:0"
                                   },
                                   {
                                     "attributes": {
@@ -3548,23 +3548,23 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 478,
+                                      "referencedDeclaration": 248,
                                       "type": "uint256",
                                       "value": "value"
                                     },
-                                    "id": 487,
+                                    "id": 257,
                                     "name": "Identifier",
-                                    "src": "2038:5:1"
+                                    "src": "2038:5:0"
                                   }
                                 ],
-                                "id": 488,
+                                "id": 258,
                                 "name": "IndexAccess",
-                                "src": "2025:19:1"
+                                "src": "2025:19:0"
                               }
                             ],
-                            "id": 489,
+                            "id": 259,
                             "name": "IndexAccess",
-                            "src": "2015:30:1"
+                            "src": "2015:30:0"
                           },
                           {
                             "attributes": {
@@ -3572,33 +3572,33 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 478,
+                              "referencedDeclaration": 248,
                               "type": "uint256",
                               "value": "value"
                             },
-                            "id": 490,
+                            "id": 260,
                             "name": "Identifier",
-                            "src": "2049:5:1"
+                            "src": "2049:5:0"
                           }
                         ],
-                        "id": 491,
+                        "id": 261,
                         "name": "BinaryOperation",
-                        "src": "2015:39:1"
+                        "src": "2015:39:0"
                       }
                     ],
-                    "id": 492,
+                    "id": 262,
                     "name": "Return",
-                    "src": "2008:46:1"
+                    "src": "2008:46:0"
                   }
                 ],
-                "id": 493,
+                "id": 263,
                 "name": "Block",
-                "src": "1998:63:1"
+                "src": "1998:63:0"
               }
             ],
-            "id": 494,
+            "id": 264,
             "name": "FunctionDefinition",
-            "src": "1918:143:1"
+            "src": "1918:143:0"
           },
           {
             "attributes": {
@@ -3610,7 +3610,7 @@
               ],
               "name": "add",
               "payable": false,
-              "scope": 589,
+              "scope": 359,
               "stateMutability": "nonpayable",
               "superFunction": null,
               "visibility": "public"
@@ -3622,7 +3622,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "self",
-                      "scope": 527,
+                      "scope": 297,
                       "stateVariable": false,
                       "storageLocation": "storage",
                       "type": "struct IterableSet_Integer.Data storage pointer",
@@ -3634,23 +3634,23 @@
                         "attributes": {
                           "contractScope": null,
                           "name": "Data",
-                          "referencedDeclaration": 462,
+                          "referencedDeclaration": 232,
                           "type": "struct IterableSet_Integer.Data storage pointer"
                         },
-                        "id": 495,
+                        "id": 265,
                         "name": "UserDefinedTypeName",
-                        "src": "2080:4:1"
+                        "src": "2080:4:0"
                       }
                     ],
-                    "id": 496,
+                    "id": 266,
                     "name": "VariableDeclaration",
-                    "src": "2080:17:1"
+                    "src": "2080:17:0"
                   },
                   {
                     "attributes": {
                       "constant": false,
                       "name": "value",
-                      "scope": 527,
+                      "scope": 297,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "uint256",
@@ -3663,19 +3663,19 @@
                           "name": "uint",
                           "type": "uint256"
                         },
-                        "id": 497,
+                        "id": 267,
                         "name": "ElementaryTypeName",
-                        "src": "2099:4:1"
+                        "src": "2099:4:0"
                       }
                     ],
-                    "id": 498,
+                    "id": 268,
                     "name": "VariableDeclaration",
-                    "src": "2099:10:1"
+                    "src": "2099:10:0"
                   }
                 ],
-                "id": 499,
+                "id": 269,
                 "name": "ParameterList",
-                "src": "2079:31:1"
+                "src": "2079:31:0"
               },
               {
                 "children": [
@@ -3683,7 +3683,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "",
-                      "scope": 527,
+                      "scope": 297,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "bool",
@@ -3696,19 +3696,19 @@
                           "name": "bool",
                           "type": "bool"
                         },
-                        "id": 500,
+                        "id": 270,
                         "name": "ElementaryTypeName",
-                        "src": "2127:4:1"
+                        "src": "2127:4:0"
                       }
                     ],
-                    "id": 501,
+                    "id": 271,
                     "name": "VariableDeclaration",
-                    "src": "2127:4:1"
+                    "src": "2127:4:0"
                   }
                 ],
-                "id": 502,
+                "id": 272,
                 "name": "ParameterList",
-                "src": "2126:6:1"
+                "src": "2126:6:0"
               },
               {
                 "children": [
@@ -3736,7 +3736,7 @@
                             "attributes": {
                               "argumentTypes": [
                                 {
-                                  "typeIdentifier": "t_struct$_Data_$462_storage_ptr",
+                                  "typeIdentifier": "t_struct$_Data_$232_storage_ptr",
                                   "typeString": "struct IterableSet_Integer.Data storage pointer"
                                 },
                                 {
@@ -3747,13 +3747,13 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 494,
+                              "referencedDeclaration": 264,
                               "type": "function (struct IterableSet_Integer.Data storage pointer,uint256) view returns (bool)",
                               "value": "contains"
                             },
-                            "id": 503,
+                            "id": 273,
                             "name": "Identifier",
-                            "src": "2150:8:1"
+                            "src": "2150:8:0"
                           },
                           {
                             "attributes": {
@@ -3761,13 +3761,13 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 496,
+                              "referencedDeclaration": 266,
                               "type": "struct IterableSet_Integer.Data storage pointer",
                               "value": "self"
                             },
-                            "id": 504,
+                            "id": 274,
                             "name": "Identifier",
-                            "src": "2159:4:1"
+                            "src": "2159:4:0"
                           },
                           {
                             "attributes": {
@@ -3775,22 +3775,22 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 498,
+                              "referencedDeclaration": 268,
                               "type": "uint256",
                               "value": "value"
                             },
-                            "id": 505,
+                            "id": 275,
                             "name": "Identifier",
-                            "src": "2165:5:1"
+                            "src": "2165:5:0"
                           }
                         ],
-                        "id": 506,
+                        "id": 276,
                         "name": "FunctionCall",
-                        "src": "2150:21:1"
+                        "src": "2150:21:0"
                       },
                       {
                         "attributes": {
-                          "functionReturnParameters": 502
+                          "functionReturnParameters": 272
                         },
                         "children": [
                           {
@@ -3806,19 +3806,19 @@
                               "type": "bool",
                               "value": "false"
                             },
-                            "id": 507,
+                            "id": 277,
                             "name": "Literal",
-                            "src": "2192:5:1"
+                            "src": "2192:5:0"
                           }
                         ],
-                        "id": 508,
+                        "id": 278,
                         "name": "Return",
-                        "src": "2185:12:1"
+                        "src": "2185:12:0"
                       }
                     ],
-                    "id": 509,
+                    "id": 279,
                     "name": "IfStatement",
-                    "src": "2147:50:1"
+                    "src": "2147:50:0"
                   },
                   {
                     "children": [
@@ -3851,7 +3851,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "indices",
-                                  "referencedDeclaration": 458,
+                                  "referencedDeclaration": 228,
                                   "type": "mapping(uint256 => uint256)"
                                 },
                                 "children": [
@@ -3861,18 +3861,18 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 496,
+                                      "referencedDeclaration": 266,
                                       "type": "struct IterableSet_Integer.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 510,
+                                    "id": 280,
                                     "name": "Identifier",
-                                    "src": "2207:4:1"
+                                    "src": "2207:4:0"
                                   }
                                 ],
-                                "id": 513,
+                                "id": 283,
                                 "name": "MemberAccess",
-                                "src": "2207:12:1"
+                                "src": "2207:12:0"
                               },
                               {
                                 "attributes": {
@@ -3880,18 +3880,18 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 498,
+                                  "referencedDeclaration": 268,
                                   "type": "uint256",
                                   "value": "value"
                                 },
-                                "id": 512,
+                                "id": 282,
                                 "name": "Identifier",
-                                "src": "2220:5:1"
+                                "src": "2220:5:0"
                               }
                             ],
-                            "id": 514,
+                            "id": 284,
                             "name": "IndexAccess",
-                            "src": "2207:19:1"
+                            "src": "2207:19:0"
                           },
                           {
                             "attributes": {
@@ -3948,7 +3948,7 @@
                                           "isPure": false,
                                           "lValueRequested": false,
                                           "member_name": "list",
-                                          "referencedDeclaration": 461,
+                                          "referencedDeclaration": 231,
                                           "type": "uint256[] storage ref"
                                         },
                                         "children": [
@@ -3958,23 +3958,23 @@
                                               "overloadedDeclarations": [
                                                 null
                                               ],
-                                              "referencedDeclaration": 496,
+                                              "referencedDeclaration": 266,
                                               "type": "struct IterableSet_Integer.Data storage pointer",
                                               "value": "self"
                                             },
-                                            "id": 515,
+                                            "id": 285,
                                             "name": "Identifier",
-                                            "src": "2229:4:1"
+                                            "src": "2229:4:0"
                                           }
                                         ],
-                                        "id": 516,
+                                        "id": 286,
                                         "name": "MemberAccess",
-                                        "src": "2229:9:1"
+                                        "src": "2229:9:0"
                                       }
                                     ],
-                                    "id": 517,
+                                    "id": 287,
                                     "name": "MemberAccess",
-                                    "src": "2229:14:1"
+                                    "src": "2229:14:0"
                                   },
                                   {
                                     "attributes": {
@@ -3982,18 +3982,18 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 498,
+                                      "referencedDeclaration": 268,
                                       "type": "uint256",
                                       "value": "value"
                                     },
-                                    "id": 518,
+                                    "id": 288,
                                     "name": "Identifier",
-                                    "src": "2244:5:1"
+                                    "src": "2244:5:0"
                                   }
                                 ],
-                                "id": 519,
+                                "id": 289,
                                 "name": "FunctionCall",
-                                "src": "2229:21:1"
+                                "src": "2229:21:0"
                               },
                               {
                                 "attributes": {
@@ -4008,28 +4008,28 @@
                                   "type": "int_const 1",
                                   "value": "1"
                                 },
-                                "id": 520,
+                                "id": 290,
                                 "name": "Literal",
-                                "src": "2253:1:1"
+                                "src": "2253:1:0"
                               }
                             ],
-                            "id": 521,
+                            "id": 291,
                             "name": "BinaryOperation",
-                            "src": "2229:25:1"
+                            "src": "2229:25:0"
                           }
                         ],
-                        "id": 522,
+                        "id": 292,
                         "name": "Assignment",
-                        "src": "2207:47:1"
+                        "src": "2207:47:0"
                       }
                     ],
-                    "id": 523,
+                    "id": 293,
                     "name": "ExpressionStatement",
-                    "src": "2207:47:1"
+                    "src": "2207:47:0"
                   },
                   {
                     "attributes": {
-                      "functionReturnParameters": 502
+                      "functionReturnParameters": 272
                     },
                     "children": [
                       {
@@ -4045,24 +4045,24 @@
                           "type": "bool",
                           "value": "true"
                         },
-                        "id": 524,
+                        "id": 294,
                         "name": "Literal",
-                        "src": "2271:4:1"
+                        "src": "2271:4:0"
                       }
                     ],
-                    "id": 525,
+                    "id": 295,
                     "name": "Return",
-                    "src": "2264:11:1"
+                    "src": "2264:11:0"
                   }
                 ],
-                "id": 526,
+                "id": 296,
                 "name": "Block",
-                "src": "2137:145:1"
+                "src": "2137:145:0"
               }
             ],
-            "id": 527,
+            "id": 297,
             "name": "FunctionDefinition",
-            "src": "2067:215:1"
+            "src": "2067:215:0"
           },
           {
             "attributes": {
@@ -4074,7 +4074,7 @@
               ],
               "name": "remove",
               "payable": false,
-              "scope": 589,
+              "scope": 359,
               "stateMutability": "nonpayable",
               "superFunction": null,
               "visibility": "public"
@@ -4086,7 +4086,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "self",
-                      "scope": 588,
+                      "scope": 358,
                       "stateVariable": false,
                       "storageLocation": "storage",
                       "type": "struct IterableSet_Integer.Data storage pointer",
@@ -4098,23 +4098,23 @@
                         "attributes": {
                           "contractScope": null,
                           "name": "Data",
-                          "referencedDeclaration": 462,
+                          "referencedDeclaration": 232,
                           "type": "struct IterableSet_Integer.Data storage pointer"
                         },
-                        "id": 528,
+                        "id": 298,
                         "name": "UserDefinedTypeName",
-                        "src": "2304:4:1"
+                        "src": "2304:4:0"
                       }
                     ],
-                    "id": 529,
+                    "id": 299,
                     "name": "VariableDeclaration",
-                    "src": "2304:17:1"
+                    "src": "2304:17:0"
                   },
                   {
                     "attributes": {
                       "constant": false,
                       "name": "value",
-                      "scope": 588,
+                      "scope": 358,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "uint256",
@@ -4127,19 +4127,19 @@
                           "name": "uint",
                           "type": "uint256"
                         },
-                        "id": 530,
+                        "id": 300,
                         "name": "ElementaryTypeName",
-                        "src": "2323:4:1"
+                        "src": "2323:4:0"
                       }
                     ],
-                    "id": 531,
+                    "id": 301,
                     "name": "VariableDeclaration",
-                    "src": "2323:10:1"
+                    "src": "2323:10:0"
                   }
                 ],
-                "id": 532,
+                "id": 302,
                 "name": "ParameterList",
-                "src": "2303:31:1"
+                "src": "2303:31:0"
               },
               {
                 "children": [
@@ -4147,7 +4147,7 @@
                     "attributes": {
                       "constant": false,
                       "name": "",
-                      "scope": 588,
+                      "scope": 358,
                       "stateVariable": false,
                       "storageLocation": "default",
                       "type": "bool",
@@ -4160,19 +4160,19 @@
                           "name": "bool",
                           "type": "bool"
                         },
-                        "id": 533,
+                        "id": 303,
                         "name": "ElementaryTypeName",
-                        "src": "2351:4:1"
+                        "src": "2351:4:0"
                       }
                     ],
-                    "id": 534,
+                    "id": 304,
                     "name": "VariableDeclaration",
-                    "src": "2351:4:1"
+                    "src": "2351:4:0"
                   }
                 ],
-                "id": 535,
+                "id": 305,
                 "name": "ParameterList",
-                "src": "2350:6:1"
+                "src": "2350:6:0"
               },
               {
                 "children": [
@@ -4212,7 +4212,7 @@
                                 "attributes": {
                                   "argumentTypes": [
                                     {
-                                      "typeIdentifier": "t_struct$_Data_$462_storage_ptr",
+                                      "typeIdentifier": "t_struct$_Data_$232_storage_ptr",
                                       "typeString": "struct IterableSet_Integer.Data storage pointer"
                                     },
                                     {
@@ -4223,13 +4223,13 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 494,
+                                  "referencedDeclaration": 264,
                                   "type": "function (struct IterableSet_Integer.Data storage pointer,uint256) view returns (bool)",
                                   "value": "contains"
                                 },
-                                "id": 536,
+                                "id": 306,
                                 "name": "Identifier",
-                                "src": "2375:8:1"
+                                "src": "2375:8:0"
                               },
                               {
                                 "attributes": {
@@ -4237,13 +4237,13 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 529,
+                                  "referencedDeclaration": 299,
                                   "type": "struct IterableSet_Integer.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 537,
+                                "id": 307,
                                 "name": "Identifier",
-                                "src": "2384:4:1"
+                                "src": "2384:4:0"
                               },
                               {
                                 "attributes": {
@@ -4251,27 +4251,27 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 531,
+                                  "referencedDeclaration": 301,
                                   "type": "uint256",
                                   "value": "value"
                                 },
-                                "id": 538,
+                                "id": 308,
                                 "name": "Identifier",
-                                "src": "2390:5:1"
+                                "src": "2390:5:0"
                               }
                             ],
-                            "id": 539,
+                            "id": 309,
                             "name": "FunctionCall",
-                            "src": "2375:21:1"
+                            "src": "2375:21:0"
                           }
                         ],
-                        "id": 540,
+                        "id": 310,
                         "name": "UnaryOperation",
-                        "src": "2374:22:1"
+                        "src": "2374:22:0"
                       },
                       {
                         "attributes": {
-                          "functionReturnParameters": 535
+                          "functionReturnParameters": 305
                         },
                         "children": [
                           {
@@ -4287,24 +4287,24 @@
                               "type": "bool",
                               "value": "false"
                             },
-                            "id": 541,
+                            "id": 311,
                             "name": "Literal",
-                            "src": "2417:5:1"
+                            "src": "2417:5:0"
                           }
                         ],
-                        "id": 542,
+                        "id": 312,
                         "name": "Return",
-                        "src": "2410:12:1"
+                        "src": "2410:12:0"
                       }
                     ],
-                    "id": 543,
+                    "id": 313,
                     "name": "IfStatement",
-                    "src": "2371:51:1"
+                    "src": "2371:51:0"
                   },
                   {
                     "attributes": {
                       "assignments": [
-                        545
+                        315
                       ]
                     },
                     "children": [
@@ -4312,7 +4312,7 @@
                         "attributes": {
                           "constant": false,
                           "name": "toRemove",
-                          "scope": 588,
+                          "scope": 358,
                           "stateVariable": false,
                           "storageLocation": "default",
                           "type": "uint256",
@@ -4325,14 +4325,14 @@
                               "name": "uint",
                               "type": "uint256"
                             },
-                            "id": 544,
+                            "id": 314,
                             "name": "ElementaryTypeName",
-                            "src": "2432:4:1"
+                            "src": "2432:4:0"
                           }
                         ],
-                        "id": 545,
+                        "id": 315,
                         "name": "VariableDeclaration",
-                        "src": "2432:13:1"
+                        "src": "2432:13:0"
                       },
                       {
                         "attributes": {
@@ -4352,7 +4352,7 @@
                               "isPure": false,
                               "lValueRequested": false,
                               "member_name": "indices",
-                              "referencedDeclaration": 458,
+                              "referencedDeclaration": 228,
                               "type": "mapping(uint256 => uint256)"
                             },
                             "children": [
@@ -4362,18 +4362,18 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 529,
+                                  "referencedDeclaration": 299,
                                   "type": "struct IterableSet_Integer.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 546,
+                                "id": 316,
                                 "name": "Identifier",
-                                "src": "2448:4:1"
+                                "src": "2448:4:0"
                               }
                             ],
-                            "id": 547,
+                            "id": 317,
                             "name": "MemberAccess",
-                            "src": "2448:12:1"
+                            "src": "2448:12:0"
                           },
                           {
                             "attributes": {
@@ -4381,28 +4381,28 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 531,
+                              "referencedDeclaration": 301,
                               "type": "uint256",
                               "value": "value"
                             },
-                            "id": 548,
+                            "id": 318,
                             "name": "Identifier",
-                            "src": "2461:5:1"
+                            "src": "2461:5:0"
                           }
                         ],
-                        "id": 549,
+                        "id": 319,
                         "name": "IndexAccess",
-                        "src": "2448:19:1"
+                        "src": "2448:19:0"
                       }
                     ],
-                    "id": 550,
+                    "id": 320,
                     "name": "VariableDeclarationStatement",
-                    "src": "2432:35:1"
+                    "src": "2432:35:0"
                   },
                   {
                     "attributes": {
                       "assignments": [
-                        552
+                        322
                       ]
                     },
                     "children": [
@@ -4410,7 +4410,7 @@
                         "attributes": {
                           "constant": false,
                           "name": "temp",
-                          "scope": 588,
+                          "scope": 358,
                           "stateVariable": false,
                           "storageLocation": "default",
                           "type": "uint256",
@@ -4423,14 +4423,14 @@
                               "name": "uint",
                               "type": "uint256"
                             },
-                            "id": 551,
+                            "id": 321,
                             "name": "ElementaryTypeName",
-                            "src": "2477:4:1"
+                            "src": "2477:4:0"
                           }
                         ],
-                        "id": 552,
+                        "id": 322,
                         "name": "VariableDeclaration",
-                        "src": "2477:9:1"
+                        "src": "2477:9:0"
                       },
                       {
                         "attributes": {
@@ -4450,7 +4450,7 @@
                               "isPure": false,
                               "lValueRequested": false,
                               "member_name": "list",
-                              "referencedDeclaration": 461,
+                              "referencedDeclaration": 231,
                               "type": "uint256[] storage ref"
                             },
                             "children": [
@@ -4460,18 +4460,18 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 529,
+                                  "referencedDeclaration": 299,
                                   "type": "struct IterableSet_Integer.Data storage pointer",
                                   "value": "self"
                                 },
-                                "id": 553,
+                                "id": 323,
                                 "name": "Identifier",
-                                "src": "2489:4:1"
+                                "src": "2489:4:0"
                               }
                             ],
-                            "id": 554,
+                            "id": 324,
                             "name": "MemberAccess",
-                            "src": "2489:9:1"
+                            "src": "2489:9:0"
                           },
                           {
                             "attributes": {
@@ -4508,7 +4508,7 @@
                                       "isPure": false,
                                       "lValueRequested": false,
                                       "member_name": "list",
-                                      "referencedDeclaration": 461,
+                                      "referencedDeclaration": 231,
                                       "type": "uint256[] storage ref"
                                     },
                                     "children": [
@@ -4518,23 +4518,23 @@
                                           "overloadedDeclarations": [
                                             null
                                           ],
-                                          "referencedDeclaration": 529,
+                                          "referencedDeclaration": 299,
                                           "type": "struct IterableSet_Integer.Data storage pointer",
                                           "value": "self"
                                         },
-                                        "id": 555,
+                                        "id": 325,
                                         "name": "Identifier",
-                                        "src": "2499:4:1"
+                                        "src": "2499:4:0"
                                       }
                                     ],
-                                    "id": 556,
+                                    "id": 326,
                                     "name": "MemberAccess",
-                                    "src": "2499:9:1"
+                                    "src": "2499:9:0"
                                   }
                                 ],
-                                "id": 557,
+                                "id": 327,
                                 "name": "MemberAccess",
-                                "src": "2499:16:1"
+                                "src": "2499:16:0"
                               },
                               {
                                 "attributes": {
@@ -4549,24 +4549,24 @@
                                   "type": "int_const 1",
                                   "value": "1"
                                 },
-                                "id": 558,
+                                "id": 328,
                                 "name": "Literal",
-                                "src": "2518:1:1"
+                                "src": "2518:1:0"
                               }
                             ],
-                            "id": 559,
+                            "id": 329,
                             "name": "BinaryOperation",
-                            "src": "2499:20:1"
+                            "src": "2499:20:0"
                           }
                         ],
-                        "id": 560,
+                        "id": 330,
                         "name": "IndexAccess",
-                        "src": "2489:31:1"
+                        "src": "2489:31:0"
                       }
                     ],
-                    "id": 561,
+                    "id": 331,
                     "name": "VariableDeclarationStatement",
-                    "src": "2477:43:1"
+                    "src": "2477:43:0"
                   },
                   {
                     "children": [
@@ -4599,7 +4599,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "indices",
-                                  "referencedDeclaration": 458,
+                                  "referencedDeclaration": 228,
                                   "type": "mapping(uint256 => uint256)"
                                 },
                                 "children": [
@@ -4609,18 +4609,18 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 529,
+                                      "referencedDeclaration": 299,
                                       "type": "struct IterableSet_Integer.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 562,
+                                    "id": 332,
                                     "name": "Identifier",
-                                    "src": "2530:4:1"
+                                    "src": "2530:4:0"
                                   }
                                 ],
-                                "id": 565,
+                                "id": 335,
                                 "name": "MemberAccess",
-                                "src": "2530:12:1"
+                                "src": "2530:12:0"
                               },
                               {
                                 "attributes": {
@@ -4628,18 +4628,18 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 552,
+                                  "referencedDeclaration": 322,
                                   "type": "uint256",
                                   "value": "temp"
                                 },
-                                "id": 564,
+                                "id": 334,
                                 "name": "Identifier",
-                                "src": "2543:4:1"
+                                "src": "2543:4:0"
                               }
                             ],
-                            "id": 566,
+                            "id": 336,
                             "name": "IndexAccess",
-                            "src": "2530:18:1"
+                            "src": "2530:18:0"
                           },
                           {
                             "attributes": {
@@ -4647,23 +4647,23 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 545,
+                              "referencedDeclaration": 315,
                               "type": "uint256",
                               "value": "toRemove"
                             },
-                            "id": 567,
+                            "id": 337,
                             "name": "Identifier",
-                            "src": "2551:8:1"
+                            "src": "2551:8:0"
                           }
                         ],
-                        "id": 568,
+                        "id": 338,
                         "name": "Assignment",
-                        "src": "2530:29:1"
+                        "src": "2530:29:0"
                       }
                     ],
-                    "id": 569,
+                    "id": 339,
                     "name": "ExpressionStatement",
-                    "src": "2530:29:1"
+                    "src": "2530:29:0"
                   },
                   {
                     "children": [
@@ -4696,7 +4696,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "list",
-                                  "referencedDeclaration": 461,
+                                  "referencedDeclaration": 231,
                                   "type": "uint256[] storage ref"
                                 },
                                 "children": [
@@ -4706,18 +4706,18 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 529,
+                                      "referencedDeclaration": 299,
                                       "type": "struct IterableSet_Integer.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 570,
+                                    "id": 340,
                                     "name": "Identifier",
-                                    "src": "2569:4:1"
+                                    "src": "2569:4:0"
                                   }
                                 ],
-                                "id": 573,
+                                "id": 343,
                                 "name": "MemberAccess",
-                                "src": "2569:9:1"
+                                "src": "2569:9:0"
                               },
                               {
                                 "attributes": {
@@ -4725,18 +4725,18 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 545,
+                                  "referencedDeclaration": 315,
                                   "type": "uint256",
                                   "value": "toRemove"
                                 },
-                                "id": 572,
+                                "id": 342,
                                 "name": "Identifier",
-                                "src": "2579:8:1"
+                                "src": "2579:8:0"
                               }
                             ],
-                            "id": 574,
+                            "id": 344,
                             "name": "IndexAccess",
-                            "src": "2569:19:1"
+                            "src": "2569:19:0"
                           },
                           {
                             "attributes": {
@@ -4744,23 +4744,23 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 552,
+                              "referencedDeclaration": 322,
                               "type": "uint256",
                               "value": "temp"
                             },
-                            "id": 575,
+                            "id": 345,
                             "name": "Identifier",
-                            "src": "2591:4:1"
+                            "src": "2591:4:0"
                           }
                         ],
-                        "id": 576,
+                        "id": 346,
                         "name": "Assignment",
-                        "src": "2569:26:1"
+                        "src": "2569:26:0"
                       }
                     ],
-                    "id": 577,
+                    "id": 347,
                     "name": "ExpressionStatement",
-                    "src": "2569:26:1"
+                    "src": "2569:26:0"
                   },
                   {
                     "children": [
@@ -4796,7 +4796,7 @@
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "member_name": "list",
-                                  "referencedDeclaration": 461,
+                                  "referencedDeclaration": 231,
                                   "type": "uint256[] storage ref"
                                 },
                                 "children": [
@@ -4806,37 +4806,37 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 529,
+                                      "referencedDeclaration": 299,
                                       "type": "struct IterableSet_Integer.Data storage pointer",
                                       "value": "self"
                                     },
-                                    "id": 578,
+                                    "id": 348,
                                     "name": "Identifier",
-                                    "src": "2605:4:1"
+                                    "src": "2605:4:0"
                                   }
                                 ],
-                                "id": 581,
+                                "id": 351,
                                 "name": "MemberAccess",
-                                "src": "2605:9:1"
+                                "src": "2605:9:0"
                               }
                             ],
-                            "id": 582,
+                            "id": 352,
                             "name": "MemberAccess",
-                            "src": "2605:16:1"
+                            "src": "2605:16:0"
                           }
                         ],
-                        "id": 583,
+                        "id": 353,
                         "name": "UnaryOperation",
-                        "src": "2605:18:1"
+                        "src": "2605:18:0"
                       }
                     ],
-                    "id": 584,
+                    "id": 354,
                     "name": "ExpressionStatement",
-                    "src": "2605:18:1"
+                    "src": "2605:18:0"
                   },
                   {
                     "attributes": {
-                      "functionReturnParameters": 535
+                      "functionReturnParameters": 305
                     },
                     "children": [
                       {
@@ -4852,40 +4852,46 @@
                           "type": "bool",
                           "value": "true"
                         },
-                        "id": 585,
+                        "id": 355,
                         "name": "Literal",
-                        "src": "2640:4:1"
+                        "src": "2640:4:0"
                       }
                     ],
-                    "id": 586,
+                    "id": 356,
                     "name": "Return",
-                    "src": "2633:11:1"
+                    "src": "2633:11:0"
                   }
                 ],
-                "id": 587,
+                "id": 357,
                 "name": "Block",
-                "src": "2361:290:1"
+                "src": "2361:290:0"
               }
             ],
-            "id": 588,
+            "id": 358,
             "name": "FunctionDefinition",
-            "src": "2288:363:1"
+            "src": "2288:363:0"
           }
         ],
-        "id": 589,
+        "id": 359,
         "name": "ContractDefinition",
-        "src": "1689:964:1"
+        "src": "1689:964:0"
       }
     ],
-    "id": 590,
+    "id": 1002,
     "name": "SourceUnit",
-    "src": "0:3739:1"
+    "src": "0:703:3"
   },
   "compiler": {
     "name": "solc",
     "version": "0.4.18+commit.9cf6e910.Emscripten.clang"
   },
-  "networks": {},
+  "networks": {
+    "4447": {
+      "events": {},
+      "links": {},
+      "address": "0x7855e42b012dcbabade36e2cbbccd3aab5669411"
+    }
+  },
   "schemaVersion": "1.0.1",
-  "updatedAt": "2018-01-22T03:13:12.805Z"
+  "updatedAt": "2018-01-27T17:06:14.237Z"
 }
