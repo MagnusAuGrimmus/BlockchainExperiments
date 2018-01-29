@@ -1,5 +1,5 @@
 pragma solidity ^0.4.18;
-import './Set.sol';
+import './utils/Set.sol';
 
 contract ImageShare
 {
