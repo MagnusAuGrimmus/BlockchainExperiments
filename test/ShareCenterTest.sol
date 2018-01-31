@@ -1,26 +1,12 @@
 pragma solidity ^0.4.18;
-import "../contracts/ShareCenter.sol";
-import "./utils/ThrowProxy.sol";
+import "./utils/ShareCenterTester.sol";
+
 import "truffle/Assert.sol";
 
-contract ShareCenterTest is ShareCenter
+contract ShareCenterTest is ShareCenterTester
 {
-    ThrowProxy proxy;
-    address[] accounts;
-    bytes32[] names;
-    bytes32 uri = "www.share1.com";
-
-    function ShareCenterTest() ShareCenter() public
+    function ShareCenterTest() ShareCenterTester() public
     {
-        proxy = new ThrowProxy(address(this));
-        accounts.push(0x1);
-        accounts.push(0x2);
-        accounts.push(0x3);
-        names.push("A");
-        names.push("B");
-        names.push("C");
-        addSystem(msg.sender);
-        addUser(msg.sender, "owner");
     }
 
     function testAddSystem() public
@@ -32,9 +18,10 @@ contract ShareCenterTest is ShareCenter
     function testAddUser() public
     {
         uint i;
-        for(i = 0; i < names.length; i++)
+        //Not adding last account to check for method calls from nonregistered users
+        for(i = 0; i < names.length - 1; i++)
             Assert.isTrue(addUser(accounts[i], names[i]), "Could not add user");
-        for(i = 0; i < names.length; i++)
+        for(i = 0; i < names.length - 1; i++)
             Assert.isFalse(addUser(accounts[i], names[i]), "Added user twice");
     }
 
@@ -47,17 +34,17 @@ contract ShareCenterTest is ShareCenter
         Assert.equal(shares[0].uri, uri, "Share uri not set correctly");
     }
 
-    function testDeleteShare() public //incomplete
+    function testDeleteShare() public
     {
         deleteShare(0);
         Assert.isFalse(users[msg.sender].authorizedOwn.contains(0), "User share not removed");
-        ShareCenter(address(proxy)).deleteShare(0);
-        bool result = proxy.execute.gas(2000000)();
-        Assert.isFalse(result, "Should have thrown an exception");
+        Assert.equal(shares[0].uri, 0x0, "ImageShare was not set to null");
     }
 
-    function initializeForAuthorizeAndRevokeTests()
+    function testDeleteShareWithNonExistentShare() public
     {
-        createShare(uri);
+        ShareCenter(address(proxy)).deleteShare(0);
+        bool result = proxy.execute.gas(GAS_LIMIT)();
+        Assert.isFalse(result, "Delete occurred on fake share");
     }
 }

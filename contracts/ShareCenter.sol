@@ -98,7 +98,7 @@ contract ShareCenter
 
     function deleteShare(uint id) public isUser(msg.sender) shareExists(id) ownShare(id)
     {
-        ImageShare memory share = shares[id];
+        ImageShare storage share = shares[id];
         uint i;
         address addr;
         uint size = share.authorizedOwn.list.length;
@@ -144,7 +144,7 @@ contract ShareCenter
         if(!users[addr].authorizedOwn.contains(id))
             return false;
         ImageShare storage share = shares[id];
-        share.authorizedOwn.remove(addr);
+        shares[id].authorizedOwn.remove(addr);
         users[addr].authorizedOwn.remove(share.id);
         OwnerRevoked(id, addr);
         return true;

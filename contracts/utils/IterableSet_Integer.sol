@@ -32,6 +32,7 @@ library IterableSet_Integer
         uint toRemove = self.indices[value];
         uint temp = self.list[self.list.length - 1];
         self.indices[temp] = toRemove;
+        self.indices[value] = 0;
         self.list[toRemove] = temp;
         self.list.length--;
         return true;

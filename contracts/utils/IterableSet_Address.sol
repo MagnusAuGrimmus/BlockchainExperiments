@@ -32,6 +32,7 @@ library IterableSet_Address
         uint toRemove = self.indices[value];
         address temp = self.list[self.list.length - 1];
         self.indices[temp] = toRemove;
+        self.indices[value] = 0;
         self.list[toRemove] = temp;
         self.list.length--;
         return true;
