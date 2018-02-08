@@ -8,8 +8,6 @@ contract('ImageShare', function(accounts) {
 
             printContractState(instance, accounts[0]);
 
-            var imageShareContractInstance = imageShareContract.at(instance.address);
-
             var ownerAddedEvent = instance.OwnerAdded({}, {fromBlock: 0, toBlock: 'latest'});
             var ownerRevokedEvent = instance.OwnerRevoked({}, {fromBlock: 0, toBlock: 'latest'});
             var readerAddedEvent = instance.ReaderAdded({}, {fromBlock: 0, toBlock: 'latest'});
@@ -49,15 +47,15 @@ contract('ImageShare', function(accounts) {
             });
 
             // authorize account 1 as an owner
-            authorizeAccountOwnership(imageShareContractInstance, accounts[0], accounts[1]);
+            authorizeAccountOwnership(instance, accounts[0], accounts[1]);
             printContractState(instance, accounts[0]);
 
             // authorize account 2 as an reader
-            authorizeAccountRead(imageShareContractInstance, accounts[0], accounts[2]);
+            authorizeAccountRead(instance, accounts[0], accounts[2]);
             printContractState(instance, accounts[0]);
 
             // revoke account 1 access
-            revokeAuthorizedOwner(imageShareContractInstance, accounts[0], accounts[1]);
+            revokeAuthorizedOwner(instance, accounts[0], accounts[1]);
             printContractState(instance, accounts[0]);
         }).then(function(balance) {
             //
@@ -66,13 +64,13 @@ contract('ImageShare', function(accounts) {
 });
 
 function printContractState(contract, ethAddress) {
-    var returnTuple = contract.getState.call({from: ethAddress});
-
-    console.log("");
-    console.log("The contract baseURI is " + web3.toUtf8(returnTuple[0]));
-    console.log("There are " + returnTuple[1].toString() + " authorized owners.");
-    console.log("There are " + returnTuple[2].toString() + " authorized readers.");
-    console.log("");
+    contract.getState.call().then(function(result) {
+      console.log("");
+      console.log("The contract baseURI is " + web3.toUtf8(result[0]));
+      console.log("There are " + result[1].toString() + " authorized owners.");
+      console.log("There are " + result[2].toString() + " authorized readers.");
+      console.log("");
+    });
 }
 
 function authorizeAccountOwnership(contract, ethAddress, authorizedAddress) {
