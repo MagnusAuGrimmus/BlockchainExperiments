@@ -46,7 +46,7 @@ contract('ImageShare', function(accounts) {
                 console.log("The blockchain confirmed that owner access was revoked from address " + userAddress);
             });
 
-            // authorize account 1 as an owner
+            //authorize account 1 as an owner
             authorizeAccountOwnership(instance, accounts[0], accounts[1]);
             printContractState(instance, accounts[0]);
 
@@ -76,7 +76,7 @@ function printContractState(contract, ethAddress) {
 function authorizeAccountOwnership(contract, ethAddress, authorizedAddress) {
     console.log("Attempting to add " + authorizedAddress + " as owner.");
 
-    contract.addAuthorizedOwner(authorizedAddress, {from: ethAddress});
+    contract.addAuthorizedOwner(authorizedAddress);
 }
 
 function authorizeAccountRead(contract, ethAddress, authorizedAddress) {
