@@ -44,9 +44,43 @@ contract('ShareCenter', function(accounts) {
       await center.createShare("uri", {from: accounts[9]});
       assert(false, "Should have thrown an exception");
     }
-    catch(e) {
+    catch(e) {}
+  })
 
+  it('should delete a share', async function() {
+    await center.createShare("uri", {from: accounts[0]});
+    var data = await center.deleteShare(0);
+    var result = await center.getShares.call({from: accounts[0]});
+    var idOwn = result[0];
+    var uriOwn = result[1];
+    var idRead = result[2];
+    var uriRead = result[3];
+    assert.equal(data.logs[0].event, "ShareDeleted");
+    assert.equal(idOwn.length, 0);
+    assert.equal(uriOwn.length, 0);
+    assert.equal(idRead.length, 0);
+    assert.equal(uriRead.length, 0);
+  })
+
+  it('should throw an exception when deleteShare is called incorrectly', async function() {
+    await center.createShare("uri", {from: accounts[0]});
+    try {
+      await center.deleteShare(1, {from: accounts[0]});
+      assert(false, "Allowed user to delete nonexistent share");
     }
+    catch(e) {}
+
+    try {
+      await center.deleteShare(1, {from: accounts[9]});
+      assert(false, "Allowed unregistered user to delete share");
+    }
+    catch(e) {}
+
+    try {
+      await center.deleteShare(1, {from: accounts[1]});
+      assert(false, "Allowed user to delet share it doesn't own");
+    }
+    catch(e) {}
   })
 
   it('should authorize ownership of a share', async function() {
@@ -147,7 +181,7 @@ contract('ShareCenter', function(accounts) {
     assert.equal(uriRead.length, 0);
   })
 
-  it('should throw exceptions when revokeRead is called incorrectly', async function() {
+  it('should throw exceptions when revokeOwn is called incorrectly', async function() {
     await center.createShare("uri", {from: accounts[0]});
     await center.authorizeOwn(0, accounts[1], {from: accounts[0]});
     try {
