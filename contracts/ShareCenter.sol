@@ -28,9 +28,10 @@ contract ShareCenter
     mapping(uint => ImageShare) shares;
     uint idCounter;
 
-    event ShareCreated(uint _id, bytes32 _uri);
+    event UserAdded(address addr, bytes32 name);
+    event ShareCreated(uint id, bytes32 uri);
     event ShareDeleted(uint id);
-    event OwnerAdded(uint _id, address user);
+    event OwnerAdded(uint id, address user);
     event ReaderAdded(uint id, address user);
     event OwnerRevoked(uint id, address user);
     event ReaderRevoked(uint id, address user);
@@ -59,6 +60,12 @@ contract ShareCenter
         _;
     }
 
+    modifier hasShare(uint id)
+    {
+        require(users[msg.sender].authorizedOwn.contains(id) || users[msg.sender].authorizedRead.contains(id));
+        _;
+    }
+
     modifier shareExists(uint id)
     {
         require(shares[id].uri != 0x0);
@@ -71,6 +78,51 @@ contract ShareCenter
         idCounter = 0;
     }
 
+    function canRead(address addr, uint id) public view returns (bool)
+    {
+        return users[addr].authorizedRead.contains(id);
+    }
+
+    function canOwn(address addr, uint id) public view returns (bool)
+    {
+        return users[addr].authorizedOwn.contains(id);
+    }
+
+    function getShares() public isUser(msg.sender) view returns (uint[], bytes32[], uint[], bytes32[])
+    {
+        User storage user = users[msg.sender];
+        uint[] memory idOwn = new uint[](user.authorizedOwn.size());
+        bytes32[] memory uriOwn = new bytes32[](user.authorizedOwn.size());
+        uint[] memory idRead = new uint[](user.authorizedRead.size());
+        bytes32[] memory uriRead = new bytes32[](user.authorizedRead.size());
+        uint i;
+        for(i = 0; i < idOwn.length; i++)
+        {
+            idOwn[i] = user.authorizedOwn.list[i];
+            uriOwn[i] = shares[idOwn[i]].uri;
+        }
+        for(i = 0; i < idRead.length; i++)
+        {
+            idRead[i] = user.authorizedRead.list[i];
+            uriRead[i] = shares[idRead[i]].uri;
+        }
+        return (idOwn, uriOwn, idRead, uriRead);
+    }
+
+    function getUsers(uint id) public isUser(msg.sender) ownShare(id) view returns (address[], address[])
+    {
+        ImageShare storage share = shares[id];
+        address[] memory usersOwn = new address[](share.authorizedOwn.size());
+        address[] memory usersRead = new address[](share.authorizedRead.size());
+        uint i;
+        for(i = 0; i < usersOwn.length; i++)
+            usersOwn[i] = share.authorizedOwn.list[i];
+        for(i = 0; i < usersRead.length; i++)
+            usersRead[i] = share.authorizedRead.list[i];
+
+        return (usersOwn, usersRead);
+    }
+
     function addSystem(address system) public isOwner returns (bool)
     {
         return authorizedSystems.add(system);
@@ -81,6 +133,7 @@ contract ShareCenter
         if(users[addr].name != 0x0)
             return false;
         users[addr].name = name;
+        UserAdded(addr, name);
         return true;
     }
 
