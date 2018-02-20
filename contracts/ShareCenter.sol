@@ -130,14 +130,13 @@ contract ShareCenter
 
     function addUser(address addr, bytes32 name) public isRegisteredSystem returns (bool)
     {
-        if(users[addr].name != 0x0)
-            return false;
+        require(users[addr].name == 0x0);
+
         users[addr].name = name;
         UserAdded(addr, name);
-        return true;
     }
 
-    function createShare(bytes32 uri) public isUser(msg.sender)
+    function createShare(bytes32 uri) public isUser(msg.sender) returns(uint)
     {
         ImageShare storage share;
         share.uri = uri;
@@ -147,6 +146,8 @@ contract ShareCenter
         users[msg.sender].authorizedOwn.add(idCounter);
         ShareCreated(idCounter, uri);
         idCounter++;
+
+        return idCounter;
     }
 
     function deleteShare(uint id) public isUser(msg.sender) shareExists(id) ownShare(id)
