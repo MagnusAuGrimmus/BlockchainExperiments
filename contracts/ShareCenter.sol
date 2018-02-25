@@ -28,6 +28,7 @@ contract ShareCenter
     mapping(uint => ImageShare) shares;
     uint idCounter;
 
+    event SystemAdded(address addr);
     event UserAdded(address addr, bytes32 name);
     event ShareCreated(uint id, bytes32 uri);
     event ShareDeleted(uint id);
@@ -48,6 +49,12 @@ contract ShareCenter
         _;
     }
 
+    modifier isNotUser(address addr)
+    {
+        require(users[addr].name == 0x0);
+        _;
+    }
+
     modifier isRegisteredSystem()
     {
         require(authorizedSystems.contains(msg.sender));
@@ -56,13 +63,13 @@ contract ShareCenter
 
     modifier ownShare(uint id)
     {
-        require(users[msg.sender].authorizedOwn.contains(id));
+        require(canOwn(msg.sender, id));
         _;
     }
 
     modifier hasShare(uint id)
     {
-        require(users[msg.sender].authorizedOwn.contains(id) || users[msg.sender].authorizedRead.contains(id));
+        require(canOwn(msg.sender, id) || canRead(msg.sender, id));
         _;
     }
 
@@ -125,13 +132,12 @@ contract ShareCenter
 
     function addSystem(address system) public isOwner returns (bool)
     {
-        return authorizedSystems.add(system);
+        if(authorizedSystems.add(system))
+            SystemAdded(system);
     }
 
-    function addUser(address addr, bytes32 name) public isRegisteredSystem returns (bool)
+    function addUser(address addr, bytes32 name) public isRegisteredSystem isNotUser(addr)
     {
-        require(users[addr].name == 0x0);
-
         users[addr].name = name;
         UserAdded(addr, name);
     }
@@ -146,8 +152,7 @@ contract ShareCenter
         users[msg.sender].authorizedOwn.add(idCounter);
         ShareCreated(idCounter, uri);
         idCounter++;
-
-        return idCounter;
+        return idCounter - 1;
     }
 
     function deleteShare(uint id) public isUser(msg.sender) shareExists(id) ownShare(id)

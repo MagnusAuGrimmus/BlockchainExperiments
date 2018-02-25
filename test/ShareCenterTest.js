@@ -1,22 +1,13 @@
 var ShareCenter = artifacts.require("ShareCenter");
-var Set = artifacts.require("Set");
+var duration = 60 * 60 * 24 * 365;
 contract('ShareCenter', function(accounts) {
     var center;
-    var set;
     beforeEach('setup', async function() {
         center = await ShareCenter.new();
-        set = await Set.new();
         await center.addSystem(accounts[0]);
         await center.addUser(accounts[0], "user");
         await center.addUser(accounts[1], "user");
     })
-
-    // this doesn't work correctly
-    // maybe we could try something along these lines:
-    //   https://ethereum.stackexchange.com/questions/9103/how-can-you-handle-an-expected-throw-in-a-contract-test-using-truffle-and-ethere
-    //it('should not add a user twice', async function() {
-    //    assert.equal(false, await center.addUser.call(accounts[0], "Avi"), "Added account twice");
-    //})
 
     it('should throw an exception when adding a user from a unregistered system', async function() {
         try {
@@ -50,7 +41,6 @@ contract('ShareCenter', function(accounts) {
         catch(e) {
             return;
         }
-
         assert(false, "Should have thrown an exception");
     })
 
@@ -147,17 +137,15 @@ contract('ShareCenter', function(accounts) {
             await center.authorizeOwn(1, accounts[1], {from: accounts[0]});
         }
         catch (e) {
-            return;
+          return;
         }
-
-        assert(false, "authorized ownership of nonexistent share");
+      assert(false, "authorized ownership of nonexistent share");
     })
 
     it("should throw an exception when authorizeOwn is allowed for a share that the user doesn't control", async function() {
         try{
             await center.createShare("uri", {from: accounts[1]});
             await center.authorizeOwn(1, accounts[2], {from: accounts[1]});
-
         }
         catch(e) {
             return;
@@ -190,7 +178,6 @@ contract('ShareCenter', function(accounts) {
         catch (e) {
             return;
         }
-
         assert(false, "authorized unregistered user");
     })
 
