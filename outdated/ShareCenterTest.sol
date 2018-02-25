@@ -1,6 +1,5 @@
 pragma solidity ^0.4.18;
 import "./utils/ShareCenterTester.sol";
-
 import "truffle/Assert.sol";
 
 contract ShareCenterTest is ShareCenterTester
@@ -28,5 +27,12 @@ contract ShareCenterTest is ShareCenterTester
         deleteShare(0);
         Assert.isFalse(users[msg.sender].authorizedOwn.contains(0), "User share not removed");
         Assert.equal(shares[0].uri, 0x0, "ImageShare was not set to null");
+    }
+
+    function testDeleteShareWithNonExistentShare() public
+    {
+        ShareCenter(address(proxy)).deleteShare(0);
+        bool result = proxy.execute.gas(GAS_LIMIT)();
+        Assert.isFalse(result, "Delete occurred on fake share");
     }
 }

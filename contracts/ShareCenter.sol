@@ -36,47 +36,62 @@ contract ShareCenter
     event ReaderAdded(uint id, address user);
     event OwnerRevoked(uint id, address user);
     event ReaderRevoked(uint id, address user);
+    event Error(uint id);
 
     modifier isOwner()
     {
-        require(msg.sender == owner);
-        _;
+        if(msg.sender != owner)
+            Error(0);
+        else
+            _;
     }
 
     modifier isUser(address addr)
     {
-        require(users[addr].name != 0x0);
-        _;
+        if(users[addr].name == 0x0)
+            Error(1);
+        else
+            _;
     }
 
     modifier isNotUser(address addr)
     {
-        require(users[addr].name == 0x0);
-        _;
+        if(users[addr].name != 0x0)
+            Error(2);
+        else
+            _;
     }
 
     modifier isRegisteredSystem()
     {
-        require(authorizedSystems.contains(msg.sender));
-        _;
+        if(!authorizedSystems.contains(msg.sender))
+            Error(3);
+        else
+            _;
     }
 
     modifier ownShare(uint id)
     {
-        require(canOwn(msg.sender, id));
-        _;
+        if(!canOwn(msg.sender, id))
+            Error(4);
+        else
+            _;
     }
 
     modifier hasShare(uint id)
     {
-        require(canOwn(msg.sender, id) || canRead(msg.sender, id));
-        _;
+        if(!canOwn(msg.sender, id) && !canRead(msg.sender, id))
+            Error(5);
+        else
+            _;
     }
 
     modifier shareExists(uint id)
     {
-        require(shares[id].uri != 0x0);
-        _;
+        if(shares[id].uri == 0x0)
+            Error(6);
+        else
+            _;
     }
 
     function ShareCenter() public
@@ -95,7 +110,7 @@ contract ShareCenter
         return users[addr].authorizedOwn.contains(id);
     }
 
-    function getShares() public isUser(msg.sender) view returns (uint[], bytes32[], uint[], bytes32[])
+    function getShares() public isUser(msg.sender) returns (uint[], bytes32[], uint[], bytes32[])
     {
         User storage user = users[msg.sender];
         uint[] memory idOwn = new uint[](user.authorizedOwn.size());
@@ -116,7 +131,7 @@ contract ShareCenter
         return (idOwn, uriOwn, idRead, uriRead);
     }
 
-    function getUsers(uint id) public isUser(msg.sender) ownShare(id) view returns (address[], address[])
+    function getUsers(uint id) public isUser(msg.sender) ownShare(id) returns (address[], address[])
     {
         ImageShare storage share = shares[id];
         address[] memory usersOwn = new address[](share.authorizedOwn.size());
