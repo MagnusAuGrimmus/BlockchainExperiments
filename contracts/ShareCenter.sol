@@ -215,7 +215,7 @@ contract ShareCenter
 
     function revokeOwn(uint id, address addr) public isUser(msg.sender) isUser(addr) shareExists(id) ownShare(id) returns (bool)
     {
-        if(!users[addr].authorizedOwn.contains(id))
+        if(!canOwn(addr, id))
             return false;
         ImageShare storage share = shares[id];
         shares[id].authorizedOwn.remove(addr);
@@ -226,7 +226,7 @@ contract ShareCenter
 
     function revokeRead(uint id, address addr) public isUser(msg.sender) isUser(addr) shareExists(id) ownShare(id) returns (bool)
     {
-        if(!users[addr].authorizedRead.contains(id))
+        if(!canRead(addr, id))
             return false;
         ImageShare storage share = shares[id];
         share.authorizedRead.remove(addr);

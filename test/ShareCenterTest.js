@@ -1,5 +1,5 @@
 var ShareCenter = artifacts.require("ShareCenter");
-var duration = 60 * 60 * 24 * 365;
+//var duration = 60 * 60 * 24 * 365;
 contract('ShareCenter', function(accounts) {
   var center;
   beforeEach('setup', async function() {
