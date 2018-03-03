@@ -5,24 +5,13 @@ import "truffle/Assert.sol";
 
 contract ShareCenterTest is ShareCenterTester
 {
-    function ShareCenterTest() ShareCenterTester() public
-    {
-    }
+    function ShareCenterTest() ShareCenterTester() public {}
 
-    function testAddSystem() public
+    function beforeAll() public
     {
-        Assert.isTrue(addSystem(accounts[0]), "Could not add system");
-        Assert.isFalse(addSystem(accounts[0]), "Added system twice");
-    }
-
-    function testAddUser() public
-    {
-        uint i;
-        //Not adding last account to check for method calls from nonregistered users
-        for(i = 0; i < names.length - 1; i++)
-            Assert.isTrue(addUser(accounts[i], names[i]), "Could not add user");
-        for(i = 0; i < names.length - 1; i++)
-            Assert.isFalse(addUser(accounts[i], names[i]), "Added user twice");
+        addSystem(accounts[0]);
+        for(uint i = 0; i < names.length - 1; i++)
+            addUser(accounts[i], names[i]);
     }
 
     function testCreateShare() public
@@ -39,12 +28,5 @@ contract ShareCenterTest is ShareCenterTester
         deleteShare(0);
         Assert.isFalse(users[msg.sender].authorizedOwn.contains(0), "User share not removed");
         Assert.equal(shares[0].uri, 0x0, "ImageShare was not set to null");
-    }
-
-    function testDeleteShareWithNonExistentShare() public
-    {
-        ShareCenter(address(proxy)).deleteShare(0);
-        bool result = proxy.execute.gas(GAS_LIMIT)();
-        Assert.isFalse(result, "Delete occurred on fake share");
     }
 }

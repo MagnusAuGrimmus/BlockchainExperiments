@@ -28,41 +28,70 @@ contract ShareCenter
     mapping(uint => ImageShare) shares;
     uint idCounter;
 
-    event ShareCreated(uint _id, bytes32 _uri);
+    event SystemAdded(address addr);
+    event UserAdded(address addr, bytes32 name);
+    event ShareCreated(uint id, bytes32 uri);
     event ShareDeleted(uint id);
-    event OwnerAdded(uint _id, address user);
+    event OwnerAdded(uint id, address user);
     event ReaderAdded(uint id, address user);
     event OwnerRevoked(uint id, address user);
     event ReaderRevoked(uint id, address user);
+    event Error(uint id);
 
     modifier isOwner()
     {
-        require(msg.sender == owner);
-        _;
+        if(msg.sender != owner)
+            Error(0);
+        else
+            _;
     }
 
     modifier isUser(address addr)
     {
-        require(users[addr].name != 0x0);
-        _;
+        if(users[addr].name == 0x0)
+            Error(1);
+        else
+            _;
+    }
+
+    modifier isNotUser(address addr)
+    {
+        if(users[addr].name != 0x0)
+            Error(2);
+        else
+            _;
     }
 
     modifier isRegisteredSystem()
     {
-        require(authorizedSystems.contains(msg.sender));
-        _;
+        if(!authorizedSystems.contains(msg.sender))
+            Error(3);
+        else
+            _;
     }
 
     modifier ownShare(uint id)
     {
-        require(users[msg.sender].authorizedOwn.contains(id));
-        _;
+        if(!canOwn(msg.sender, id))
+            Error(4);
+        else
+            _;
+    }
+
+    modifier hasShare(uint id)
+    {
+        if(!canOwn(msg.sender, id) && !canRead(msg.sender, id))
+            Error(5);
+        else
+            _;
     }
 
     modifier shareExists(uint id)
     {
-        require(shares[id].uri != 0x0);
-        _;
+        if(shares[id].uri == 0x0)
+            Error(6);
+        else
+            _;
     }
 
     function ShareCenter() public
@@ -71,20 +100,64 @@ contract ShareCenter
         idCounter = 0;
     }
 
+    function canRead(address addr, uint id) public view returns (bool)
+    {
+        return users[addr].authorizedRead.contains(id);
+    }
+
+    function canOwn(address addr, uint id) public view returns (bool)
+    {
+        return users[addr].authorizedOwn.contains(id);
+    }
+
+    function getShares() public isUser(msg.sender) returns (uint[], bytes32[], uint[], bytes32[])
+    {
+        User storage user = users[msg.sender];
+        uint[] memory idOwn = new uint[](user.authorizedOwn.size());
+        bytes32[] memory uriOwn = new bytes32[](user.authorizedOwn.size());
+        uint[] memory idRead = new uint[](user.authorizedRead.size());
+        bytes32[] memory uriRead = new bytes32[](user.authorizedRead.size());
+        uint i;
+        for(i = 0; i < idOwn.length; i++)
+        {
+            idOwn[i] = user.authorizedOwn.list[i];
+            uriOwn[i] = shares[idOwn[i]].uri;
+        }
+        for(i = 0; i < idRead.length; i++)
+        {
+            idRead[i] = user.authorizedRead.list[i];
+            uriRead[i] = shares[idRead[i]].uri;
+        }
+        return (idOwn, uriOwn, idRead, uriRead);
+    }
+
+    function getUsers(uint id) public isUser(msg.sender) ownShare(id) returns (address[], address[])
+    {
+        ImageShare storage share = shares[id];
+        address[] memory usersOwn = new address[](share.authorizedOwn.size());
+        address[] memory usersRead = new address[](share.authorizedRead.size());
+        uint i;
+        for(i = 0; i < usersOwn.length; i++)
+            usersOwn[i] = share.authorizedOwn.list[i];
+        for(i = 0; i < usersRead.length; i++)
+            usersRead[i] = share.authorizedRead.list[i];
+
+        return (usersOwn, usersRead);
+    }
+
     function addSystem(address system) public isOwner returns (bool)
     {
-        return authorizedSystems.add(system);
+        if(authorizedSystems.add(system))
+            SystemAdded(system);
     }
 
-    function addUser(address addr, bytes32 name) public isRegisteredSystem returns (bool)
+    function addUser(address addr, bytes32 name) public isRegisteredSystem isNotUser(addr)
     {
-        if(users[addr].name != 0x0)
-            return false;
         users[addr].name = name;
-        return true;
+        UserAdded(addr, name);
     }
 
-    function createShare(bytes32 uri) public isUser(msg.sender)
+    function createShare(bytes32 uri) public isUser(msg.sender) returns(uint)
     {
         ImageShare storage share;
         share.uri = uri;
@@ -94,6 +167,7 @@ contract ShareCenter
         users[msg.sender].authorizedOwn.add(idCounter);
         ShareCreated(idCounter, uri);
         idCounter++;
+        return idCounter - 1;
     }
 
     function deleteShare(uint id) public isUser(msg.sender) shareExists(id) ownShare(id)
@@ -141,7 +215,7 @@ contract ShareCenter
 
     function revokeOwn(uint id, address addr) public isUser(msg.sender) isUser(addr) shareExists(id) ownShare(id) returns (bool)
     {
-        if(!users[addr].authorizedOwn.contains(id))
+        if(!canOwn(addr, id))
             return false;
         ImageShare storage share = shares[id];
         shares[id].authorizedOwn.remove(addr);
@@ -152,7 +226,7 @@ contract ShareCenter
 
     function revokeRead(uint id, address addr) public isUser(msg.sender) isUser(addr) shareExists(id) ownShare(id) returns (bool)
     {
-        if(!users[addr].authorizedRead.contains(id))
+        if(!canRead(addr, id))
             return false;
         ImageShare storage share = shares[id];
         share.authorizedRead.remove(addr);

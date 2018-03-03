@@ -8,8 +8,9 @@ contract ShareCenterTester is ShareCenter
     address[] public accounts;
     bytes32[] public names;
     bytes32 public uri = "www.share1.com";
-    uint public GAS_LIMIT = 10000;
+    uint public GAS_LIMIT = 20000;
     uint public id;
+    uint public duration = 60 * 60 * 24 * 365;
     address public acc;
 
     event TestShareMade(uint id);
