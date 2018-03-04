@@ -11,7 +11,7 @@ module.exports = function(deployer) {
     deployer.link(IterableSet_Integer, ShareCenter);
     deployer.link(IterableSet_Address, ShareCenter);
 
-    // deployer.deploy(ImageShare, uri, addr);
+    //deployer.deploy(ImageShare, uri, addr);
     deployer.deploy(ShareCenter);
   });
 };
