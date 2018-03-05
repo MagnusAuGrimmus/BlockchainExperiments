@@ -5,6 +5,16 @@ import "./utils/IterableSet_Address.sol";
 
 contract ShareCenter
 {
+    enum ErrorCode {
+      IS_NOT_OWNER, // 0
+      USER_ALREADY_EXISTS, // 1
+      IS_NOT_A_USER, // 2
+      IS_NOT_A_REGISTERED_SYSTEM, // 3
+      DOES_NOT_OWN_SHARE, // 4
+      DOES_NOT_HAVE_SHARE, // 5
+      SHARE_ALREADY_EXISTS // 6
+    }
+
     using IterableSet_Integer for IterableSet_Integer.Data;
     using IterableSet_Address for IterableSet_Address.Data;
     using Set for Set.Data;
@@ -41,7 +51,7 @@ contract ShareCenter
     modifier isOwner()
     {
         if(msg.sender != owner)
-            Error(0);
+            Error(uint(ErrorCode.IS_NOT_OWNER));
         else
             _;
     }
@@ -49,7 +59,7 @@ contract ShareCenter
     modifier isUser(address addr)
     {
         if(users[addr].name == 0x0)
-            Error(1);
+            Error(uint(ErrorCode.USER_ALREADY_EXISTS));
         else
             _;
     }
@@ -57,7 +67,7 @@ contract ShareCenter
     modifier isNotUser(address addr)
     {
         if(users[addr].name != 0x0)
-            Error(2);
+            Error(uint(ErrorCode.IS_NOT_A_USER));
         else
             _;
     }
@@ -65,7 +75,7 @@ contract ShareCenter
     modifier isRegisteredSystem()
     {
         if(!authorizedSystems.contains(msg.sender))
-            Error(3);
+            Error(uint(ErrorCode.IS_NOT_A_REGISTERED_SYSTEM));
         else
             _;
     }
@@ -73,7 +83,7 @@ contract ShareCenter
     modifier ownShare(uint id)
     {
         if(!canOwn(msg.sender, id))
-            Error(4);
+            Error(uint(ErrorCode.DOES_NOT_OWN_SHARE));
         else
             _;
     }
@@ -81,7 +91,7 @@ contract ShareCenter
     modifier hasShare(uint id)
     {
         if(!canOwn(msg.sender, id) && !canRead(msg.sender, id))
-            Error(5);
+            Error(uint(ErrorCode.DOES_NOT_HAVE_SHARE));
         else
             _;
     }
@@ -89,7 +99,7 @@ contract ShareCenter
     modifier shareExists(uint id)
     {
         if(shares[id].uri == 0x0)
-            Error(6);
+            Error(uint(ErrorCode.SHARE_ALREADY_EXISTS));
         else
             _;
     }
