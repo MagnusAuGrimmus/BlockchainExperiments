@@ -52,23 +52,23 @@ contract('ShareCenter', function(accounts) {
     check(data, 4);
   })
 
-  it("should throw error code 1 when authorizeOwn is called from fake user", async function()
+  it("should throw error code 1 when authorizeWrite is called from fake user", async function()
   {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.authorizeOwn(0, accounts[1], {from: accounts[9]});
+    var data = await center.authorizeWrite(0, accounts[1], {from: accounts[9]});
     check(data, 1);
   })
 
-  it("should throw error code 1 when authorizeOwn is called on fake user", async function()
+  it("should throw error code 1 when authorizeWrite is called on fake user", async function()
   {
     await center.createShare("uri");
-    var data = await center.authorizeOwn(0, accounts[9], {from: accounts[0]});
+    var data = await center.authorizeWrite(0, accounts[9], {from: accounts[0]});
     check(data, 1);
   })
 
-  it("should throw error code 4 when authorizeOwn is called from user who doesn't own share", async function() {
+  it("should throw error code 4 when authorizeWrite is called from user who doesn't own share", async function() {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.authorizeOwn(0, accounts[2], {from: accounts[1]});
+    var data = await center.authorizeWrite(0, accounts[2], {from: accounts[1]});
     check(data, 4);
   })
 
@@ -107,28 +107,28 @@ contract('ShareCenter', function(accounts) {
     check(data, 6);
   })
 
-  it("should throw error code 1 when revokeOwn is called from fake user", async function()
+  it("should throw error code 1 when revokeWrite is called from fake user", async function()
   {
     await center.createShare("uri");
-    var data = await center.revokeOwn(0, accounts[0], {from: accounts[9]});
+    var data = await center.revokeWrite(0, accounts[0], {from: accounts[9]});
     check(data, 1);
   })
 
-  it("should throw error code 1 when revokeOwn is called on fake user", async function()
+  it("should throw error code 1 when revokeWrite is called on fake user", async function()
   {
     await center.createShare("uri");
-    var data = await center.revokeOwn(0, accounts[9], {from: accounts[0]});
+    var data = await center.revokeWrite(0, accounts[9], {from: accounts[0]});
     check(data, 1);
   })
 
-  it("should throw error code 4 when revokeOwn is called from user who doesn't own share", async function() {
+  it("should throw error code 4 when revokeWrite is called from user who doesn't own share", async function() {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.revokeOwn(0, accounts[2], {from: accounts[1]});
+    var data = await center.revokeWrite(0, accounts[2], {from: accounts[1]});
     check(data, 4);
   })
 
-  it("should throw error code 6 when revokeOwn is called on nonexistant share", async function() {
-    var data = await center.revokeOwn(0, accounts[2], {from: accounts[1]});
+  it("should throw error code 6 when revokeWrite is called on nonexistant share", async function() {
+    var data = await center.revokeWrite(0, accounts[2], {from: accounts[1]});
     check(data, 6);
   })
 

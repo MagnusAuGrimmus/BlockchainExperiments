@@ -39,27 +39,12 @@ contract ShareCenterTester is ShareCenter
         _;
     }
 
-    modifier addAccountToRead()
-    {
-        acc = accounts[0];
-        authorizeRead(id, acc);
-        ReadAccountAdded(acc);
-        _;
-    }
-
     modifier setOwnAddress()
     {
         acc = accounts[1];
         _;
     }
 
-    modifier addAccountToOwn()
-    {
-        acc = accounts[1];
-        if(authorizeOwn(id, acc))
-            OwnAccountAdded(acc);
-        _;
-    }
 
     function addUsers() public
     {

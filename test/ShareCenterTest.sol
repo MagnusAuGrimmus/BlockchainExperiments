@@ -17,8 +17,8 @@ contract ShareCenterTest is ShareCenterTester
     function testCreateShare() public
     {
         createShare(uri);
-        Assert.isTrue(users[msg.sender].authorizedOwn.contains(0), "User does not have share");
-        Assert.isTrue(shares[0].authorizedOwn.contains(msg.sender), "Share did not add user");
+        Assert.isTrue(users[msg.sender].authorizedWrite.contains(0), "User does not have share");
+        Assert.isTrue(shares[0].authorizedWrite.contains(msg.sender), "Share did not add user");
         Assert.equal(shares[0].id, 0, "Share id not set correctly");
         Assert.equal(shares[0].uri, uri, "Share uri not set correctly");
     }
@@ -26,7 +26,7 @@ contract ShareCenterTest is ShareCenterTester
     function testDeleteShare() public
     {
         deleteShare(0);
-        Assert.isFalse(users[msg.sender].authorizedOwn.contains(0), "User share not removed");
+        Assert.isFalse(users[msg.sender].authorizedWrite.contains(0), "User share not removed");
         Assert.equal(shares[0].uri, 0x0, "ImageShare was not set to null");
     }
 }
