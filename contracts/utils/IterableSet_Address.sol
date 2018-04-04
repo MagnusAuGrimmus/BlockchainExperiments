@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.19;
 
 library IterableSet_Address
 {
@@ -12,12 +12,12 @@ library IterableSet_Address
         return self.list.length;
     }
 
-    function contains(Data storage self, address value) public view returns (bool)
+    function contains(Data storage self, address value) internal view returns (bool)
     {
         return self.list.length != 0 && self.list[self.indices[value]] == value;
     }
 
-    function add(Data storage self, address value) public returns (bool)
+    function add(Data storage self, address value) internal returns (bool)
     {
         if(contains(self, value))
             return false;
@@ -25,7 +25,7 @@ library IterableSet_Address
         return true;
     }
 
-    function remove(Data storage self, address value) public returns (bool)
+    function remove(Data storage self, address value) internal returns (bool)
     {
         if(!contains(self, value))
             return false;
@@ -37,4 +37,12 @@ library IterableSet_Address
         self.list.length--;
         return true;
     }
+
+//    function iterator(Data storage self) public view returns (address[])
+//    {
+//        address[] memory result = new address[self.list.length];
+//        for(uint i = 0; i < self.list.size(); i++)
+//            result[i] = self.list[i];
+//        return result;
+//    }
 }

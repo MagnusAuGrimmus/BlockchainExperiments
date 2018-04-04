@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.19;
 
 library Set
 {
@@ -7,12 +7,12 @@ library Set
         mapping(address => bool) flags;
     }
 
-    function contains(Data storage self, address value) public view returns (bool)
+    function contains(Data storage self, address value) internal view returns (bool)
     {
         return self.flags[value];
     }
 
-    function add(Data storage self, address value) public returns (bool)
+    function add(Data storage self, address value) internal returns (bool)
     {
         if(contains(self, value))
             return false;
@@ -21,7 +21,7 @@ library Set
         return true;
     }
 
-    function remove(Data storage self, address value) public returns (bool)
+    function remove(Data storage self, address value) internal returns (bool)
     {
         if(!contains(self, value))
             return false;
