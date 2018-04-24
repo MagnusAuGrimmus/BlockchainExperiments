@@ -42,12 +42,12 @@ contract ShareCenter
     address owner;
     mapping(address => User) users;
     mapping(uint => Group.Data) groups;
-    mapping(address => Group.Data) usersToGroups;
+    mapping(address => uint) userToGroupID;
     mapping(uint => RecordShare) shares;
-    uint shareCounter;
-    uint claimCounter;
-    uint groupCounter;
-    uint userCounter;
+    uint shareCounter = 0;
+    uint claimCounter = 0;
+    uint groupCounter = 0;
+    uint userCounter = 0;
 
     event SystemAdded(address addr);
     event UserAdded(address addr, bytes32 name);
@@ -135,7 +135,7 @@ contract ShareCenter
 
     function canRead(address addr, uint shareId) public view returns (bool)
     {
-        Group.Data group = usersToGroups[addr];
+        Group.Data group = groups[userToGroupID[addr]];
         return group.shares.map[shareId].canRead();
     }
 
@@ -147,14 +147,12 @@ contract ShareCenter
 
     function canWrite(address addr, uint shareId) public view returns (bool)
     {
-        Group.Data group = usersToGroups[addr];
-        return group.shares.map[shareId].canWrite();
+        return canWrite(userToGroupID[addr], shareId);
     }
 
     function canWrite(uint groupId, uint shareId) public view returns (bool)
     {
-        Group.Data group = groups[groupId];
-        return group.shares.map[shareId].canWrite();
+        return groups[groupId].shares.map[shareId].canWrite();
     }
 
     function addSystem(address system) public isOwner returns (bool)
@@ -168,33 +166,76 @@ contract ShareCenter
         users[addr].name = name;
         users[addr].id = ++userCounter;
         UserAdded(addr, name);
+        createGroup(addr);
     }
 
-    function addGroup(address addr) public
+    function createGroup(address addr) public
     {
-        Group.Data storage group = usersToGroups[msg.sender];
+        Group.Data storage group = groups[groupCounter + 1];
         group.id = ++groupCounter;
-        group.owners.add(msg.sender);
+        group.owners.add(addr);
         groups[group.id] = group;
+        userToGroupID[addr] = group.id;
+    }
+
+    function addOwnerToGroup(address addr) public
+    {
+        Group.Data storage group = groups[userToGroupID[msg.sender]];
+        group.owners.add(addr);
+        userToGroupID[addr] = group.id;
+    }
+
+    function addUserToGroup(address addr) public
+    {
+        Group.Data storage group = groups[userToGroupID[msg.sender]];
+        group.users.add(addr);
+        userToGroupID[addr] = group.id;
+    }
+
+    function getShares() public isUser(msg.sender) returns (uint[], bytes32[], uint[], bytes32[])
+    {
+        Group.Data group = groups[userToGroupID[msg.sender]];
+        uint size = group.shares.size();
+        uint[] memory idWrite = new uint[](group.authorizedWrite);
+        bytes32[] memory uriWrite = new bytes32[](group.authorizedWrite);
+        uint[] memory idRead = new uint[](group.authorizedRead);
+        bytes32[] memory uriRead = new bytes32[](group.authorizedRead);
+        uint indexWrite = 0;
+        uint indexRead = 0;
+        for(uint i = 0; i < size; i++)
+        {
+            uint id = group.shares.list[i];
+            RecordShare share = shares[id];
+            if(canWrite(group.id, id))
+            {
+
+                idWrite[indexWrite] = share.id;
+                uriWrite[indexWrite] = share.uri;
+                indexWrite++;
+            }
+            else
+            {
+                idRead[indexRead] = share.id;
+                uriRead[indexRead] = share.uri;
+                indexRead++;
+            }
+        }
+        return (idWrite, uriWrite, idRead, uriRead);
     }
 
     function createShare(bytes32 uri) public isUser(msg.sender) returns(uint)
     {
-        RecordShare storage share;
         Claim.Data storage claim;
-        Group.Data storage group = usersToGroups[msg.sender];
-        share.uri = uri;
-        share.id = ++shareCounter;
+        Group.Data storage group = groups[userToGroupID[msg.sender]];
+        uint shareId = ++shareCounter;
+        shares[shareId].uri = uri;
+        shares[shareId].id = shareId;
         claim.time = 0;
         claim.id = ++claimCounter;
         claim.access = Claim.Type.WRITE;
 
-        if(!group.isActive())
-            addGroup(msg.sender);
-
-        share.groups.put(group.id, claim);
-        shares[share.id] = share;
-        group.addClaim(share.id, claim);
+        shares[shareId].groups.put(group.id, claim);
+        group.addClaim(shareId, claim);
 
         ShareCreated(shareCounter, uri);
         return shareCounter;
@@ -203,10 +244,8 @@ contract ShareCenter
     function deleteShare(uint id) public isUser(msg.sender) shareExists(id) ownShare(id)
     {
         RecordShare storage share = shares[id];
-        uint i;
         Group.Data group;
-        uint size = share.groups.list.length;
-        for(i = 0; i < size; i++)
+        for(uint i = 0; i < share.groups.list.length; i++)
         {
             group = groups[share.groups.list[i]];
             group.removeClaim(id);
@@ -221,25 +260,16 @@ contract ShareCenter
     shareExists(shareId)
     ownShare(shareId)
     {
-        if(!groups[groupId].shares.map[shareId].isValid())
+        if(canWrite(groupId, shareId))
             return;
-        RecordShare storage share = shares[shareId];
         Claim.Data claim;
         claim.time = time;
         claim.id = ++claimCounter;
         claim.access = Claim.Type.WRITE;
-        share.groups.put(groupId, claim);
-        groups[groupId].shares.put(share.id, claim);
+        shares[shareId].groups.put(groupId, claim);
+        groups[groupId].addClaim(shareId, claim);
+        require(groups[groupId].shares.map[shareId].canWrite());
         WriterAdded(shareId, groupId);
-    }
-
-    function authorizeWrite(uint shareId, uint groupId) public
-    isUser(msg.sender)
-    isActiveGroup(groupId)
-    shareExists(shareId)
-    ownShare(shareId)
-    {
-        authorizeWrite(shareId, groupId, 0);
     }
 
     function authorizeRead(uint shareId, uint groupId, uint time) public
@@ -248,7 +278,7 @@ contract ShareCenter
     shareExists(shareId)
     ownShare(shareId)
     {
-        if(groups[groupId].shares.map[shareId].isValid())
+        if(canRead(groupId, shareId))
             return;
         RecordShare storage share = shares[shareId];
         Claim.Data claim;
@@ -256,17 +286,8 @@ contract ShareCenter
         claim.id = ++claimCounter;
         claim.access = Claim.Type.READ;
         share.groups.put(groupId, claim);
-        groups[groupId].shares.put(share.id, claim);
+        groups[groupId].addClaim(share.id, claim);
         ReaderAdded(shareId, groupId);
-    }
-
-    function authorizeRead(uint shareId, uint groupId) public
-    isUser(msg.sender)
-    isActiveGroup(groupId)
-    shareExists(shareId)
-    ownShare(shareId)
-    {
-        authorizeRead(shareId, groupId, 0);
     }
 
     function revokeWrite(uint shareId, uint groupId) public
@@ -275,7 +296,7 @@ contract ShareCenter
     shareExists(shareId)
     ownShare(shareId)
     {
-        if(!canWrite(shareId, groupId))
+        if(!canWrite(groupId, shareId))
             return;
         RecordShare storage share = shares[shareId];
         shares[shareId].groups.remove(groupId);
@@ -289,8 +310,9 @@ contract ShareCenter
     shareExists(shareId)
     ownShare(shareId)
     {
-        if(!canRead(shareId, groupId))
+        if(!canRead(groupId, shareId))
             return;
+        revokeWrite(shareId, groupId);
         RecordShare storage share = shares[shareId];
         shares[shareId].groups.remove(groupId);
         groups[groupId].removeClaim(share.id);

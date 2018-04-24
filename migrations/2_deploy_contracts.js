@@ -24,6 +24,7 @@ async function loadShareCenter(deployer)
   await deployer.link(IterableMapping_Integer_Claim, ShareCenter);
   await deployer.link(Group, ShareCenter);
   await deployer.link(Claim, ShareCenter);
+  await deployer.link(ArrayUtils, ShareCenter);
   await deployer.deploy(ShareCenter);
 }
 

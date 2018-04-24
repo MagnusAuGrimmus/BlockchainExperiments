@@ -37,123 +37,123 @@ contract('ShareCenter', function(accounts) {
 
   it("should throw error code 1 when deleteShare is called from fake user", async function() {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.deleteShare(0, {from: accounts[9]});
+    var data = await center.deleteShare(1, {from: accounts[9]});
     check(data, 1);
   })
 
   it("should throw error code 6 when deleteShare is called on nonexistant share", async function() {
-    var data = await center.deleteShare(0, {from: accounts[0]});
+    var data = await center.deleteShare(1, {from: accounts[0]});
     check(data, 6);
   })
 
   it("should throw error code 4 when deleteShare is called from user who doesn't own share", async function() {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.deleteShare(0, {from: accounts[1]});
+    var data = await center.deleteShare(1, {from: accounts[1]});
     check(data, 4);
   })
 
   it("should throw error code 1 when authorizeWrite is called from fake user", async function()
   {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.authorizeWrite(0, accounts[1], {from: accounts[9]});
+    var data = await center.authorizeWrite(1, accounts[1], 0, {from: accounts[9]});
     check(data, 1);
   })
 
-  it("should throw error code 1 when authorizeWrite is called on fake user", async function()
+  it("should throw error code 7 when authorizeWrite is called on fake user", async function()
   {
     await center.createShare("uri");
-    var data = await center.authorizeWrite(0, accounts[9], {from: accounts[0]});
-    check(data, 1);
+    var data = await center.authorizeWrite(1, accounts[9], 0, {from: accounts[0]});
+    check(data, 7);
   })
 
   it("should throw error code 4 when authorizeWrite is called from user who doesn't own share", async function() {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.authorizeWrite(0, accounts[2], {from: accounts[1]});
+    var data = await center.authorizeWrite(1, accounts[2], 0, {from: accounts[1]});
     check(data, 4);
   })
 
   it("should throw error code 6 when authorizeRead is called on nonexistant share", async function() {
-    var data = await center.authorizeRead(0, accounts[2], {from: accounts[1]});
+    var data = await center.authorizeRead(1, accounts[2], 0, {from: accounts[1]});
     check(data, 6);
   })
 
   it("should throw error code 1 when authorizeRead is called from fake user", async function()
   {
     await center.createShare("uri");
-    var data = await center.authorizeRead(0, accounts[0], {from: accounts[9]});
+    var data = await center.authorizeRead(1, accounts[0], 0, {from: accounts[9]});
     check(data, 1);
   })
 
   it("should throw error code 1 when authorizeRead is called on fake user", async function()
   {
     await center.createShare("uri");
-    var data = await center.authorizeRead(0, accounts[9], {from: accounts[0]});
+    var data = await center.authorizeRead(1, accounts[9], 0, {from: accounts[0]});
     check(data, 1);
   })
 
   it("should throw error code 4 when authorizeRead is called from user who doesn't own share", async function() {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.authorizeRead(0, accounts[2], {from: accounts[1]});
+    var data = await center.authorizeRead(1, accounts[2], 0, {from: accounts[1]});
     check(data, 4);
   })
 
   it("should throw error code 6 when authorizeRead is called on nonexistant share", async function() {
-    var data = await center.authorizeRead(0, accounts[2], {from: accounts[1]});
+    var data = await center.authorizeRead(1, accounts[2], 0, {from: accounts[1]});
     check(data, 6);
   })
 
   it("should throw error code 6 when authorizeRead is called on nonexistant share", async function() {
-    var data = await center.authorizeRead(0, accounts[2], {from: accounts[1]});
+    var data = await center.authorizeRead(1, accounts[2], 0, {from: accounts[1]});
     check(data, 6);
   })
 
   it("should throw error code 1 when revokeWrite is called from fake user", async function()
   {
     await center.createShare("uri");
-    var data = await center.revokeWrite(0, accounts[0], {from: accounts[9]});
+    var data = await center.revokeWrite(1, accounts[0], {from: accounts[9]});
     check(data, 1);
   })
 
   it("should throw error code 1 when revokeWrite is called on fake user", async function()
   {
     await center.createShare("uri");
-    var data = await center.revokeWrite(0, accounts[9], {from: accounts[0]});
+    var data = await center.revokeWrite(1, accounts[9], {from: accounts[0]});
     check(data, 1);
   })
 
   it("should throw error code 4 when revokeWrite is called from user who doesn't own share", async function() {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.revokeWrite(0, accounts[2], {from: accounts[1]});
+    var data = await center.revokeWrite(1, accounts[2], {from: accounts[1]});
     check(data, 4);
   })
 
   it("should throw error code 6 when revokeWrite is called on nonexistant share", async function() {
-    var data = await center.revokeWrite(0, accounts[2], {from: accounts[1]});
+    var data = await center.revokeWrite(1, accounts[2], {from: accounts[1]});
     check(data, 6);
   })
 
   it("should throw error code 1 when revokeRead is called from fake user", async function()
   {
     await center.createShare("uri");
-    var data = await center.revokeRead(0, accounts[0], {from: accounts[9]});
+    var data = await center.revokeRead(1, accounts[0], {from: accounts[9]});
     check(data, 1);
   })
 
   it("should throw error code 1 when revokeRead is called on fake user", async function()
   {
     await center.createShare("uri");
-    var data = await center.revokeRead(0, accounts[9], {from: accounts[0]});
+    var data = await center.revokeRead(1, accounts[9], {from: accounts[0]});
     check(data, 1);
   })
 
   it("should throw error code 4 when revokeRead is called from user who doesn't own share", async function() {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.revokeRead(0, accounts[2], {from: accounts[1]});
+    var data = await center.revokeRead(1, accounts[2], {from: accounts[1]});
     check(data, 4);
   })
 
   it("should throw error code 6 when revokeRead is called on nonexistant share", async function() {
-    var data = await center.revokeRead(0, accounts[2], {from: accounts[1]});
+    var data = await center.revokeRead(1, accounts[2], {from: accounts[1]});
     check(data, 6);
   })
 })

@@ -9,6 +9,7 @@ contract ClaimTest
     Claim.Data claim;
     function testPermissions() public
     {
+        claim.id = 4;
         claim.access = Claim.Type.INACTIVE;
         Assert.isFalse(claim.canRead(), "Inactive claim should not be able to read");
         Assert.isFalse(claim.canWrite(), "Inactive claim should not be able to write");
