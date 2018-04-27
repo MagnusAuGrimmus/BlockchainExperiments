@@ -5,7 +5,7 @@ import "./ArrayUtils.sol";
 
 library IterableMapping_Integer_Claim
 {
-    using ArrayUtils for *;
+    using ArrayUtils for uint[];
     struct Data
     {
         mapping(uint => Claim.Data) map;
@@ -22,7 +22,7 @@ library IterableMapping_Integer_Claim
         return self.map[val].id != 0;
     }
 
-    function put(Data storage self, uint val, Claim.Data claim) internal
+    function put(Data storage self, uint val, Claim.Data storage claim) internal
     {
         if(!containsKey(self, val))
             self.list.push(val);
@@ -33,9 +33,9 @@ library IterableMapping_Integer_Claim
     {
         if(!containsKey(self, val))
             return false;
-        var (_, toRemove) = ArrayUtils.indexOf(self.list, val);
+        uint toRemove = self.list.indexOf(val);
         uint temp = self.list[self.list.length - 1];
-        self.map[val].id = 0;
+        delete self.map[val];
         self.list[toRemove] = temp;
         self.list.length--;
         return true;

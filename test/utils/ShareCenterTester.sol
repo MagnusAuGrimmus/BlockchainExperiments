@@ -13,24 +13,17 @@ contract ShareCenterTester is ShareCenter
     uint public duration = 60 * 60 * 24 * 365;
     address public acc;
 
-    event TestShareMade(uint id);
-    event TestShareRemoved(uint id);
-    event ReadAccountAdded(address addr);
-    event OwnAccountAdded(address addr);
 
     modifier initNewShare()
     {
         createShare(uri);
-        TestShareMade(id);
         _;
     }
 
     modifier removeShare()
     {
         deleteShare(id);
-        TestShareRemoved(id);
         _;
-        id++;
     }
 
     modifier setReadAddress()
@@ -55,7 +48,6 @@ contract ShareCenterTester is ShareCenter
 
     function ShareCenterTester() ShareCenter() public
     {
-        id = 0;
         proxy = new ThrowProxy(address(this));
         accounts.push(0x1);
         accounts.push(0x2);
@@ -65,5 +57,6 @@ contract ShareCenterTester is ShareCenter
         names.push("C");
         addSystem(msg.sender);
         addUser(msg.sender, "owner");
+        addUsers();
     }
 }

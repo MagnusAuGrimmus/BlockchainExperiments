@@ -2,23 +2,23 @@ pragma solidity ^0.4.19;
 
 import "./utils/Tester.sol";
 import "../contracts/utils/Claim.sol";
-import "../contracts/utils/IterableMapping_Integer_Claim.sol";
+import "../contracts/utils/IterableMapping_Address_Claim.sol";
 import "truffle/Assert.sol";
 
-contract IterableMapping_Integer_ClaimTest is Tester
+contract IterableMapping_Address_ClaimTest is Tester
 {
     using Claim for Claim.Data;
-    using IterableMapping_Integer_Claim for IterableMapping_Integer_Claim.Data;
-    IterableMapping_Integer_Claim.Data map;
+    using IterableMapping_Address_Claim for IterableMapping_Address_Claim.Data;
+    IterableMapping_Address_Claim.Data map;
     Claim.Data claim;
-    uint[] target;
+    address[] target;
 
     modifier fill(uint size)
     {
         for(uint i = 1; i <= size; i++)
         {
-            map.put(i, claim);
-            target.push(i);
+            map.put(address(i), claim);
+            target.push(address(i));
         }
         _;
     }
@@ -42,40 +42,39 @@ contract IterableMapping_Integer_ClaimTest is Tester
 
     function testContainsKeyOnFakeKey() public
     {
-        Assert.isFalse(map.containsKey(0), "Map contains False key");
+        Assert.isFalse(map.containsKey(0x0), "Map contains False key");
     }
 
     function testPut() public
     {
-        uint256[3] memory ids = [uint(1), 4, 7];
+        address[3] memory ids = [address(0x1), 0x4, 0x7];
         for(uint i = 0; i < ids.length; i++)
         {
             map.put(ids[i], claim);
             target.push(ids[i]);
             Assert.isTrue(equal(target, map.list), "Internal lists not equal");
-            Assert.isTrue(map.map[ids[i]].isValid(), "Added claim not valid");
         }
     }
 
     function testContainsKeyOnRealKey() public
     {
-        uint id = 2;
+        address id = 2;
         map.put(id, claim);
         Assert.isTrue(map.containsKey(id), "Could not find key");
     }
 
     function testRemove() fill(4) public
     {
-        map.remove(2);
+        map.remove(0x2);
         target[1] = target[target.length - 1];
         target.length--;
-        Assert.isFalse(map.containsKey(2), "Did not remove key");
+        Assert.isFalse(map.containsKey(0x2), "Did not remove key");
         Assert.isTrue(equal(target, map.list), "Internal lists not equal");
     }
 
     function testSize() public
     {
-        map.put(0, claim);
+        map.put(0x0, claim);
         Assert.equal(map.size(), 1, "Size incorrect");
     }
 }

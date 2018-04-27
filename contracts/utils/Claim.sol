@@ -16,16 +16,16 @@ library Claim
 
     function canRead(Data storage self) internal view returns (bool)
     {
-        return uint(self.access) >= uint(Type.READ);
+        return isValid(self) && uint(self.access) >= uint(Type.READ);
     }
 
     function canWrite(Data storage self) internal view returns (bool)
     {
-        return uint(self.access) >= uint(Type.WRITE);
+        return isValid(self) && uint(self.access) >= uint(Type.WRITE);
     }
 
     function isValid(Data storage self) internal view returns (bool)
     {
-        return isActive(self) && self.time == 0 || now < self.time;
+        return isActive(self) && (self.time == 0 || now < self.time);
     }
 }
