@@ -1,4 +1,5 @@
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.4.19;
+
 import "./utils/Set.sol";
 import "./utils/IterableSet_Integer.sol";
 import "./utils/IterableSet_Address.sol";
@@ -15,7 +16,7 @@ contract ShareCenter
       IS_NOT_A_REGISTERED_SYSTEM, // 3
       DOES_NOT_OWN_SHARE, // 4
       DOES_NOT_HAVE_SHARE, // 5
-      SHARE_ALREADY_EXISTS, // 6
+      SHARE_DOES_NOT_EXIST, // 6
       GROUP_NOT_ACTIVE //7
     }
 
@@ -119,7 +120,7 @@ contract ShareCenter
     modifier shareExists(uint id)
     {
         if(shares[id].id == 0)
-            Error(uint(ErrorCode.SHARE_ALREADY_EXISTS));
+            Error(uint(ErrorCode.SHARE_DOES_NOT_EXIST));
         else
             _;
     }
@@ -161,6 +162,11 @@ contract ShareCenter
             SystemAdded(system);
     }
 
+    function getUser(address addr) public isUser(addr) returns (uint, bytes32)
+    {
+        return (users[addr].id, users[addr].name);
+    }
+
     function addUser(address addr, bytes32 name) public isRegisteredSystem isNotUser(addr)
     {
         users[addr].name = name;
@@ -192,17 +198,16 @@ contract ShareCenter
         userToGroupID[addr] = group.id;
     }
 
-    function getShares() public isUser(msg.sender) returns (uint[], bytes32[], uint[], bytes32[])
+    function getShares(address addr) public isUser(addr) returns (uint[] idWrite, bytes32[] uriWrite, uint[] idRead, bytes32[] uriRead)
     {
-        Group.Data group = groups[userToGroupID[msg.sender]];
-        uint size = group.shares.size();
-        uint[] memory idWrite = new uint[](group.authorizedWrite);
-        bytes32[] memory uriWrite = new bytes32[](group.authorizedWrite);
-        uint[] memory idRead = new uint[](group.authorizedRead);
-        bytes32[] memory uriRead = new bytes32[](group.authorizedRead);
+        Group.Data group = groups[userToGroupID[addr]];
+        idWrite = new uint[](group.authorizedWrite);
+        uriWrite = new bytes32[](group.authorizedWrite);
+        idRead = new uint[](group.authorizedRead);
+        uriRead = new bytes32[](group.authorizedRead);
         uint indexWrite = 0;
         uint indexRead = 0;
-        for(uint i = 0; i < size; i++)
+        for(uint i = 0; i < group.shares.size(); i++)
         {
             uint id = group.shares.list[i];
             RecordShare share = shares[id];
@@ -220,7 +225,6 @@ contract ShareCenter
                 indexRead++;
             }
         }
-        return (idWrite, uriWrite, idRead, uriRead);
     }
 
     function createShare(bytes32 uri) public isUser(msg.sender) returns(uint)

@@ -18,9 +18,9 @@ contract ShareCenterTestGet is ShareCenterTester
         authorizeWrite(id1, groupId, 0);
         authorizeWrite(id2, groupId, 0);
         authorizeRead(id3, groupId, 0);
-        var (idWrite, uriWrite, idRead, uriRead) = getShares();
+        var (idWrite, uriWrite, idRead, uriRead) = getShares(accounts[0]);
         Assert.equal(idWrite[0], 1, "Write Incorrect at index 0");
         Assert.equal(idWrite[1], 2, "Write Incorrect at index 1");
-        Assert.equal(idWrite[2], 3, "Write Incorrect at index 2");
+        Assert.equal(idRead[0], 3, "Read Incorrect at index 0");
     }
 }
