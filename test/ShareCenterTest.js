@@ -2,6 +2,11 @@ var ShareCenter = artifacts.require("ShareCenter");
 //var duration = 60 * 60 * 24 * 365;
 contract('ShareCenter', function(accounts) {
   var center;
+
+  async function getGroup(addr) {
+    return await center.getGroupID.call(addr);
+  }
+
   beforeEach('setup', async function() {
     center = await ShareCenter.new();
     await center.addSystem(accounts[0]);
@@ -25,7 +30,7 @@ contract('ShareCenter', function(accounts) {
 
   it('should delete a share', async function() {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.deleteShare(0);
+    var data = await center.deleteShare(1);
     console.log(data.logs[0].args.id.toNumber());
     var result = await center.getShares.call(accounts[0], {from: accounts[0]});
     var idOwn = result[0];
@@ -41,7 +46,8 @@ contract('ShareCenter', function(accounts) {
 
   it('should authorize ownership of a share', async function() {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.authorizeWrite(0, accounts[1], 0, {from: accounts[0]});
+    var id = await getGroup(accounts[1]);
+    var data = await center.authorizeWrite(1, id, 0, {from: accounts[0]});
     var result = await center.getShares.call(accounts[1], {from: accounts[1]});
     var idOwn = result[0];
     var uriOwn = result[1];
@@ -56,7 +62,8 @@ contract('ShareCenter', function(accounts) {
 
   it('should authorize reading of a share', async function() {
     await center.createShare("uri", {from: accounts[0]});
-    var data = await center.authorizeRead(0, accounts[1], 0, {from: accounts[0]});
+    var id = await getGroup(accounts[1]);
+    var data = await center.authorizeRead(1, id, 0, {from: accounts[0]});
     var result = await center.getShares.call(accounts[1], {from: accounts[1]});
     var idOwn = result[0];
     var uriOwn = result[1];
@@ -71,8 +78,9 @@ contract('ShareCenter', function(accounts) {
 
   it('should revoke ownership of a share', async function() {
     await center.createShare("uri", {from: accounts[0]});
-    await center.authorizeWrite(0, accounts[1], 0, {from: accounts[0]});
-    var data = await center.revokeWrite(0, accounts[1], {from: accounts[0]});
+    var id = await getGroup(accounts[1]);
+    await center.authorizeWrite(1, id, 0, {from: accounts[0]});
+    var data = await center.revokeWrite(1, id, {from: accounts[0]});
     var result = await center.getShares.call(accounts[1], {from: accounts[1]});
     var idOwn = result[0];
     var uriOwn = result[1];
@@ -87,8 +95,9 @@ contract('ShareCenter', function(accounts) {
 
   it('should revoke reading of a share', async function() {
     await center.createShare("uri", {from: accounts[0]});
-    await center.authorizeRead(0, accounts[1], 0, {from: accounts[0]});
-    var data = await center.revokeRead(0, accounts[1], {from: accounts[0]});
+    var id = await getGroup(accounts[1]);
+    await center.authorizeRead(1, id, 0, {from: accounts[0]});
+    var data = await center.revokeRead(1, id, {from: accounts[0]});
     var result = await center.getShares.call(accounts[1], {from: accounts[1]});
     var idOwn = result[0];
     var uriOwn = result[1];

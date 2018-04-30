@@ -14,17 +14,20 @@ var errorMessages = [
 
 class ShareCenter
 {
-  constructor(web3, userAddress, options)
+  constructor(web3, contractAddress, userAddress, options)
   {
+    if(typeof options === "undefined") {
+      options = {
+        from: userAddress,
+        gas: 4712388,
+        gasPrice: 100000000000
+      }
+    }
     this.web3 = web3;
+    this.contractAddress = contractAddress;
     this.contract = contract(ShareCenterArtifact);
     this.contract.setProvider(web3.currentProvider);
-    this.contract.defaults({
-      from: userAddress,
-      gas: 4712388,
-      gasPrice: 100000000000
-    })
-    this.instance = this.getInstance();
+    this.contract.defaults(options);
   }
 
   isAddress(value) {
@@ -33,15 +36,15 @@ class ShareCenter
 
   async getInstance()
   {
-    return await this.contract.new();
+    return await this.contract.at(this.contractAddress);
   }
 
   async getGroup(key)
   {
-    if(typeof key === "string")
+    if(this.isAddress(key))
       key = this.getGroupID(key);
     try {
-      return await this.instance.groups.call(key);
+      return await this.getInstance().groups.call(key);
     }
     catch(err) {
       throw "Ethereum Error";
@@ -49,22 +52,22 @@ class ShareCenter
   }
 
   async getGroupID(addr) {
-    return await this.instance.userToGroupID.call(addr);
+    return await this.getInstance().getGroupID.call(addr);
   }
 
   async addSystem(addr) {
     try {
-      var result = await this.instance.addSystem(addr);
+      var result = await this.getInstance().addSystem(addr);
     }
     catch(err) {
-      throw "Ethereum Error";
+      throw err;
     }
     this.handleErrors(result);
   }
 
   async getUser(addr) {
     try {
-      var result = await this.instance.getUser.call(addr);
+      var result = await this.getInstance().getUser.call(addr);
     }
     catch(err) {
       throw "Ethereum Error";
@@ -74,7 +77,7 @@ class ShareCenter
 
   async addUser(addr, name) {
     try {
-      var result = await this.instance.addUser(addr, name);
+      var result = await this.getInstance().addUser(addr, name);
     }
     catch(err) {
       throw "Ethereum Error";
@@ -84,7 +87,7 @@ class ShareCenter
 
   async createShare(uri) {
     try {
-      var result = await this.instance.createShare(uri);
+      var result = await this.getInstance().createShare(uri);
     }
     catch(err) {
       throw "Ethereum Error";
@@ -94,7 +97,7 @@ class ShareCenter
 
   async deleteShare(id) {
     try {
-      var result = await this.instance.deleteShare(id);
+      var result = await this.getInstance().deleteShare(id);
     }
     catch(err) {
       throw "Ethereum Error";
@@ -109,7 +112,7 @@ class ShareCenter
     if(this.isAddress(groupId))
       groupId = this.getGroupID(groupId);
     try {
-      var result = await this.instance.authorizeWrite(shareId, groupId, time);
+      var result = await this.getInstance().authorizeWrite(shareId, groupId, time);
     }
     catch(err) {
       throw "Ethereum Error";
@@ -124,7 +127,7 @@ class ShareCenter
     if(this.isAddress(groupId))
       groupId = this.getGroupID(groupId);
     try {
-      var result = await this.instance.authorizeRead(shareId, groupId, time);
+      var result = await this.getInstance().authorizeRead(shareId, groupId, time);
     }
     catch(err) {
       throw "Ethereum Error";
@@ -136,7 +139,7 @@ class ShareCenter
     if(this.isAddress(groupId))
       groupId = this.getGroupID(groupId);
     try {
-      var result = await this.instance.revokeWrite(shareId, groupId);
+      var result = await this.getInstance().revokeWrite(shareId, groupId);
     }
     catch(err) {
       throw "Ethereum Error";
@@ -148,7 +151,7 @@ class ShareCenter
     if(this.isAddress(groupId))
       groupId = this.getGroupID(groupId);
     try {
-      var result = await this.instance.revokeRead(shareId, groupId);
+      var result = await this.getInstance().revokeRead(shareId, groupId);
     }
     catch(err) {
       throw "Ethereum Error";
