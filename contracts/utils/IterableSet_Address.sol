@@ -32,17 +32,9 @@ library IterableSet_Address
         uint toRemove = self.indices[value];
         address temp = self.list[self.list.length - 1];
         self.indices[temp] = toRemove;
-        self.indices[value] = 0;
+        delete self.indices[value];
         self.list[toRemove] = temp;
         self.list.length--;
         return true;
     }
-
-//    function iterator(Data storage self) public view returns (address[])
-//    {
-//        address[] memory result = new address[self.list.length];
-//        for(uint i = 0; i < self.list.size(); i++)
-//            result[i] = self.list[i];
-//        return result;
-//    }
 }
