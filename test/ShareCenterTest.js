@@ -31,7 +31,6 @@ contract('ShareCenter', function(accounts) {
   it('should delete a share', async function() {
     await center.createShare("uri", {from: accounts[0]});
     var data = await center.deleteShare(1);
-    console.log(data.logs[0].args.id.toNumber());
     var result = await center.getShares.call(accounts[0], {from: accounts[0]});
     var idOwn = result[0];
     var uriOwn = result[1];

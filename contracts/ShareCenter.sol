@@ -203,16 +203,21 @@ contract ShareCenter
         userToGroupID[addr] = group.id;
     }
 
-    function getShares(address addr) public isUser(addr) returns (uint[] idWrite, bytes32[] uriWrite, uint[] idRead, bytes32[] uriRead)
+    function getShares(address addr) public view isUser(addr) returns (bool found, uint[] idWrite, bytes32[] uriWrite, uint[] idRead, bytes32[] uriRead)
     {
         Group.Data group = groups[userToGroupID[addr]];
+        return getShares(group);
+    }
+
+    function getShares(Group.Data group) internal view returns (bool found, uint[] idWrite, bytes32[] uriWrite, uint[] idRead, bytes32[] uriRead)
+    {
         idWrite = new uint[](group.authorizedWrite);
         uriWrite = new bytes32[](group.authorizedWrite);
         idRead = new uint[](group.authorizedRead);
         uriRead = new bytes32[](group.authorizedRead);
         uint indexWrite = 0;
         uint indexRead = 0;
-        for(uint i = 0; i < group.shares.size(); i++)
+        for(uint i = 0; i < group.shares.list.length; i++)
         {
             uint id = group.shares.list[i];
             RecordShare share = shares[id];
@@ -230,9 +235,11 @@ contract ShareCenter
                 indexRead++;
             }
         }
+        found = true;
     }
 
-    function createShare(bytes32 uri) public isUser(msg.sender) returns(uint)
+
+    function createShare(bytes32 uri) public isUser(msg.sender) returns (uint)
     {
         Claim.Data storage claim;
         Group.Data storage group = groups[userToGroupID[msg.sender]];
