@@ -14,7 +14,7 @@ var errorMessages = [
 
 class ShareCenter
 {
-  constructor(web3, contractAddress, userAddress, options)
+  constructor(web3, userAddress, options)
   {
     if(typeof options === "undefined") {
       options = {
@@ -24,7 +24,6 @@ class ShareCenter
       }
     }
     this.web3 = web3;
-    this.contractAddress = contractAddress;
     this.contract = contract(ShareCenterArtifact);
     this.contract.setProvider(web3.currentProvider);
     this.contract.defaults(options);
@@ -32,11 +31,6 @@ class ShareCenter
 
   isAddress(value) {
     return typeof value === "string";
-  }
-
-  async getInstance()
-  {
-    return await this.contract.at(this.contractAddress);
   }
 
   async getGroup(key)
@@ -57,12 +51,14 @@ class ShareCenter
 
   async addSystem(addr) {
     try {
-      var result = await this.getInstance().addSystem(addr);
+      this.contract.deployed().then(async function (instance) {
+        var result = await instance.addSystem(addr);
+        handleErrors(result);
+      })
     }
     catch(err) {
       throw err;
     }
-    this.handleErrors(result);
   }
 
   async getUser(addr) {
@@ -70,7 +66,7 @@ class ShareCenter
       var result = await this.getInstance().getUser.call(addr);
     }
     catch(err) {
-      throw "Ethereum Error";
+      throw err;
     }
     return result;
   }
@@ -158,14 +154,14 @@ class ShareCenter
     }
     this.handleErrors(result);
   }
+}
 
-  handleErrors(result) {
-    Array.from(result.logs).forEach((log) => {
-      if(log.event === 'Error') {
-        throw errorMessages[log.args.id.toNumber()];
-      }
-    });
-  }
+function handleErrors(result) {
+  Array.from(result.logs).forEach((log) => {
+    if(log.event === 'Error') {
+      throw errorMessages[log.args.id.toNumber()];
+    }
+  });
 }
 
 module.exports = ShareCenter;
