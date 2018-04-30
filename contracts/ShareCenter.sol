@@ -72,7 +72,7 @@ contract ShareCenter
     modifier isUser(address addr)
     {
         if(users[addr].id == 0)
-            Error(uint(ErrorCode.USER_ALREADY_EXISTS));
+            Error(uint(ErrorCode.IS_NOT_A_USER));
         else
             _;
     }
@@ -88,7 +88,7 @@ contract ShareCenter
     modifier isNotUser(address addr)
     {
         if(users[addr].id != 0)
-            Error(uint(ErrorCode.IS_NOT_A_USER));
+            Error(uint(ErrorCode.USER_ALREADY_EXISTS));
         else
             _;
     }
@@ -173,6 +173,11 @@ contract ShareCenter
         users[addr].id = ++userCounter;
         UserAdded(addr, name);
         createGroup(addr);
+    }
+
+    function getGroupID(address addr) public view isUser(addr) returns(uint id)
+    {
+        id = userToGroupID[addr];
     }
 
     function createGroup(address addr) public
