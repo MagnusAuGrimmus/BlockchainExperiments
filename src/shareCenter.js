@@ -38,15 +38,24 @@ class ShareCenter
     if(this.isAddress(key))
       key = this.getGroupID(key);
     try {
-      return await this.getInstance().groups.call(key);
+      this.contract.deployed().then(async function (instance) {
+        return await instance.groups.call(key);
+      })
     }
     catch(err) {
-      throw "Ethereum Error";
+      throw err;
     }
   }
 
   async getGroupID(addr) {
-    return await this.getInstance().getGroupID.call(addr).toNumber();
+    try {
+      this.contract.deployed().then(async function (instance) {
+        return await instance.getGroupID.call(addr).toNumber();
+      })
+    }
+    catch(err) {
+      throw err;
+    }
   }
 
   async addSystem(addr) {
@@ -63,42 +72,51 @@ class ShareCenter
 
   async getUser(addr) {
     try {
-      var result = await this.getInstance().getUser.call(addr);
+      this.contract.deployed().then(async function (instance) {
+        return await instance.getUser.call(addr);
+      })
     }
     catch(err) {
       throw err;
     }
-    return result;
   }
 
   async addUser(addr, name) {
     try {
-      var result = await this.getInstance().addUser(addr, name);
+      this.contract.deployed().then(async function (instance) {
+        var result = await instance.addUser(addr, name);
+        handleErrors(result);
+      })
     }
     catch(err) {
-      throw "Ethereum Error";
+      throw err;
     }
-    this.handleErrors(result);
   }
 
   async createShare(uri) {
     try {
-      var result = await this.getInstance().createShare(uri);
+      this.contract.deployed().then(async function (instance) {
+        var result = await instance.createShare(uri);
+        handleErrors(result);
+      })
+
     }
     catch(err) {
-      throw "Ethereum Error";
+      throw err;
     }
-    this.handleErrors(result);
   }
 
   async deleteShare(id) {
     try {
-      var result = await this.getInstance().deleteShare(id);
+      this.contract.deployed().then(async function (instance) {
+        var result = await instance.deleteShare(uri);
+        handleErrors(result);
+      })
+
     }
     catch(err) {
-      throw "Ethereum Error";
+      throw err;
     }
-    this.handleErrors(result);
   }
 
   async authorizeWrite(shareId, groupId, time)
@@ -108,12 +126,14 @@ class ShareCenter
     if(this.isAddress(groupId))
       groupId = this.getGroupID(groupId);
     try {
-      var result = await this.getInstance().authorizeWrite(shareId, groupId, time);
+      this.contract.deployed().then(async function (instance) {
+        var result = await instance.authorizeWrite(shareId, groupId, time);
+        handleErrors(result);
+      })
     }
     catch(err) {
-      throw "Ethereum Error";
+      throw err;
     }
-    this.handleErrors(result);
   }
 
   async authorizeWrite(shareId, groupId, time)
@@ -123,36 +143,42 @@ class ShareCenter
     if(this.isAddress(groupId))
       groupId = this.getGroupID(groupId);
     try {
-      var result = await this.getInstance().authorizeRead(shareId, groupId, time);
+      this.contract.deployed().then(async function (instance) {
+        var result = await instance.authorizeRead(shareId, groupId, time);
+        handleErrors(result);
+      })
     }
     catch(err) {
-      throw "Ethereum Error";
+      throw err;
     }
-    this.handleErrors(result);
   }
 
   async revokeWrite(shareId, groupId) {
     if(this.isAddress(groupId))
       groupId = this.getGroupID(groupId);
     try {
-      var result = await this.getInstance().revokeWrite(shareId, groupId);
+      this.contract.deployed().then(async function (instance) {
+        var result = await instance.revokeWrite(shareId, groupId);
+        handleErrors(result);
+      })
     }
     catch(err) {
-      throw "Ethereum Error";
+      throw err;
     }
-    this.handleErrors(result);
   }
 
   async revokeRead(shareId, groupId) {
     if(this.isAddress(groupId))
       groupId = this.getGroupID(groupId);
     try {
-      var result = await this.getInstance().revokeRead(shareId, groupId);
+      this.contract.deployed().then(async function (instance) {
+        var result = await instance.revokeRead(shareId, groupId);
+        handleErrors(result);
+      })
     }
     catch(err) {
-      throw "Ethereum Error";
+      throw err;
     }
-    this.handleErrors(result);
   }
 }
 
