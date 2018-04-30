@@ -52,7 +52,7 @@ class ShareCenter
   }
 
   async getGroupID(addr) {
-    return await this.getInstance().getGroupID.call(addr);
+    return await this.getInstance().getGroupID.call(addr).toNumber();
   }
 
   async addSystem(addr) {
