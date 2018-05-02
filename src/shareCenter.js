@@ -97,10 +97,12 @@ class ShareCenter
   async getShares(addr)
   {
     var toUtf8 = uri => this.web3.toUtf8(uri);
+    var getGroupID = addr => this.getGroupID(addr);
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function (instance) {
-          var result = await instance.getShares.call(addr);
+          var id = await getGroupID(addr);
+          var result = await instance.getShares.call(id);
           if(!result[0])
             reject("User does not exist");
           else {
@@ -113,9 +115,38 @@ class ShareCenter
         })
       }
       catch(err) {
-        throw reject(err);
+        reject(err);
       }
     });
+  }
+
+  async getAllShares(groupId, idWrite = [], uriWrite = [], idRead = [], uriRead = [])
+  {
+    if(isAddress(groupId))
+      groupId = this.getGroupID(groupId);
+    var getAllShares = (id, idWrite, uriWrite, idRead, uriRead) =>
+      this.getAllShares(id, idWrite, uriWrite, idRead, uriRead);
+    return new Promise((resolve, reject) => {
+      try {
+        this.contract.deployed().then(async function(instance) {
+          var result = await instance.getShares.call(groupId);
+          if(!result[0])
+            reject("Group does not exist");
+          else
+          {
+            idWrite.push(...result[0]);
+            uriWrite.push(...result[1]);
+            idRead.push(...result[2]);
+            uriRead.push(...result[3]);
+            var parents = await instance.getParentGroups.call(groupId);
+            parents.forEach(id => getAllShares(id, idWrite, uriWrite, idRead, uriRead));
+          }
+        })
+      }
+      catch(err) {
+        reject(err);
+      }
+    })
   }
 
   async createShare(uri) {

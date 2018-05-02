@@ -1,5 +1,5 @@
 var ShareCenter = artifacts.require("ShareCenter");
-contract('ShareCenter', function(accounts) {
+contract('ShareCenter Error Testing', function(accounts) {
   var center;
   beforeEach('setup', async function() {
     center = await ShareCenter.new();
