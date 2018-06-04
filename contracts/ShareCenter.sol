@@ -52,7 +52,7 @@ contract ShareCenter
 
     event SystemAdded(address addr);
     event UserAdded(address addr, bytes32 name);
-    event GroupAdded(uint id, bytes32 name);
+    event GroupAdded(uint id);
     event ShareCreated(uint id, bytes32 uri);
     event ShareDeleted(uint id);
     event WriterAdded(uint shareId, uint groupId);
@@ -180,6 +180,16 @@ contract ShareCenter
         id = userToGroupID[addr];
     }
 
+    function getSubGroups(uint groupId) isActiveGroup(groupId) public returns (uint[])
+    {
+        return groups[groupId].subGroups.iterator();
+    }
+
+    function getParentGroups(uint groupId) isActiveGroup(groupId) public returns (uint[])
+    {
+        return groups[groupId].parentGroups.iterator();
+    }
+
     function createGroup(address addr) public
     {
         Group.Data storage group = groups[groupCounter + 1];
@@ -189,23 +199,17 @@ contract ShareCenter
         userToGroupID[addr] = group.id;
     }
 
-    function addOwnerToGroup(address addr) public
+    function addGroup(uint groupId) public isUser(msg.sender)
     {
         Group.Data storage group = groups[userToGroupID[msg.sender]];
-        group.owners.add(addr);
-        userToGroupID[addr] = group.id;
+        Group.Data storage subGroup = groups[groupId];
+        group.addGroup(subGroup);
+        GroupAdded(groupId);
     }
 
-    function addUserToGroup(address addr) public
+    function getShares(uint groupId) public isActiveGroup(groupId) returns (bool found, uint[] idWrite, bytes32[] uriWrite, uint[] idRead, bytes32[] uriRead)
     {
-        Group.Data storage group = groups[userToGroupID[msg.sender]];
-        group.users.add(addr);
-        userToGroupID[addr] = group.id;
-    }
-
-    function getShares(address addr) public view isUser(addr) returns (bool found, uint[] idWrite, bytes32[] uriWrite, uint[] idRead, bytes32[] uriRead)
-    {
-        Group.Data group = groups[userToGroupID[addr]];
+        Group.Data group = groups[groupId];
         return getShares(group);
     }
 
@@ -220,7 +224,7 @@ contract ShareCenter
         for(uint i = 0; i < group.shares.list.length; i++)
         {
             uint id = group.shares.list[i];
-            RecordShare share = shares[id];
+            RecordShare memory share = shares[id];
             if(canWrite(group.id, id))
             {
 

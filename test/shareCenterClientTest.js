@@ -1,4 +1,4 @@
-const ShareCenter = require('../../src/shareCenter');
+const ShareCenter = require('../src/shareCenter');
 const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:9545'));
 
@@ -157,3 +157,50 @@ contract('Test Revoke Read', function(accounts) {
     assert.equal(uriRead.length, 0);
   })
 });
+
+contract('Test Get All Shares', function(accounts) {
+  it('setup', async function() {
+    center = new ShareCenter(web3, accounts[0]);
+    await center.addSystem(accounts[0]);
+    await center.addUser(accounts[1], "user");
+    await center.addUser(accounts[2], "user");
+    await center.addUser(accounts[3], "user");
+    user1 = new ShareCenter(web3, accounts[1]);
+    user2 = new ShareCenter(web3, accounts[2]);
+    user3 = new ShareCenter(web3, accounts[3]);
+    await createScenario();
+  })
+
+  async function createScenario() {
+    share1 = await user1.createShare("uri");
+    share2 = await user2.createShare("uri");
+    share3 = await user3.createShare("uri");
+    await user1.addGroup(accounts[2]);
+    await user1.addGroup(accounts[3]);
+    await user2.addGroup(accounts[3]);
+  }
+
+  it('should get all shares for user 1', async function() {
+    var shares = await user1.getAllShares();
+    assert.equal(shares.idWrite.length, 1);
+    assert.equal(shares.idWrite[0], share1.value.id);
+    assert.equal(shares.idRead.length, 0);
+  })
+
+  it('should get all shares for user 2', async function() {
+    var shares = await user2.getAllShares();
+    assert.equal(shares.idWrite.length, 2);
+    assert(shares.idWrite.includes(share1.value.id))
+    assert(shares.idWrite.includes(share2.value.id))
+    assert.equal(shares.idRead.length, 0);
+  })
+
+  it('should get all shares for user 3', async function() {
+    var shares = await user3.getAllShares();
+    assert.equal(shares.idWrite.length, 3);
+    assert(shares.idWrite.includes(share1.value.id))
+    assert(shares.idWrite.includes(share2.value.id))
+    assert(shares.idWrite.includes(share3.value.id))
+    assert.equal(shares.idRead.length, 0);
+  })
+})

@@ -1,6 +1,7 @@
 pragma solidity ^0.4.13;
 
 import "./IterableSet_Address.sol";
+import "./IterableSet_Integer.sol";
 import "./IterableMapping_Integer_Claim.sol";
 import "./IterableSet_Address.sol";
 import "./Claim.sol";
@@ -8,8 +9,8 @@ import "./Claim.sol";
 library Group
 {
     using IterableSet_Address for IterableSet_Address.Data;
+    using IterableSet_Integer for IterableSet_Integer.Data;
     using IterableMapping_Integer_Claim for IterableMapping_Integer_Claim.Data;
-//    using IterableSet_Group for IterableSet_Group.Data;
     using Claim for Claim.Data;
 
     struct Data
@@ -19,8 +20,8 @@ library Group
         uint authorizedRead;
         IterableSet_Address.Data owners;
         IterableSet_Address.Data users;
-//        IterableSet_Group.Data membership; //parents
-//        IterableSet_Group.Data manifest; //children
+        IterableSet_Integer.Data parentGroups;
+        IterableSet_Integer.Data subGroups;
         IterableMapping_Integer_Claim.Data shares;
     }
 
@@ -55,6 +56,12 @@ library Group
     {
         self.users.remove(addr);
         return self.owners.add(addr);
+    }
+
+    function addGroup(Data storage self, Data storage subGroup) internal
+    {
+        self.subGroups.add(subGroup.id);
+        subGroup.parentGroups.add(self.id);
     }
 
     function addClaim(Data storage self, uint id, Claim.Data storage claim) internal

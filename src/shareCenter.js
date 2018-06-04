@@ -23,6 +23,7 @@ class ShareCenter
         gasPrice: 100000000000
       }
     }
+    this.sender = userAddress;
     this.web3 = web3;
     this.contract = contract(ShareCenterArtifact);
     this.contract.setProvider(web3.currentProvider);
@@ -34,7 +35,7 @@ class ShareCenter
       try {
         this.contract.deployed().then(async function (instance) {
           var groupId =  await instance.getGroupID.call(addr);
-          resolve(groupId)
+          resolve(groupId.toNumber());
         })
       }
       catch(err) {
@@ -94,15 +95,32 @@ class ShareCenter
     })
   }
 
-  async getShares(addr)
+  async addGroup(groupId) {
+    if(isAddress(groupId))
+      groupId = await this.getGroupID(groupId);
+    return new Promise((resolve, reject) => {
+      try {
+        this.contract.deployed().then(async function(instance) {
+          var result = await instance.addGroup(groupId);
+          handleErrors(result);
+          resolve({logs: result.logs});
+        })
+      }
+      catch(err) {
+        reject(err);
+      }
+    })
+  }
+
+  async getShares(groupId)
   {
+    if(isAddress(groupId))
+      groupId = await this.getGroupID(groupId);
     var toUtf8 = uri => this.web3.toUtf8(uri);
-    var getGroupID = addr => this.getGroupID(addr);
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function (instance) {
-          var id = await getGroupID(addr);
-          var result = await instance.getShares.call(id);
+          var result = await instance.getShares.call(groupId);
           if(!result[0])
             reject("User does not exist");
           else {
@@ -120,33 +138,55 @@ class ShareCenter
     });
   }
 
-  async getAllShares(groupId, idWrite = [], uriWrite = [], idRead = [], uriRead = [])
+  async getAllShares()
   {
-    if(isAddress(groupId))
-      groupId = this.getGroupID(groupId);
-    var getAllShares = (id, idWrite, uriWrite, idRead, uriRead) =>
-      this.getAllShares(id, idWrite, uriWrite, idRead, uriRead);
+    var groupId = await this.getGroupID(this.sender);
+    var idWrite = [];
+    var uriWrite = [];
+    var idRead = [];
+    var uriRead = [];
+    return await this._getAllShares(groupId, idWrite, uriWrite, idRead, uriRead);
+  }
+
+  async _addWithoutDuplicates(ids, uris, idsToAdd, urisToAdd, shareSet)
+  {
+    for(var i = 0; i < idsToAdd.length; i++) {
+      const id = idsToAdd[i];
+      const uri = urisToAdd[i];
+      if(!shareSet.has(id)) {
+        shareSet.add(id);
+        ids.push(id);
+        uris.push(uri);
+      }
+    }
+  }
+
+  async getParentGroups(groupId) {
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function(instance) {
-          var result = await instance.getShares.call(groupId);
-          if(!result[0])
-            reject("Group does not exist");
-          else
-          {
-            idWrite.push(...result[0]);
-            uriWrite.push(...result[1]);
-            idRead.push(...result[2]);
-            uriRead.push(...result[3]);
-            var parents = await instance.getParentGroups.call(groupId);
-            parents.forEach(id => getAllShares(id, idWrite, uriWrite, idRead, uriRead));
-          }
+          const result = await instance.getParentGroups.call(groupId);
+          const parents = result.map(id => id.toNumber());
+          resolve({ value: parents })
         })
       }
-      catch(err) {
-        reject(err);
+      catch (err) {
+        reject(err)
       }
     })
+  }
+
+  async _getAllShares(groupId, idWrite, uriWrite, idRead, uriRead, shareSet = new Set())
+  {
+    if(isAddress(groupId))
+      groupId = this.getGroupID(groupId);
+    var result = await this.getShares(groupId);
+    this._addWithoutDuplicates(idWrite, uriWrite, result.value.idWrite, result.value.uriWrite, shareSet);
+    this._addWithoutDuplicates(idRead, uriRead, result.value.idRead, result.value.uriRead, shareSet);
+    var parents = await this.getParentGroups(groupId);
+    for(let i = 0; i < parents.value.length; i++)
+      await this._getAllShares(parents.value[i], idWrite, uriWrite, idRead, uriRead, shareSet);
+    return { idWrite, uriWrite, idRead, uriRead };
   }
 
   async createShare(uri) {

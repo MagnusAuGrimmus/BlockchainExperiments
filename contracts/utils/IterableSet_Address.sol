@@ -37,4 +37,11 @@ library IterableSet_Address
         self.list.length--;
         return true;
     }
+
+    function iterator(Data storage self) internal view returns (address[] list)
+    {
+        list = new address[](self.list.length);
+        for(uint i = 0; i < list.length; i++)
+            list[i] = self.list[i];
+    }
 }
