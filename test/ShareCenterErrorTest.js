@@ -4,9 +4,9 @@ contract('ShareCenter Error Testing', function(accounts) {
   beforeEach('setup', async function() {
     center = await ShareCenter.new();
     await center.addSystem(accounts[0]);
-    await center.addUser(accounts[0], "user");
-    await center.addUser(accounts[1], "user");
-    await center.addUser(accounts[2], "user");
+    await center.createUser(accounts[0], "user");
+    await center.createUser(accounts[1], "user");
+    await center.createUser(accounts[2], "user");
   })
 
   function check(data, correctId) {
@@ -20,13 +20,13 @@ contract('ShareCenter Error Testing', function(accounts) {
     check(data, 0);
   })
 
-  it("should throw error code 3 when addUser is called from fake system", async function() {
-    var data = await center.addUser(accounts[0], "uri", {from: accounts[9]});
+  it("should throw error code 3 when createUser is called from fake system", async function() {
+    var data = await center.createUser(accounts[0], "uri", {from: accounts[9]});
     check(data, 3);
   })
 
-  it("should throw error code 1 when addUser is called with existing user", async function() {
-    var data = await center.addUser(accounts[0], "uri");
+  it("should throw error code 1 when createUser is called with existing user", async function() {
+    var data = await center.createUser(accounts[0], "uri");
     check(data, 1);
   })
 

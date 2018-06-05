@@ -39,10 +39,10 @@ contract ShareCenterTester is ShareCenter
     }
 
 
-    function addUsers() public
+    function createUsers() public
     {
         for(uint i = 0; i < names.length - 1; i++)
-            addUser(accounts[i], names[i]);
+            createUser(accounts[i], names[i]);
     }
 
 
@@ -56,7 +56,7 @@ contract ShareCenterTester is ShareCenter
         names.push("B");
         names.push("C");
         addSystem(msg.sender);
-        addUser(msg.sender, "owner");
-        addUsers();
+        createUser(msg.sender, "owner");
+        createUsers();
     }
 }

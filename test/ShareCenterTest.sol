@@ -8,11 +8,11 @@ contract ShareCenterTest is ShareCenterTester
 {
     function ShareCenterTest() ShareCenterTester() public {}
 
-    function testAddUser() public
+    function testcreateUser() public
     {
         address addr = 0x100;
         bytes32 name = "Avi";
-        addUser(addr, name);
+        createUser(addr, name);
         Assert.equal(users[addr].name, name, "Name not set correctly");
         Assert.equal(users[addr].id, 4, "Id not set correctly");
         Assert.equal(userToGroupID[addr], 4, "Group Id not set correctly");

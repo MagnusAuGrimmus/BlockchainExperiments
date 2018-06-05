@@ -16,8 +16,8 @@ contract('ShareCenter JS Unit Tests', function(accounts) {
   beforeEach('setup', async function() {
     center = await ShareCenter.new();
     await center.addSystem(accounts[0]);
-    await center.addUser(accounts[0], "user");
-    await center.addUser(accounts[1], "user");
+    await center.createUser(accounts[0], "user");
+    await center.createUser(accounts[1], "user");
   })
 
   it('should create a share', async function() {

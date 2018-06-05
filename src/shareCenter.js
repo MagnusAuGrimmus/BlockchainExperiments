@@ -80,11 +80,11 @@ class ShareCenter
     })
   }
 
-  async addUser(addr, name) {
+  async createUser(addr, name) {
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function (instance) {
-          var result = await instance.addUser(addr, name);
+          var result = await instance.createUser(addr, name);
           handleErrors(result);
           resolve({logs: result.logs});
         })

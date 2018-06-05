@@ -167,7 +167,7 @@ contract ShareCenter
         return (users[addr].id, users[addr].name);
     }
 
-    function addUser(address addr, bytes32 name) public isRegisteredSystem isNotUser(addr)
+    function createUser(address addr, bytes32 name) public isRegisteredSystem isNotUser(addr)
     {
         users[addr].name = name;
         users[addr].id = ++userCounter;
