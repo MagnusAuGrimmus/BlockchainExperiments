@@ -128,7 +128,7 @@ class ShareCenter
             var uriWrite = result[2].map(toUtf8);
             var idRead = result[3].map(id => id.toNumber());
             var uriRead = result[4].map(toUtf8);
-            resolve({value: {idWrite: idWrite, uriWrite: uriWrite, idRead: idRead, uriRead: uriRead}});
+            resolve({value: { idWrite, uriWrite, idRead, uriRead }});
           }
         })
       }
@@ -148,7 +148,7 @@ class ShareCenter
     return await this._getAllShares(groupId, idWrite, uriWrite, idRead, uriRead);
   }
 
-  async _addWithoutDuplicates(ids, uris, idsToAdd, urisToAdd, shareSet)
+  _addWithoutDuplicates(ids, uris, idsToAdd, urisToAdd, shareSet)
   {
     for(var i = 0; i < idsToAdd.length; i++) {
       const id = idsToAdd[i];
@@ -199,7 +199,7 @@ class ShareCenter
             reject({value: err, logs: result.logs});
           else {
             var id = result.logs.find(log => log.event === "ShareCreated").args.id.toNumber();
-            resolve({value: {id: id, uri: uri}, logs: result.logs});
+            resolve({value: { id, uri }, logs: result.logs});
           }
         })
       }
@@ -239,7 +239,7 @@ class ShareCenter
           if(err !== null)
             reject({value: err, logs: result.logs});
           else
-            resolve({value: {shareId: shareId, groupId: groupId, time: time}, logs: result.logs});
+            resolve({value: { shareId, groupId, time }, logs: result.logs});
         })
       }
       catch(err) {
@@ -260,7 +260,7 @@ class ShareCenter
           if(err !== null)
             reject({value: err, logs: result.logs});
           else
-            resolve({value: {shareId: shareId, groupId: groupId, time: time}, logs: result.logs});
+            resolve({value: { shareId, groupId, time }, logs: result.logs});
         })
       }
       catch(err) {
@@ -280,7 +280,7 @@ class ShareCenter
           if(err !== null)
             reject({value: err, logs: result.logs});
           else
-            resolve({value: {shareId: shareId, groupId: groupId}, logs: result.logs});
+            resolve({value: { shareId, groupId }, logs: result.logs});
         })
       }
       catch(err) {
@@ -300,7 +300,7 @@ class ShareCenter
           if(err !== null)
             reject({value: err, logs: result.logs});
           else
-            resolve({value: {shareId: shareId, groupId: groupId}, logs: result.logs});
+            resolve({value: { shareId, groupId }, logs: result.logs});
         })
       }
       catch(err) {
