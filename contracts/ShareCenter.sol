@@ -55,6 +55,7 @@ contract ShareCenter
     event SystemAdded(address addr);
     event UserAdded(address addr, bytes32 name);
     event GroupAdded(uint groupID, uint subgroupID);
+    event GroupRemoved(uint groupID, uint subgroupID);
     event GroupCreated(uint id);
     event ShareCreated(uint id, uint groupID, bytes32 uri);
     event ShareDeleted(uint id);
@@ -223,33 +224,34 @@ contract ShareCenter
         Group.Data storage group = groups[groupCounter + 1];
         group.id = ++groupCounter;
         groups[group.id] = group;
-        group.owners.add(addr);
+        group.owner = addr;
         GroupCreated(group.id);
         return group.id;
     }
 
-    function createGroup(address addr) public returns (uint groupID)
+    function createGroup(address addr) public isUser(addr) returns (uint groupID)
     {
         User storage user = users[addr];
         groupID = initGroup(addr);
         user.groups.add(groupID);
     }
 
-    function addGroup(uint groupID, uint subgroupID) public isActiveGroup(groupID) isActiveGroup(subgroupID)
+    function addGroupToGroup(uint groupID, uint subgroupID) public isActiveGroup(groupID) isActiveGroup(subgroupID)
     {
         groups[groupID].addGroup(groups[subgroupID]);
         GroupAdded(groupID, subgroupID);
+    }
+
+    function removeGroupFromGroup(uint groupID, uint subgroupID) public isActiveGroup(groupID) isActiveGroup(subgroupID)
+    {
+        groups[groupID].removeGroup(groups[subgroupID]);
+        GroupRemoved(groupID, subgroupID);
     }
 
     function addUserToGroup(uint groupID, address addr) public isActiveGroup(groupID) isInGroup(msg.sender, groupID) isUser(addr)
     {
         groups[groupID].addUser(addr);
         users[addr].groups.add(groupID);
-    }
-
-    function addOwnerToGroup(uint groupID, address addr) public isActiveGroup(groupID) isInGroup(addr, groupID) isUser(addr)
-    {
-        groups[groupID].addOwner(addr);
     }
 
     function getShares(uint groupID) public isActiveGroup(groupID) returns (bool found, uint[] idWrite, bytes32[] uriWrite, uint[] idRead, bytes32[] uriRead)

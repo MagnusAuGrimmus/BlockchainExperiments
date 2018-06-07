@@ -18,7 +18,7 @@ library Group
         uint id;
         uint authorizedWrite;
         uint authorizedRead;
-        IterableSet_Address.Data owners;
+        address owner;
         IterableSet_Address.Data users;
         IterableSet_Integer.Data parentGroups;
         IterableSet_Integer.Data subGroups;
@@ -37,9 +37,9 @@ library Group
         return self.id != 0;
     }
 
-    function hasOwner(Data storage self, address addr) internal view returns (bool)
+    function isInGroup(Data storage self, address addr) internal view returns (bool)
     {
-        return self.owners.contains(addr);
+        return self.owner == addr || hasUser(self, addr);
     }
 
     function hasUser(Data storage self, address addr) internal view returns (bool)
@@ -47,20 +47,9 @@ library Group
         return self.users.contains(addr);
     }
 
-    function isInGroup(Data storage self, address addr) internal view returns (bool)
-    {
-        return hasUser(self, addr) || hasOwner(self, addr);
-    }
-
     function addUser(Data storage self, address addr) internal returns (bool)
     {
         return self.users.add(addr);
-    }
-
-    function addOwner(Data storage self, address addr) internal returns (bool)
-    {
-        self.users.remove(addr);
-        return self.owners.add(addr);
     }
 
     function addGroup(Data storage self, Data storage subGroup) internal
@@ -90,12 +79,12 @@ library Group
 
     function removeUser(Data storage self, address addr) internal returns (bool)
     {
-        removeOwner(self, addr);
         return self.users.remove(addr);
     }
 
-    function removeOwner(Data storage self, address addr) internal returns (bool)
+    function removeGroup(Data storage self, Data storage group) internal
     {
-        return self.owners.remove(addr);
+        self.subGroups.remove(group.id);
+        group.parentGroups.remove(self.id);
     }
 }

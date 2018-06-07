@@ -9,7 +9,8 @@ var errorMessages = [
   'Caller does not own share',
   'Caller does not have share',
   'Share does not exist',
-  'Group is not active'
+  'Group is not active',
+  'User is not in group'
 ]
 
 async function asyncForEach(array, callback) {
@@ -42,7 +43,7 @@ class ShareCenter
       try {
         this.contract.deployed().then(async function (instance) {
           var groupID = await instance.getPersonalGroupID.call(addr);
-          resolve(groupID.toNumber());
+          resolve({ value: groupID.toNumber() });
         })
       }
       catch(err) {
@@ -138,11 +139,28 @@ class ShareCenter
     })
   }
 
-  async addGroup(groupID, subgroupID) {
+  async addGroupToGroup(groupID, subgroupID) {
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function(instance) {
-          var result = await instance.addGroup(groupID, subgroupID);
+          var result = await instance.addGroupToGroup(groupID, subgroupID);
+          var err = handleErrors(result);
+          if(err !== null)
+            reject({value: err, logs: result.logs});
+          resolve({logs: result.logs});
+        })
+      }
+      catch(err) {
+        reject(err);
+      }
+    })
+  }
+
+  async removeGroupFromGroup(groupID, subgroupID) {
+    return new Promise((resolve, reject) => {
+      try {
+        this.contract.deployed().then(async function(instance) {
+          var result = await instance.removeGroupFromGroup(groupID, subgroupID);
           var err = handleErrors(result);
           if(err !== null)
             reject({value: err, logs: result.logs});
@@ -217,12 +235,19 @@ class ShareCenter
 
   async getAllShares()
   {
-    var { groupIDs }  = await this.getGroupIDs(this.sender);
-    var shares = {};
-    await asyncForEach(groupIDs, async (groupID) =>  {
-      await this._getAllShares(groupID, shares);
-    });
-    return shares;
+    return new Promise(async (resolve, reject) => {
+      try {
+        var { groupIDs }  = await this.getGroupIDs(this.sender);
+        var shares = {};
+        await asyncForEach(groupIDs, async (groupID) =>  {
+          await this._getAllShares(groupID, shares);
+        });
+        resolve({ value: shares })
+      }
+      catch(err) {
+        reject(err);
+      }
+    })
   }
 
   async getParentGroups(groupID) {
@@ -231,7 +256,7 @@ class ShareCenter
         this.contract.deployed().then(async function(instance) {
           const result = await instance.getParentGroups.call(groupID);
           const parents = result.map(id => id.toNumber());
-          resolve({ parents })
+          resolve({ value: parents })
         })
       }
       catch (err) {
@@ -244,8 +269,8 @@ class ShareCenter
   {
     var result = await this.getShares(groupID);
     shares[groupID] = result;
-    var { parents } = await this.getParentGroups(groupID);
-    await asyncForEach(parents, async (groupID) => {
+    var parents = await this.getParentGroups(groupID);
+    await asyncForEach(parents.value, async (groupID) => {
       if(!groupsAdded.has(groupID)) {
         groupsAdded.add(groupID);
         await this._getAllShares(groupID, shares, groupsAdded);
@@ -255,8 +280,6 @@ class ShareCenter
   }
 
   async createShare(uri, groupID) {
-    if(groupID === undefined)
-      groupID = await this.getPersonalGroupID();
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function (instance) {
@@ -296,8 +319,6 @@ class ShareCenter
 
   async authorizeWrite(shareId, groupID, time = 0)
   {
-    if(isAddress(groupID))
-      groupID = await this.getPersonalGroupID(groupID);
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function (instance) {
@@ -317,8 +338,6 @@ class ShareCenter
 
   async authorizeRead(shareId, groupID, time = 0)
   {
-    if(isAddress(groupID))
-      groupID = await this.getPersonalGroupID(groupID);
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function (instance) {
@@ -337,8 +356,6 @@ class ShareCenter
   }
 
   async revokeWrite(shareId, groupID) {
-    if(isAddress(groupID))
-      groupID = await this.getPersonalGroupID(groupID);
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function (instance) {
@@ -357,8 +374,6 @@ class ShareCenter
   }
 
   async revokeRead(shareId, groupID) {
-    if(isAddress(groupID))
-      groupID = await this.getPersonalGroupID(groupID);
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function (instance) {

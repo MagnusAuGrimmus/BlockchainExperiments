@@ -18,7 +18,7 @@ contract ShareCenterTest is ShareCenterTester
         Assert.equal(users[addr].name, name, "Name not set correctly");
         Assert.equal(users[addr].id, targetUserId, "Id not set correctly");
         Assert.equal(getPersonalGroupID(addr), targetGroupId, "Group Id not set correctly");
-        Assert.isTrue(groups[targetGroupId].owners.contains(addr), "Owner not added to group");
+        Assert.equal(groups[targetGroupId].owner, addr, "Owner not added to group");
         Assert.equal(groups[targetGroupId].id, targetGroupId, "Group map not set correctly");
     }
 

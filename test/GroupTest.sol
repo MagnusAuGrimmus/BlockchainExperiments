@@ -13,16 +13,6 @@ contract GroupTest
     using IterableMapping_Integer_Claim for IterableMapping_Integer_Claim.Data;
     Group.Data group;
 
-    function testOwner() public
-    {
-        address addr = msg.sender;
-        Assert.isFalse(group.hasOwner(addr), "Should not allow a user to be in the system before add");
-        group.addOwner(addr);
-        Assert.isTrue(group.hasOwner(addr), "Add user failed");
-        group.removeUser(addr);
-        Assert.isFalse(group.hasOwner(addr), "Remove user failed");
-    }
-
     function testUser() public
     {
         address addr = msg.sender;
@@ -53,6 +43,8 @@ contract GroupTest
         group1.id = 10;
         group.addGroup(group1);
         uint[] memory subGroups = group.subGroups.iterator();
-        Assert.equal(subGroups[0], group1.id, "Group ID not added");
+        Assert.equal(subGroups[0], group1.id, "SubGroup ID not added");
+        uint[] memory parentGroups = group1.parentGroups.iterator();
+        Assert.equal(parentGroups[0], group.id, "Parent Group ID not added");
     }
 }
