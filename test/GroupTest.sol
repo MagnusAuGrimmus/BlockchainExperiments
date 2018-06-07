@@ -9,27 +9,28 @@ contract GroupTest
 {
     using Group for Group.Data;
     using Claim for Claim.Data;
+    using IterableSet_Integer for IterableSet_Integer.Data;
     using IterableMapping_Integer_Claim for IterableMapping_Integer_Claim.Data;
     Group.Data group;
 
     function testOwner() public
     {
         address addr = msg.sender;
-        Assert.isFalse(group.hasOwner(), "Should not allow a user to be in the system before add");
+        Assert.isFalse(group.hasOwner(addr), "Should not allow a user to be in the system before add");
         group.addOwner(addr);
-        Assert.isTrue(group.hasOwner(), "Add user failed");
+        Assert.isTrue(group.hasOwner(addr), "Add user failed");
         group.removeUser(addr);
-        Assert.isFalse(group.hasOwner(), "Remove user failed");
+        Assert.isFalse(group.hasOwner(addr), "Remove user failed");
     }
 
     function testUser() public
     {
         address addr = msg.sender;
-        Assert.isFalse(group.hasUser(), "Should not allow a user to be in the system before add");
+        Assert.isFalse(group.hasUser(addr), "Should not allow a user to be in the system before add");
         group.addUser(addr);
-        Assert.isTrue(group.hasUser(), "Add user failed");
+        Assert.isTrue(group.hasUser(addr), "Add user failed");
         group.removeUser(addr);
-        Assert.isFalse(group.hasUser(), "Remove user failed");
+        Assert.isFalse(group.hasUser(addr), "Remove user failed");
     }
 
     function testClaim() public
@@ -44,5 +45,14 @@ contract GroupTest
         Assert.isTrue(group.shares.containsKey(id), "Claim not added");
         group.removeClaim(id);
         Assert.isFalse(group.shares.containsKey(id), "Claim not removed");
+    }
+
+    function testAddGroup() public
+    {
+        Group.Data group1;
+        group1.id = 10;
+        group.addGroup(group1);
+        uint[] memory subGroups = group.subGroups.iterator();
+        Assert.equal(subGroups[0], group1.id, "Group ID not added");
     }
 }

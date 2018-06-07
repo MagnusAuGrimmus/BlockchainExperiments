@@ -9,8 +9,8 @@ contract ShareCenterTestRead is ShareCenterTester
 
     function testAuthorizeRead() public
     {
-        uint id = createShare(uri);
-        uint groupId = userToGroupID[accounts[0]];
+        uint id = createShare(uri, getPersonalGroupID(msg.sender));
+        uint groupId = getPersonalGroupID(accounts[0]);
         authorizeRead(id, groupId, 0);
         Assert.isTrue(canRead(accounts[0], id), "User cannot write in share");
         Assert.isTrue(canRead(groupId, id), "Group cannot write in share");
@@ -19,8 +19,8 @@ contract ShareCenterTestRead is ShareCenterTester
 
     function testAuthorizeReadNotWrite() public
     {
-        uint id = createShare(uri);
-        uint groupId = userToGroupID[accounts[0]];
+        uint id = createShare(uri, getPersonalGroupID(msg.sender));
+        uint groupId = getPersonalGroupID(accounts[0]);
         authorizeRead(id, groupId, 0);
         Assert.isFalse(canWrite(accounts[0], id), "User cannot write in share");
         Assert.isFalse(canWrite(groupId, id), "Group cannot write in share");
@@ -29,8 +29,8 @@ contract ShareCenterTestRead is ShareCenterTester
 
     function testRevokeRead() public
     {
-        uint id = createShare(uri);
-        uint groupId = userToGroupID[accounts[0]];
+        uint id = createShare(uri, getPersonalGroupID(msg.sender));
+        uint groupId = getPersonalGroupID(accounts[0]);
         authorizeRead(id, groupId, 0);
         revokeRead(id, groupId);
         Assert.isFalse(canRead(accounts[0], id), "User can still write in share");

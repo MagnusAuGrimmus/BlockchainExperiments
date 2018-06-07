@@ -9,34 +9,7 @@ contract ShareCenterTester is ShareCenter
     bytes32[] public names;
     bytes32 public uri = "www.share1.com";
     uint public GAS_LIMIT = 20000;
-    uint public id;
     uint public duration = 60 * 60 * 24 * 365;
-    address public acc;
-
-
-    modifier initNewShare()
-    {
-        createShare(uri);
-        _;
-    }
-
-    modifier removeShare()
-    {
-        deleteShare(id);
-        _;
-    }
-
-    modifier setReadAddress()
-    {
-        acc = accounts[0];
-        _;
-    }
-
-    modifier setOwnAddress()
-    {
-        acc = accounts[1];
-        _;
-    }
 
 
     function createUsers() public

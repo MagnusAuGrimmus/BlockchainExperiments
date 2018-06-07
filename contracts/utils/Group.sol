@@ -28,7 +28,7 @@ library Group
 
     modifier isUser(Data storage self)
     {
-        require(hasUser(self));
+        require(hasUser(self, msg.sender));
         _;
     }
 
@@ -37,14 +37,19 @@ library Group
         return self.id != 0;
     }
 
-    function hasOwner(Data storage self) internal view returns (bool)
+    function hasOwner(Data storage self, address addr) internal view returns (bool)
     {
-        return self.owners.contains(msg.sender);
+        return self.owners.contains(addr);
     }
 
-    function hasUser(Data storage self) internal view returns (bool)
+    function hasUser(Data storage self, address addr) internal view returns (bool)
     {
-        return self.users.contains(msg.sender);
+        return self.users.contains(addr);
+    }
+
+    function isInGroup(Data storage self, address addr) internal view returns (bool)
+    {
+        return hasUser(self, addr) || hasOwner(self, addr);
     }
 
     function addUser(Data storage self, address addr) internal returns (bool)

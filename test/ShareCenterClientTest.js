@@ -21,15 +21,13 @@ contract('Test Create Share', function(accounts) {
   })
 
   it('should create a share', async function () {
+    var groupID = await center.getPersonalGroupID();
     var data = await center.createShare("uri");
-    var result = await center.getShares(accounts[0]);
-    var idOwn = result.value.idWrite;
-    var uriOwn = result.value.uriWrite;
-    var idRead = result.value.idRead;
-    var uriRead = result.value.uriRead;
+    var shares = await center.getAllShares();
+    var { idWrite, uriWrite, idRead, uriRead } = shares[groupID];
     assert.equal(data.logs[0].event, "ShareCreated");
-    assert.equal(idOwn[0], data.value.id);
-    assert.equal(uriOwn[0], "uri");
+    assert.equal(idWrite[0], data.value.id);
+    assert.equal(uriWrite[0], "uri");
     assert.equal(idRead.length, 0);
     assert.equal(uriRead.length, 0);
   })
@@ -45,16 +43,14 @@ contract('Test Delete Share', function(accounts) {
 
 
   it('should delete a share', async function () {
+    var groupID = await center.getPersonalGroupID();
     var share = await center.createShare("uri");
     var data = await center.deleteShare(share.value.id);
-    var result = await center.getShares(accounts[0]);
-    var idOwn = result.value.idWrite;
-    var uriOwn = result.value.uriWrite;
-    var idRead = result.value.idRead;
-    var uriRead = result.value.uriRead;
+    var shares = await center.getAllShares();
+    var { idWrite, uriWrite, idRead, uriRead } = shares[groupID];
     assert.equal(data.logs[0].event, "ShareDeleted");
-    assert.equal(idOwn.length, 0);
-    assert.equal(uriOwn.length, 0);
+    assert.equal(idWrite.length, 0);
+    assert.equal(uriWrite.length, 0);
     assert.equal(idRead.length, 0);
     assert.equal(uriRead.length, 0);
   })
@@ -63,22 +59,21 @@ contract('Test Delete Share', function(accounts) {
 contract('Test Authorize Write', function(accounts) {
   beforeEach('setup', async function () {
     center = new ShareCenter(web3, accounts[0]);
+    user = new ShareCenter(web3, accounts[1]);
     await center.addSystem(accounts[0]);
     await center.createUser(accounts[0], "user");
     await center.createUser(accounts[1], "user");
   })
 
   it('should authorize ownership of a share', async function () {
+    var groupID = await user.getPersonalGroupID();
     var share = await center.createShare("uri");
     var data = await center.authorizeWrite(share.value.id, accounts[1]);
-    var result = await center.getShares(accounts[1]);
-    var idOwn = result.value.idWrite;
-    var uriOwn = result.value.uriWrite;
-    var idRead = result.value.idRead;
-    var uriRead = result.value.uriRead;
+    var shares = await user.getAllShares();
+    var { idWrite, uriWrite, idRead, uriRead } = shares[groupID];
     assert.equal(data.logs[0].event, "WriterAdded");
-    assert.equal(idOwn[0], share.value.id);
-    assert.equal(uriOwn[0], "uri");
+    assert.equal(idWrite[0], share.value.id);
+    assert.equal(uriWrite[0], "uri");
     assert.equal(idRead.length, 0);
     assert.equal(uriRead.length, 0);
   })
@@ -87,47 +82,45 @@ contract('Test Authorize Write', function(accounts) {
 contract('Test Authorize Read', function(accounts) {
   beforeEach('setup', async function () {
     center = new ShareCenter(web3, accounts[0]);
+    user = new ShareCenter(web3, accounts[1]);
     await center.addSystem(accounts[0]);
     await center.createUser(accounts[0], "user");
     await center.createUser(accounts[1], "user");
   })
 
   it('should authorize reading of a share', async function () {
+    var groupID = await user.getPersonalGroupID();
     var share = await center.createShare("uri");
     var data = await center.authorizeRead(share.value.id, accounts[1]);
-    var result = await center.getShares(accounts[1]);
-    var idOwn = result.value.idWrite;
-    var uriOwn = result.value.uriWrite;
-    var idRead = result.value.idRead;
-    var uriRead = result.value.uriRead;
+    var shares = await user.getAllShares();
+    var { idWrite, uriWrite, idRead, uriRead } = shares[groupID];
     assert.equal(data.logs[0].event, "ReaderAdded");
     assert.equal(idRead[0], share.value.id);
     assert.equal(uriRead[0], "uri");
-    assert.equal(idOwn.length, 0);
-    assert.equal(uriOwn.length, 0);
+    assert.equal(idWrite.length, 0);
+    assert.equal(uriWrite.length, 0);
   })
 });
 
 contract('Test RevokeWrite', function(accounts) {
   beforeEach('setup', async function () {
     center = new ShareCenter(web3, accounts[0]);
+    user = new ShareCenter(web3, accounts[1]);
     await center.addSystem(accounts[0]);
     await center.createUser(accounts[0], "user");
     await center.createUser(accounts[1], "user");
   })
 
   it('should revoke ownership of a share', async function () {
+    var groupID = await user.getPersonalGroupID();
     var share = await center.createShare("uri");
     await center.authorizeWrite(share.value.id, accounts[1]);
     var data = await center.revokeWrite(share.value.id, accounts[1]);
-    var result = await center.getShares(accounts[1]);
-    var idOwn = result.value.idWrite;
-    var uriOwn = result.value.uriWrite;
-    var idRead = result.value.idRead;
-    var uriRead = result.value.uriRead;
+    var shares = await user.getAllShares();
+    var { idWrite, uriWrite, idRead, uriRead } = shares[groupID];
     assert.equal(data.logs[0].event, "WriterRevoked");
-    assert.equal(idOwn.length, 0);
-    assert.equal(uriOwn.length, 0);
+    assert.equal(idWrite.length, 0);
+    assert.equal(uriWrite.length, 0);
     assert.equal(idRead.length, 0);
     assert.equal(uriRead.length, 0);
   })
@@ -136,71 +129,103 @@ contract('Test RevokeWrite', function(accounts) {
 contract('Test Revoke Read', function(accounts) {
   beforeEach('setup', async function () {
     center = new ShareCenter(web3, accounts[0]);
+    user = new ShareCenter(web3, accounts[1]);
     await center.addSystem(accounts[0]);
     await center.createUser(accounts[0], "user");
     await center.createUser(accounts[1], "user");
   })
 
   it('should revoke reading of a share', async function() {
+    var groupID = await user.getPersonalGroupID();
     var share = await center.createShare("uri");
     await center.authorizeRead(share.value.id, accounts[1]);
     var data = await center.revokeRead(share.value.id, accounts[1]);
-    var result = await center.getShares(accounts[1]);
-    var idOwn = result.value.idWrite;
-    var uriOwn = result.value.uriWrite;
-    var idRead = result.value.idRead;
-    var uriRead = result.value.uriRead;
+    var shares = await user.getAllShares();
+    var { idWrite, uriWrite, idRead, uriRead } = shares[groupID];
     assert.equal(data.logs[0].event, "ReaderRevoked");
-    assert.equal(idOwn.length, 0);
-    assert.equal(uriOwn.length, 0);
+    assert.equal(idWrite.length, 0);
+    assert.equal(uriWrite.length, 0);
     assert.equal(idRead.length, 0);
     assert.equal(uriRead.length, 0);
   })
 });
 
-contract('Test Get All Shares', function(accounts) {
+contract('Test Family Get All Shares', function(accounts) {
   it('setup', async function() {
     center = new ShareCenter(web3, accounts[0]);
     await center.addSystem(accounts[0]);
     await center.createUser(accounts[1], "user");
     await center.createUser(accounts[2], "user");
     await center.createUser(accounts[3], "user");
-    user1 = new ShareCenter(web3, accounts[1]);
-    user2 = new ShareCenter(web3, accounts[2]);
-    user3 = new ShareCenter(web3, accounts[3]);
+    grandfather = new ShareCenter(web3, accounts[1]);
+    mother = new ShareCenter(web3, accounts[2]);
+    son = new ShareCenter(web3, accounts[3]);
+    grandfatherID = await grandfather.getPersonalGroupID();
+    motherID = await mother.getPersonalGroupID();
+    sonID = await son.getPersonalGroupID();
     await createScenario();
   })
 
   async function createScenario() {
-    share1 = await user1.createShare("uri");
-    share2 = await user2.createShare("uri");
-    share3 = await user3.createShare("uri");
-    await user1.addGroup(accounts[2]);
-    await user1.addGroup(accounts[3]);
-    await user2.addGroup(accounts[3]);
+    share1 = await grandfather.createShare("uri");
+    share2 = await mother.createShare("uri");
+    share3 = await son.createShare("uri");
+    await grandfather.addGroup(grandfatherID, motherID);
+    await grandfather.addGroup(grandfatherID, sonID);
+    await mother.addGroup(motherID, sonID);
   }
 
-  it('should get all shares for user 1', async function() {
-    var shares = await user1.getAllShares();
-    assert.equal(shares.idWrite.length, 1);
-    assert.equal(shares.idWrite[0], share1.value.id);
-    assert.equal(shares.idRead.length, 0);
+  it('should get all shares for grandfather', async function() {
+    var shares = await grandfather.getAllShares();
+    var { idWrite } = shares[grandfatherID];
+    assert(idWrite.includes(share1.value.id));
+    assert.equal(idWrite.length, 1)
   })
 
-  it('should get all shares for user 2', async function() {
-    var shares = await user2.getAllShares();
-    assert.equal(shares.idWrite.length, 2);
-    assert(shares.idWrite.includes(share1.value.id))
-    assert(shares.idWrite.includes(share2.value.id))
-    assert.equal(shares.idRead.length, 0);
+  it('should get all shares for mother', async function() {
+    var shares = await mother.getAllShares();
+    var { idWrite } = shares[grandfatherID];
+    assert.equal(idWrite.length, 1);
+    assert(idWrite.includes(share1.value.id));
+    idWrite  = shares[motherID].idWrite;
+    assert.equal(idWrite.length, 1);
+    assert(idWrite.includes(share2.value.id));
   })
 
-  it('should get all shares for user 3', async function() {
-    var shares = await user3.getAllShares();
-    assert.equal(shares.idWrite.length, 3);
-    assert(shares.idWrite.includes(share1.value.id))
-    assert(shares.idWrite.includes(share2.value.id))
-    assert(shares.idWrite.includes(share3.value.id))
-    assert.equal(shares.idRead.length, 0);
+  it('should get all shares for son', async function() {
+    var shares = await son.getAllShares();
+    var { idWrite } = shares[grandfatherID];
+    assert.equal(idWrite.length, 1);
+    assert(idWrite.includes(share1.value.id));
+    idWrite  = shares[motherID].idWrite;
+    assert.equal(idWrite.length, 1);
+    assert(idWrite.includes(share2.value.id));
+    idWrite  = shares[sonID].idWrite;
+    assert.equal(idWrite.length, 1);
+    assert(idWrite.includes(share3.value.id));
   })
+})
+
+contract('Test Doctor Patient Get All Shares', function(accounts) {
+  beforeEach('setup', async function () {
+    center = new ShareCenter(web3, accounts[0]);
+    doctor = new ShareCenter(web3, accounts[4]);
+    patient = new ShareCenter(web3, accounts[5]);
+    await center.addSystem(accounts[0]);
+    await center.createUser(accounts[4], "user");
+    await center.createUser(accounts[5], "user");
+  })
+
+  it('should share a record', async function() {
+    const group = await patient.createGroup();
+    const { groupID } = group.value;
+    const share = await patient.createShare("uri", groupID);
+    const shareID = share.value.id;
+    patient.addUserToGroup(groupID, accounts[4]);
+    const shares = await doctor.getAllShares();
+    const { idWrite } = shares[groupID];
+    assert.equal(idWrite.length, 1);
+    assert(idWrite.includes(shareID));
+  })
+
 })
