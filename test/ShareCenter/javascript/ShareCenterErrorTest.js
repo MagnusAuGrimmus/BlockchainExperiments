@@ -1,4 +1,4 @@
-const { createShare, getGroupID } = require('./utils/TestingUtils');
+const { createShare, getGroupID } = require('../../utils/TestingUtils');
 var ShareCenter = artifacts.require("ShareCenter");
 contract('ShareCenter Error Testing', function(accounts) {
   var center;

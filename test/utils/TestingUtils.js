@@ -15,7 +15,7 @@ async function getShares(center, addr) {
 }
 
 async function createShare(center, address, options = {}) {
-  var data = await center.createShare("uri", await getGroupID(center, address), {from: address, ...options});
+  var data = await center.createShare("host", "path", await getGroupID(center, address), {from: address, ...options});
   return data;
 }
 

@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
-import "./utils/ShareCenterTester.sol";
-import "../contracts/utils/Claim.sol";
+import "../../utils/ShareCenterTester.sol";
+import "../../../contracts/utils/Claim.sol";
 import "truffle/Assert.sol";
 
 contract ShareCenterTestWrite is ShareCenterTester
@@ -9,7 +9,7 @@ contract ShareCenterTestWrite is ShareCenterTester
 
     function testAuthorizeWrite() public
     {
-        uint id = createShare(uri, getPersonalGroupID(msg.sender));
+        uint id = createShare(host, path, getPersonalGroupID(msg.sender));
         uint groupId = getPersonalGroupID(accounts[0]);
         authorizeWrite(id, groupId, 0);
         Assert.isTrue(canWrite(accounts[0], id), "Group cannot write in share");
@@ -19,7 +19,7 @@ contract ShareCenterTestWrite is ShareCenterTester
 
     function testRevokeWrite() public
     {
-        uint id = createShare(uri, getPersonalGroupID(msg.sender));
+        uint id = createShare(host, path, getPersonalGroupID(msg.sender));
         uint groupId = getPersonalGroupID(accounts[0]);
         authorizeWrite(id, groupId, 0);
         revokeWrite(id, groupId);

@@ -8,6 +8,8 @@ contract ShareCenterTester is ShareCenter
     address[] public accounts;
     bytes32[] public names;
     bytes32 public uri = "www.share1.com";
+    bytes32 public host = "nucleus.com";
+    bytes32 public path = "abc123";
     uint public GAS_LIMIT = 20000;
     uint public duration = 60 * 60 * 24 * 365;
 

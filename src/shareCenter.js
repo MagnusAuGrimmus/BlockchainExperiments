@@ -1,4 +1,5 @@
 const contract = require("truffle-contract")
+const url = require('url');
 const ShareCenterArtifact = require("../build/contracts/ShareCenter");
 
 var errorMessages = [
@@ -17,6 +18,31 @@ async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array)
   }
+}
+
+function parseURI(uri) {
+  var { host, path } = url.parse(uri);
+  host = host || "";
+  path = path || "";
+  return { host, path }
+}
+
+function makeURI(host, path) {
+  if(host)
+    return `${host}/${path}`;
+  return path;
+}
+
+function makeURIs(hosts, paths) {
+  return hosts.map((host, index) => makeURI(host, paths[index]));
+}
+
+function zip(ids, uris) {
+  var shares = [];
+  for(let i = 0; i < ids.length; i++) {
+    shares.push({id: ids[i], uri: uris[i]});
+  }
+  return shares;
 }
 
 class ShareCenter
@@ -215,16 +241,23 @@ class ShareCenter
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function (instance) {
-          var result = await instance.getShares.call(groupID);
-          if(!result[0])
-            reject("User does not exist");
-          else {
-            var idWrite = result[1].map(id => id.toNumber());
-            var uriWrite = result[2].map(toUtf8);
-            var idRead = result[3].map(id => id.toNumber());
-            var uriRead = result[4].map(toUtf8);
-            resolve({ idWrite, uriWrite, idRead, uriRead });
+          var [found, idWrite, hostWrite, pathWrite, idRead, hostRead, pathRead] = await instance.getShares.call(groupID);
+          if (found) {
+            idWrite = idWrite.map(id => id.toNumber())
+            hostWrite = hostWrite.map(toUtf8)
+            pathWrite = pathWrite.map(toUtf8)
+            var uriWrite = makeURIs(hostWrite, pathWrite)
+            var authorizedWrite = zip(idWrite, uriWrite)
+
+            idRead = idRead.map(id => id.toNumber())
+            hostRead = hostRead.map(toUtf8)
+            pathRead = pathRead.map(toUtf8)
+            var uriRead = makeURIs(hostRead, pathRead);
+            var authorizedRead = zip(idRead, uriRead)
+
+            resolve({ authorizedWrite, authorizedRead })
           }
+          else { reject('User does not exist') }
         })
       }
       catch(err) {
@@ -280,17 +313,21 @@ class ShareCenter
   }
 
   async createShare(uri, groupID) {
+    var toUtf8 = uri => this.web3.toUtf8(uri);
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function (instance) {
-          var result = await instance.createShare(uri, groupID);
+          var { host, path } = parseURI(uri);
+          var result = await instance.createShare(host, path, groupID);
           var err = handleErrors(result);
-          if(err !== null)
-            reject({value: err, logs: result.logs});
-          else {
-            var id = result.logs.find(log => log.event === "ShareCreated").args.id.toNumber();
-            resolve({value: { id, uri }, logs: result.logs});
+          if (err === null) {
+            var log = result.logs.find(log => log.event === 'ShareCreated')
+            var id = log.args.id.toNumber()
+            var host = toUtf8(log.args.host)
+            var path = toUtf8(log.args.path)
+            resolve({value: {id, host, path}, logs: result.logs})
           }
+          else { reject({value: err, logs: result.logs}) }
         })
       }
       catch(err) {
