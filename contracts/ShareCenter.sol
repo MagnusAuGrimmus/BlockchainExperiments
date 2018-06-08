@@ -149,7 +149,7 @@ contract ShareCenter
 
     function canRead(address addr, uint shareID) public view returns (bool)
     {
-        uint[] memory groups = getGroups(addr);
+        var (_, groups) = getGroups(addr);
         for(uint i = 0; i < groups.length; i++)
             if(canRead(groups[i], shareID))
                 return true;
@@ -183,9 +183,9 @@ contract ShareCenter
             SystemAdded(system);
     }
 
-    function getUser(address addr) public isUser(addr) returns (uint, bytes32)
+    function getUser(address addr) public isUser(addr) returns (bool found , uint userID, bytes32 username)
     {
-        return (users[addr].id, users[addr].name);
+        return (true, users[addr].id, users[addr].name);
     }
 
     function createUser(address addr, bytes32 name) public isRegisteredSystem isNotUser(addr)
@@ -196,9 +196,9 @@ contract ShareCenter
         users[addr].personalGroupID = initGroup(addr);
     }
 
-    function getPersonalGroupID(address addr) public view isUser(addr) returns(uint id)
+    function getPersonalGroupID(address addr) public view isUser(addr) returns(bool found, uint id)
     {
-        return users[addr].personalGroupID;
+        return (true, users[addr].personalGroupID);
     }
 
     function getSubGroups(uint groupID) isActiveGroup(groupID) public returns (uint[])
@@ -206,13 +206,16 @@ contract ShareCenter
         return groups[groupID].subGroups.iterator();
     }
 
-    function getGroups(address addr) isUser(addr) public returns (uint[] groupIDs)
+    function getGroups(address addr) isUser(addr) public returns (bool found, uint[] groupIDs)
     {
         uint[] memory extraGroupIDs = users[addr].groups.iterator();
         groupIDs = new uint[](extraGroupIDs.length + 1);
         for(uint i = 0; i < extraGroupIDs.length; i++)
             groupIDs[i] = extraGroupIDs[i];
-        groupIDs[extraGroupIDs.length] = getPersonalGroupID(addr);
+
+        var (_, personalGroupID) = getPersonalGroupID(addr);
+        groupIDs[extraGroupIDs.length] = personalGroupID;
+        found = true;
     }
 
     function getParentGroups(uint groupID) isActiveGroup(groupID) public returns (uint[])
@@ -313,7 +316,7 @@ contract ShareCenter
     }
 
 
-    function createShare(bytes32 host, bytes32 path, uint groupID) public isUser(msg.sender) returns (uint)
+    function createShare(bytes32 host, bytes32 path, uint groupID) public isUser(msg.sender) isActiveGroup(groupID) returns (uint)
     {
         Claim.Data storage claim;
         Group.Data storage group = groups[groupID];

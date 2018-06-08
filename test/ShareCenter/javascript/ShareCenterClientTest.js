@@ -1,47 +1,8 @@
 const ShareCenter = require('../../../src/shareCenter');
 const Web3 = require('web3');
 const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:9545'));
+const { getID, getAllShares, createShare, createGroup, checkIfShareExists } = require('./TestingUtils');
 
-// async function setup(func) {
-//   var center;
-//   before('setup', async function () {
-//     center = new ShareCenter(web3, accounts[0]);
-//     await center.addSystem(accounts[0]);
-//     await center.createUser(accounts[0], "user");
-//     await center.createUser(accounts[1], "user");
-//   })
-//   func(arguments[1]);
-// }
-
-async function getID(center) {
-  var data = await center.getPersonalGroupID();
-  return data.value;
-}
-
-async function getAllShares(center) {
-  var data = await center.getAllShares();
-  return data.value;
-}
-
-async function createShare(center, host, path, groupID) {
-  var data = await center.createShare(host, path, groupID);
-  return data.value.id;
-}
-
-async function createGroup(center) {
-  var data = await center.createGroup();
-  return data.value.groupID;
-}
-
-function contains(shares, shareID) {
-  return shares.filter(share => share.id === shareID).length > 0;
-}
-
-function checkIfShareExists(shares, groupID, shareID) {
-  var { authorizedWrite } = shares[groupID];
-  assert.equal(authorizedWrite.length, 1);
-  assert(contains(authorizedWrite, shareID));
-}
 
 contract('Test Create Share', function(accounts) {
   before('setup', async function () {

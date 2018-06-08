@@ -64,20 +64,6 @@ class ShareCenter
 
   }
 
-  async getPersonalGroupID(addr = this.sender) {
-    return new Promise((resolve, reject) => {
-      try {
-        this.contract.deployed().then(async function (instance) {
-          var groupID = await instance.getPersonalGroupID.call(addr);
-          resolve({ value: groupID.toNumber() });
-        })
-      }
-      catch(err) {
-        reject(err);
-      }
-    })
-  }
-
   async addSystem(addr) {
    return new Promise((resolve, reject) => {
      try {
@@ -96,16 +82,39 @@ class ShareCenter
    })
   }
 
-  async getUser(addr)
-  {
-    var toUtf8 = uri => this.web3.toUtf8(uri);
+  async getUser(addr) {
+    const toUtf8 = uri => this.web3.toUtf8(uri);
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function (instance) {
-          var result =  await instance.getUser.call(addr);
-          var id = result[0].toNumber();
-          var name = toUtf8(result[1]);
-          resolve({value: { id, name }});
+          var [found, userID, username] = await instance.getUser.call(addr);
+          if(found) {
+            userID = userID.toNumber();
+            username = toUtf8(username);
+            resolve({value: { userID, username }})
+          }
+          else {
+            reject({ value: error(2) })
+          }
+        })
+      }
+      catch(err) {
+        reject(err);
+      }
+    })
+  }
+
+  async getPersonalGroupID(addr = this.sender) {
+    return new Promise((resolve, reject) => {
+      try {
+        this.contract.deployed().then(async function (instance) {
+          var [found, groupID] = await instance.getPersonalGroupID.call(addr);
+          if(found){
+            resolve({ value: groupID.toNumber() });
+          }
+          else {
+            reject({ value: error(2) });
+          }
         })
       }
       catch(err) {
@@ -135,9 +144,14 @@ class ShareCenter
     return new Promise((resolve, reject) => {
       try {
         this.contract.deployed().then(async function(instance) {
-          var result = await instance.getGroups.call(addr);
-          var groupIDs = result.map(id => id.toNumber());
-          resolve({ groupIDs });
+          var [found, result] = await instance.getGroups.call(addr);
+          if(found) {
+            var groupIDs = result.map(id => id.toNumber());
+            resolve({ groupIDs });
+          }
+          else {
+            reject({ value: error(2) })
+          }
         })
       }
       catch(err) {
@@ -216,27 +230,8 @@ class ShareCenter
     })
   }
 
-  async addOwnerToGroup(groupID, addr) {
-    return new Promise((resolve, reject) => {
-      try {
-        this.contract.deployed().then(async function(instance) {
-          var result = await instance.addOwnerToGroup(groupID, addr);
-          var err = handleErrors(result);
-          if(err !== null)
-            reject({value: err, logs: result.logs});
-          resolve({logs: result.logs});
-        })
-      }
-      catch(err) {
-        reject(err);
-      }
-    })
-  }
-
   async getShares(groupID)
   {
-    if(isAddress(groupID))
-      groupID = await this.getGroupID(groupID);
     var toUtf8 = uri => this.web3.toUtf8(uri);
     return new Promise((resolve, reject) => {
       try {
@@ -257,7 +252,7 @@ class ShareCenter
 
             resolve({ authorizedWrite, authorizedRead })
           }
-          else { reject('User does not exist') }
+          else { reject({ value: error(7) }) }
         })
       }
       catch(err) {
@@ -437,11 +432,16 @@ function handleErrors(result) {
   var errorMessage = null;
   Array.from(result.logs).forEach((log) => {
     if(log.event === 'Error') {
-      errorMessage = errorMessages[log.args.id.toNumber()];
+      const id = log.args.id.toNumber();
+      errorMessage = error(id);
       return false;
     }
   });
   return errorMessage;
+}
+
+function error(id) {
+  return { id, message: errorMessages[id] }
 }
 
 module.exports = ShareCenter;
