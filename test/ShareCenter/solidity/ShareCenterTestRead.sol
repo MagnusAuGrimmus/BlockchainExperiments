@@ -9,28 +9,20 @@ contract ShareCenterTestRead is ShareCenterTester
 
     function testAuthorizeRead() public
     {
-        uint id = createShare(host, path, getPersonalGroupID(msg.sender));
-        uint groupId = getPersonalGroupID(accounts[0]);
+        var (temp, senderGroupID) = getPersonalGroupID(msg.sender);
+        uint id = createShare(host, path, senderGroupID);
+        var (temp2, groupId) = getPersonalGroupID(accounts[0]);
         authorizeRead(id, groupId, 0);
         Assert.isTrue(canRead(accounts[0], id), "User cannot write in share");
         Assert.isTrue(canRead(groupId, id), "Group cannot write in share");
         Assert.isTrue(shares[id].groups.map[groupId].canRead(), "Share was not updated");
     }
 
-    function testAuthorizeReadNotWrite() public
-    {
-        uint id = createShare(host, path, getPersonalGroupID(msg.sender));
-        uint groupId = getPersonalGroupID(accounts[0]);
-        authorizeRead(id, groupId, 0);
-        Assert.isFalse(canWrite(accounts[0], id), "User cannot write in share");
-        Assert.isFalse(canWrite(groupId, id), "Group cannot write in share");
-        Assert.isFalse(shares[id].groups.map[groupId].canWrite(), "Share was updated wrong");
-    }
-
     function testRevokeRead() public
     {
-        uint id = createShare(host, path, getPersonalGroupID(msg.sender));
-        uint groupId = getPersonalGroupID(accounts[0]);
+        var (temp, senderGroupID) = getPersonalGroupID(msg.sender);
+        uint id = createShare(host, path, senderGroupID);
+        var (temp2, groupId) = getPersonalGroupID(accounts[0]);
         authorizeRead(id, groupId, 0);
         revokeRead(id, groupId);
         Assert.isFalse(canRead(accounts[0], id), "User can still write in share");

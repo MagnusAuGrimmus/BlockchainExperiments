@@ -10,7 +10,7 @@ contract ShareCenterTestCreateAndDelete is ShareCenterTester
 
     function testCreateShare() public
     {
-        uint groupId = getPersonalGroupID(msg.sender);
+        var (temp, groupId) = getPersonalGroupID(msg.sender);
         uint shareId = createShare(host, path, groupId);
         Group.Data group = groups[groupId];
         RecordShare share = shares[share.id];
@@ -25,7 +25,8 @@ contract ShareCenterTestCreateAndDelete is ShareCenterTester
     function testDeleteShare() public
     {
         uint shareId = 1;
-        Group.Data group = groups[getPersonalGroupID(msg.sender)];
+        var (temp, groupID) = getPersonalGroupID(msg.sender);
+        Group.Data group = groups[groupID];
         deleteShare(shareId);
         Assert.isFalse(canWrite(msg.sender, shareId), "User share not removed");
         Assert.equal(shares[shareId].id, 0, "ImageShare was not set to null");

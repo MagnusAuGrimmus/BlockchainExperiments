@@ -10,8 +10,8 @@ contract ShareCenterTestGet is ShareCenterTester
 
     function testGetShares() public
     {
-        uint senderGroupID = getPersonalGroupID(msg.sender);
-        uint userGroupID = getPersonalGroupID(accounts[0]);
+        var (temp, senderGroupID) = getPersonalGroupID(msg.sender);
+        var (temp2, userGroupID) = getPersonalGroupID(accounts[0]);
         uint id1 = createShare(host, path, senderGroupID);
         uint id2 = createShare(host, path, senderGroupID);
         uint id3 = createShare(host, path, senderGroupID);
