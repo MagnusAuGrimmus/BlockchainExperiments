@@ -78,9 +78,10 @@ class ShareCenter {
      * @constructor
      * @param {Object} web3 Web3 instance where the contract will run
      * @param {string} userAddress Address of the user
-     * @param {Object} options
+     * @param {string} contract Address Address of the contract (can be undefined)
+     * @param {Object} options TX Options (can be undefined)
      */
-    constructor(web3, userAddress, options) {
+    constructor(web3, userAddress, contractAddress, options) {
         if (typeof options === "undefined") {
             options = {
                 from: userAddress,
@@ -93,6 +94,10 @@ class ShareCenter {
         this.contract = contract(ShareCenterArtifact);
         this.contract.setProvider(web3.currentProvider);
         this.contract.defaults(options);
+        if(contractAddress)
+            this.getInstance = () => this.contract.at(contractAddress);
+        else
+            this.getInstance = () => this.contract.deployed();
     }
 
     /**
@@ -103,7 +108,7 @@ class ShareCenter {
     async addSystem(addr) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var result = await instance.addSystem(addr);
                     var err = handleErrors(result);
                     if (err !== null)
@@ -126,7 +131,7 @@ class ShareCenter {
     async getPersonalGroupID(addr = this.sender) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var [found, groupID] = await instance.getPersonalGroupID.call(addr);
                     if (found) {
                         resolve({value: groupID.toNumber()});
@@ -151,7 +156,7 @@ class ShareCenter {
     async createUser(addr) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var result = await instance.createUser(addr);
                     var err = handleErrors(result);
                     if (err !== null)
@@ -173,7 +178,7 @@ class ShareCenter {
     async getGroupIDs(addr) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var [found, result] = await instance.getGroups.call(addr);
                     if (found) {
                         var groupIDs = result.map(id => id.toNumber());
@@ -198,7 +203,7 @@ class ShareCenter {
         const addr = this.sender;
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var result = await instance.createGroup(addr);
                     var err = handleErrors(result);
                     if (err === null) {
@@ -242,7 +247,7 @@ class ShareCenter {
     async getParentGroups(groupID) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     const [found, result] = await instance.getParentGroups.call(groupID);
                     if(found) {
                         const parents = result.map(id => id.toNumber());
@@ -267,7 +272,7 @@ class ShareCenter {
     async getSubGroups(groupID) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     const [found, result] = await instance.getSubGroups.call(groupID);
                     if(found) {
                         const parents = result.map(id => id.toNumber());
@@ -295,7 +300,7 @@ class ShareCenter {
             try {
                 let canAdd = await this.canAddGroupToGroup(groupID, subgroupID);
                 if(canAdd) {
-                    this.contract.deployed().then(async function (instance) {
+                    this.getInstance().then(async function (instance) {
                         var result = await instance.addGroupToGroup(groupID, subgroupID);
                         var err = handleErrors(result);
                         if (err !== null)
@@ -323,7 +328,7 @@ class ShareCenter {
     async removeGroupFromGroup(groupID, subgroupID) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var result = await instance.removeGroupFromGroup(groupID, subgroupID);
                     var err = handleErrors(result);
                     if (err !== null)
@@ -347,7 +352,7 @@ class ShareCenter {
     async addUserToGroup(groupID, addr) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var result = await instance.addUserToGroup(groupID, addr);
                     var err = handleErrors(result);
                     if (err !== null)
@@ -371,7 +376,7 @@ class ShareCenter {
         var toUtf8 = uri => this.web3.toUtf8(uri);
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var [found, idWrite, hostWrite, pathWrite, idRead, hostRead, pathRead] = await instance.getShares.call(groupID);
                     if (found) {
                         idWrite = idWrite.map(id => id.toNumber())
@@ -450,7 +455,7 @@ class ShareCenter {
         var toUtf8 = uri => this.web3.toUtf8(uri);
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var {host, path} = parseURI(uri);
                     if (isValidURI(host, path)) {
                         var result = await instance.createShare(host, path, groupID);
@@ -480,7 +485,7 @@ class ShareCenter {
     async deleteShare(id) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var result = await instance.deleteShare(id);
                     var err = handleErrors(result);
                     if (err !== null)
@@ -505,7 +510,7 @@ class ShareCenter {
     async authorizeWrite(shareID, groupID, time = 0) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var result = await instance.authorizeWrite(shareID, groupID, time);
                     var err = handleErrors(result);
                     if (err !== null)
@@ -530,7 +535,7 @@ class ShareCenter {
     async authorizeRead(shareID, groupID, time = 0) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var result = await instance.authorizeRead(shareID, groupID, time);
                     var err = handleErrors(result);
                     if (err !== null)
@@ -554,7 +559,7 @@ class ShareCenter {
     async revokeWrite(shareID, groupID) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var result = await instance.revokeWrite(shareID, groupID);
                     var err = handleErrors(result);
                     if (err !== null)
@@ -578,7 +583,7 @@ class ShareCenter {
     async revokeRead(shareID, groupID) {
         return new Promise((resolve, reject) => {
             try {
-                this.contract.deployed().then(async function (instance) {
+                this.getInstance().then(async function (instance) {
                     var result = await instance.revokeRead(shareID, groupID);
                     var err = handleErrors(result);
                     if (err !== null)

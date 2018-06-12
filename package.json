@@ -1,5 +1,5 @@
 {
-  "name": "ShareCenter",
+  "name": "sharecenter",
   "version": "0.1.0",
   "description": "A blockchain platform to manage RecordShares",
   "main": "truffle-config.js",

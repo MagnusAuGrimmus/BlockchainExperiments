@@ -1,3 +1,3 @@
-const ShareCenter = require("src/shareCenter");
+const ShareCenter = require("./src/shareCenter");
 
-exports = { ShareCenter };
+module.exports = ShareCenter;
