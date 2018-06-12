@@ -5,7 +5,7 @@ const ShareCenterArtifact = require("../build/contracts/ShareCenter");
 var errorMessages = [
     'Owner does not exist', //0
     'User already exists', //1
-    'Caller is not a User', //2
+    'User does not exist', //2
     'Caller is not a Registered System', //3
     'Caller does not own share', //4
     'Caller does not have share', //5
@@ -13,8 +13,9 @@ var errorMessages = [
     'Group is not active', //7
     'User is not in group', //8
     'User is not owner of group', //9
-    'Invalid URI', //10
-    'Cannot add Group' //11 //Need better Error Code
+    'Already in group', //10
+    'Invalid URI', //11
+    'Cannot add Group', //12 //Need better Error Code
 ]
 
 async function asyncForEach(array, callback) {
@@ -118,33 +119,6 @@ class ShareCenter {
     }
 
     /**
-     * Retrieves the userID and username.
-     * @param {string} addr Address of the user
-     * @returns {Promise<any>}
-     */
-    async getUser(addr) {
-        const toUtf8 = uri => this.web3.toUtf8(uri);
-        return new Promise((resolve, reject) => {
-            try {
-                this.contract.deployed().then(async function (instance) {
-                    var [found, userID, username] = await instance.getUser.call(addr);
-                    if (found) {
-                        userID = userID.toNumber();
-                        username = toUtf8(username);
-                        resolve({value: {userID, username}})
-                    }
-                    else {
-                        reject({value: error(2)})
-                    }
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
-    }
-
-    /**
      * Retrieves the groupID of a user's personal group.
      * @param {string} [addr=userAddress] Address of the user
      * @returns {Promise<any>}
@@ -174,11 +148,11 @@ class ShareCenter {
      * @param {string} name Name of the user
      * @returns {Promise<any>}
      */
-    async createUser(addr, name) {
+    async createUser(addr) {
         return new Promise((resolve, reject) => {
             try {
                 this.contract.deployed().then(async function (instance) {
-                    var result = await instance.createUser(addr, name);
+                    var result = await instance.createUser(addr);
                     var err = handleErrors(result);
                     if (err !== null)
                         reject({value: err, logs: result.logs});
@@ -331,7 +305,7 @@ class ShareCenter {
                     })
                 }
                 else {
-                    reject({value: error(11)})
+                    reject({value: error(12)})
                 }
             }
             catch (err) {
@@ -493,7 +467,7 @@ class ShareCenter {
                         }
                     }
                     else {
-                        reject({value: error(10)})
+                        reject({value: error(11)})
                     }
                 })
             }

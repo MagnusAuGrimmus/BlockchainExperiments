@@ -10,8 +10,8 @@ contract('Test Doctor Patient Get All Shares', function (accounts) {
         doctor = new ShareCenter(web3, accounts[4]);
         patient = new ShareCenter(web3, accounts[5]);
         await center.addSystem(accounts[0]);
-        await center.createUser(accounts[4], "Doctor");
-        await center.createUser(accounts[5], "Patient");
+        await center.createUser(accounts[4]);
+        await center.createUser(accounts[5]);
     })
 
     it('should share a record', async function () {
@@ -33,8 +33,8 @@ contract('Test Banner Verdad Case', function (accounts) {
         bannerDoctor = new ShareCenter(web3, accounts[1]);
         verdadDoctor = new ShareCenter(web3, accounts[2]);
         await center.addSystem(accounts[0]);
-        await center.createUser(accounts[1], "Banner");
-        await center.createUser(accounts[2], "Verdad");
+        await center.createUser(accounts[1]);
+        await center.createUser(accounts[2]);
     })
 
     it('should create a share and groups', async function () {
@@ -67,8 +67,8 @@ contract('Test Circular Dependencies', function (accounts) {
         user = new ShareCenter(web3, accounts[1]);
 
         await center.addSystem(accounts[0]);
-        await center.createUser(accounts[0], "Master");
-        await center.createUser(accounts[1], "User");
+        await center.createUser(accounts[0]);
+        await center.createUser(accounts[1]);
 
         groupMasterID = await createGroup(center);
         groupChildID = await createGroup(user);
@@ -80,11 +80,11 @@ contract('Test Circular Dependencies', function (accounts) {
 
     it('should throw an error when user tries to add a group into itself', async function() {
         var call = () => center.addGroupToGroup(groupMasterID, groupMasterID);
-        await checkError(call, 11);
+        await checkError(call, 12);
     })
 
     it('should throw an error when user tries to add a group that would create a circular dependency', async function() {
         var call = () => user.addGroupToGroup(groupGrandChildID, groupMasterID);
-        await checkError(call, 11);
+        await checkError(call, 12);
     })
 })

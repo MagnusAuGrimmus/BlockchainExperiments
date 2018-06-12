@@ -17,9 +17,9 @@ contract('ShareCenter Error Testing', function (accounts) {
         user2 = new ShareCenter(web3, user2Address);
         fakeUser = new ShareCenter(web3, fakeUserAddress);
         await center.addSystem(centerAddress);
-        await center.createUser(centerAddress, "center");
-        await center.createUser(user1Address, "user1");
-        await center.createUser(user2Address, "user2");
+        await center.createUser(centerAddress);
+        await center.createUser(user1Address);
+        await center.createUser(user2Address);
         groupID = await createGroup(center);
         emptyGroupID = await createGroup(user2);
         fakeID = 123456789;
@@ -32,23 +32,23 @@ contract('ShareCenter Error Testing', function (accounts) {
         await checkError(call, 0);
     })
 
-    it("should throw error code 2 when getUser is called on fake user", async function () {
-        var call = () => center.getUser(fakeUserAddress);
-        await checkError(call, 2);
-    })
-
     it("should throw error code 3 when createUser is called from unregistered system", async function () {
-        var call = () => user1.createUser(centerAddress, "uri");
+        var call = () => user1.createUser(centerAddress);
         await checkError(call, 3);
     })
 
     it("should throw error code 1 when createUser is called with existing user", async function () {
-        var call = () => center.createUser(centerAddress, "uri");
+        var call = () => center.createUser(centerAddress);
         await checkError(call, 1);
     })
 
     it("should throw error code 2 when createGroup is called from fake user", async function() {
         var call = () => fakeUser.createGroup();
+        await checkError(call, 2);
+    })
+
+    it("should throw error code 2 when getGroupIDs is called on fake user", async function() {
+        var call = () => fakeUser.getGroupIDs(fakeUserAddress);
         await checkError(call, 2);
     })
 
@@ -62,7 +62,7 @@ contract('ShareCenter Error Testing', function (accounts) {
         await checkError(call, 7)
     })
 
-    it("should throw error code 11 when addGroupToGroup is called from nonowner", async function() {
+    it("should throw error code 9 when addGroupToGroup is called from nonowner", async function() {
         var call = () => user1.addGroupToGroup(groupID, emptyGroupID);
         await checkError(call, 9);
     })
@@ -82,9 +82,9 @@ contract('ShareCenter Error Testing', function (accounts) {
         await checkError(call, 7);
     })
 
-    it("should throw error code 10 when createShare is called with really long URL", async function() {
+    it("should throw error code 11 when createShare is called with really long URL", async function() {
         var call = () => center.createShare("www.nucleusHealthReallyLongDeploymentUrl/reallyLongPathToRecordShare", groupID);
-        await checkError(call, 10);
+        await checkError(call, 11);
     })
 
     it("should throw error code 2 when deleteShare is called from fake user", async function () {

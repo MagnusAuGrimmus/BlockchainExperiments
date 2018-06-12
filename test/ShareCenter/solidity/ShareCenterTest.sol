@@ -11,12 +11,9 @@ contract ShareCenterTest is ShareCenterTester
     function testCreateUser() public
     {
         address addr = 0x100;
-        bytes32 name = "Avi";
-        uint targetUserID = 4;
         uint targetGroupID = 4;
-        createUser(addr, name);
-        Assert.equal(users[addr].name, name, "Name not set correctly");
-        Assert.equal(users[addr].id, targetUserID, "ID not set correctly");
+        createUser(addr);
+        Assert.isTrue(users[addr].active, "User was not set active");
         (, uint personalGroupID) = getPersonalGroupID(addr);
         Assert.equal(personalGroupID, targetGroupID, "Group ID not set correctly");
         Assert.equal(groups[targetGroupID].owner, addr, "Owner not added to group");

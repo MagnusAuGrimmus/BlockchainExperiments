@@ -6,7 +6,6 @@ contract ShareCenterTester is ShareCenter
 {
     ThrowProxy public proxy;
     address[] public accounts;
-    bytes32[] public names;
     bytes32 public uri = "www.share1.com";
     bytes32 public host = "nucleus.com";
     bytes32 public path = "abc123";
@@ -16,8 +15,8 @@ contract ShareCenterTester is ShareCenter
 
     function createUsers() public
     {
-        for(uint i = 0; i < names.length - 1; i++)
-            createUser(accounts[i], names[i]);
+        for(uint i = 0; i < accounts.length - 1; i++)
+            createUser(accounts[i]);
     }
 
 
@@ -27,11 +26,8 @@ contract ShareCenterTester is ShareCenter
         accounts.push(0x1);
         accounts.push(0x2);
         accounts.push(0x3);
-        names.push("A");
-        names.push("B");
-        names.push("C");
         addSystem(msg.sender);
-        createUser(msg.sender, "owner");
+        createUser(msg.sender);
         createUsers();
     }
 }

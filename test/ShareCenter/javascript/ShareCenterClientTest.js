@@ -9,8 +9,8 @@ contract('Test Create Share', function (accounts) {
     before('setup', async function () {
         center = new ShareCenter(web3, accounts[0]);
         await center.addSystem(accounts[0]);
-        await center.createUser(accounts[0], "user");
-        await center.createUser(accounts[1], "user");
+        await center.createUser(accounts[0]);
+        await center.createUser(accounts[1]);
     })
 
     it('should create a share', async function () {
@@ -30,8 +30,8 @@ contract('Test Delete Share', function (accounts) {
     before('setup', async function () {
         center = new ShareCenter(web3, accounts[0]);
         await center.addSystem(accounts[0]);
-        await center.createUser(accounts[0], "user");
-        await center.createUser(accounts[1], "user");
+        await center.createUser(accounts[0]);
+        await center.createUser(accounts[1]);
     })
 
 
@@ -53,8 +53,8 @@ contract('Test Authorize Write', function (accounts) {
         center = new ShareCenter(web3, accounts[0]);
         user = new ShareCenter(web3, accounts[1]);
         await center.addSystem(accounts[0]);
-        await center.createUser(accounts[0], "user");
-        await center.createUser(accounts[1], "user");
+        await center.createUser(accounts[0]);
+        await center.createUser(accounts[1]);
     })
 
     it('should authorize ownership of a share', async function () {
@@ -77,8 +77,8 @@ contract('Test Authorize Read', function (accounts) {
         center = new ShareCenter(web3, accounts[0]);
         user = new ShareCenter(web3, accounts[1]);
         await center.addSystem(accounts[0]);
-        await center.createUser(accounts[0], "user");
-        await center.createUser(accounts[1], "user");
+        await center.createUser(accounts[0]);
+        await center.createUser(accounts[1]);
     })
 
     it('should authorize reading of a share', async function () {
@@ -101,8 +101,8 @@ contract('Test RevokeWrite', function (accounts) {
         center = new ShareCenter(web3, accounts[0]);
         user = new ShareCenter(web3, accounts[1]);
         await center.addSystem(accounts[0]);
-        await center.createUser(accounts[0], "user");
-        await center.createUser(accounts[1], "user");
+        await center.createUser(accounts[0]);
+        await center.createUser(accounts[1]);
     })
 
     it('should revoke ownership of a share', async function () {
@@ -125,8 +125,8 @@ contract('Test Revoke Read', function (accounts) {
         center = new ShareCenter(web3, accounts[0]);
         user = new ShareCenter(web3, accounts[1]);
         await center.addSystem(accounts[0]);
-        await center.createUser(accounts[0], "user");
-        await center.createUser(accounts[1], "user");
+        await center.createUser(accounts[0]);
+        await center.createUser(accounts[1]);
     })
 
     it('should revoke reading of a share', async function () {
@@ -154,9 +154,9 @@ contract('Test Family Get All Shares', function (accounts) {
         mother = new ShareCenter(web3, accounts[2]);
         son = new ShareCenter(web3, accounts[3]);
         await center.addSystem(accounts[0]);
-        await center.createUser(accounts[1], "grandfather");
-        await center.createUser(accounts[2], "mother");
-        await center.createUser(accounts[3], "son");
+        await center.createUser(accounts[1]);
+        await center.createUser(accounts[2]);
+        await center.createUser(accounts[3]);
         grandfatherID = await getID(grandfather);
         motherID = await getID(mother);
         sonID = await getID(son);

@@ -10,16 +10,17 @@ import "./utils/Group.sol";
 contract ShareCenter
 {
     enum ErrorCode {
-      IS_NOT_OWNER, // 0
-      USER_ALREADY_EXISTS, // 1
-      IS_NOT_A_USER, // 2
-      IS_NOT_A_REGISTERED_SYSTEM, // 3
-      DOES_NOT_OWN_SHARE, // 4
-      DOES_NOT_HAVE_SHARE, // 5
-      SHARE_DOES_NOT_EXIST, // 6
-      GROUP_NOT_ACTIVE, //7
-      NOT_IN_GROUP, //8
-      NOT_OWNER_OF_GROUP
+        IS_NOT_OWNER, // 0
+        USER_ALREADY_EXISTS, // 1
+        IS_NOT_A_USER, // 2
+        IS_NOT_A_REGISTERED_SYSTEM, // 3
+        DOES_NOT_OWN_SHARE, // 4
+        DOES_NOT_HAVE_SHARE, // 5
+        SHARE_DOES_NOT_EXIST, // 6
+        GROUP_NOT_ACTIVE, //7
+        NOT_IN_GROUP, //8
+        NOT_OWNER_OF_GROUP, //9
+        IN_GROUP
     }
 
     using IterableSet_Integer for IterableSet_Integer.Data;
@@ -38,9 +39,8 @@ contract ShareCenter
     }
 
     struct User {
-        uint id;
+        bool active;
         uint personalGroupID;
-        bytes32 name;
         IterableSet_Integer.Data groups;
     }
 
@@ -55,7 +55,7 @@ contract ShareCenter
     uint userCounter = 0;
 
     event SystemAdded(address addr);
-    event UserAdded(address addr, bytes32 name);
+    event UserAdded(address addr);
     event GroupAdded(uint groupID, uint subgroupID);
     event GroupRemoved(uint groupID, uint subgroupID);
     event GroupCreated(uint id);
@@ -77,7 +77,7 @@ contract ShareCenter
 
     modifier isUser(address addr)
     {
-        if(users[addr].id == 0)
+        if(!users[addr].active)
             emit Error(uint(ErrorCode.IS_NOT_A_USER));
         else
             _;
@@ -107,9 +107,17 @@ contract ShareCenter
             _;
     }
 
+    modifier notInGroup(address addr, uint id)
+    {
+        if(groups[id].isInGroup(addr))
+            emit Error(uint(ErrorCode.IN_GROUP));
+        else
+            _;
+    }
+
     modifier isNotUser(address addr)
     {
-        if(users[addr].id != 0)
+        if(users[addr].active)
             emit Error(uint(ErrorCode.USER_ALREADY_EXISTS));
         else
             _;
@@ -153,7 +161,6 @@ contract ShareCenter
         shareCounter = 0;
         claimCounter = 0;
         groupCounter = 0;
-        userCounter = 0;
     }
 
     function canRead(address addr, uint shareID) public view returns (bool)
@@ -192,16 +199,10 @@ contract ShareCenter
             emit SystemAdded(system);
     }
 
-    function getUser(address addr) public isUser(addr) returns (bool found , uint userID, bytes32 username)
+    function createUser(address addr) public isRegisteredSystem isNotUser(addr)
     {
-        return (true, users[addr].id, users[addr].name);
-    }
-
-    function createUser(address addr, bytes32 name) public isRegisteredSystem isNotUser(addr)
-    {
-        users[addr].name = name;
-        users[addr].id = ++userCounter;
-        emit UserAdded(addr, name);
+        users[addr].active = true;
+        emit UserAdded(addr);
         users[addr].personalGroupID = initGroup(addr);
     }
 
@@ -273,7 +274,9 @@ contract ShareCenter
     isUser(addr)
     {
         groups[groupID].addUser(addr);
-        users[addr].groups.add(groupID);
+        (, uint personalGroupID) = getPersonalGroupID(addr);
+        if(groupID != personalGroupID)
+            users[addr].groups.add(groupID);
     }
 
     function getShares(uint groupID) public view isActiveGroup(groupID) returns (bool found, uint[] idWrite, bytes32[] hostWrite, bytes32[] pathWrite, uint[] idRead, bytes32[] hostRead, bytes32[] pathRead)
@@ -392,13 +395,12 @@ contract ShareCenter
     {
         if(canRead(groupID, shareID))
             return;
-        RecordShare storage share = shares[shareID];
         Claim.Data storage claim;
         claim.time = time;
         claim.id = ++claimCounter;
         claim.access = Claim.Type.READ;
-        share.groups.put(groupID, claim);
-        groups[groupID].addClaim(share.id, claim);
+        shares[shareID].groups.put(groupID, claim);
+        groups[groupID].addClaim(shareID, claim);
         emit ReaderAdded(shareID, groupID);
     }
 
