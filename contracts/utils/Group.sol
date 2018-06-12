@@ -69,7 +69,7 @@ library Group
 
     function removeClaim(Data storage self, uint id) internal
     {
-        Claim.Data claim = self.shares.map[id];
+        Claim.Data memory claim = self.shares.map[id];
         if(claim.canWrite())
             self.authorizedWrite--;
         else if(claim.canRead())

@@ -31,7 +31,8 @@ function checkIfShareExists(shares, groupID, shareID) {
 async function checkError(call, expectedErrorCode) {
   var success = false;
   try {
-    await call();
+    var data = await call();
+    console.log(data);
     success = true;
   }
   catch(err) {

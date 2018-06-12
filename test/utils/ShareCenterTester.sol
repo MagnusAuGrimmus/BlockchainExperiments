@@ -21,7 +21,7 @@ contract ShareCenterTester is ShareCenter
     }
 
 
-    function ShareCenterTester() ShareCenter() public
+    constructor() ShareCenter() public
     {
         proxy = new ThrowProxy(address(this));
         accounts.push(0x1);

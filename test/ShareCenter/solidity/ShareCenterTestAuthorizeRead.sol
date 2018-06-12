@@ -3,19 +3,18 @@ import "../../utils/ShareCenterTester.sol";
 import "../../../contracts/utils/Claim.sol";
 import "truffle/Assert.sol";
 
-contract ShareCenterTestReadNotWrite is ShareCenterTester
+contract ShareCenterTestAuthorizeRead is ShareCenterTester
 {
     constructor() ShareCenterTester() public {}
 
-    function testAuthorizeReadNotWrite() public
+    function testAuthorizeRead() public
     {
         (, uint senderGroupID) = getPersonalGroupID(msg.sender);
         uint id = createShare(host, path, senderGroupID);
         (, uint groupID) = getPersonalGroupID(accounts[0]);
         authorizeRead(id, groupID, 0);
-        Assert.isFalse(canWrite(accounts[0], id), "User cannot write in share");
-        Assert.isFalse(canWrite(groupID, id), "Group cannot write in share");
-        Assert.isFalse(shares[id].groups.map[groupID].canWrite(), "Share was updated wrong");
+        Assert.isTrue(canRead(accounts[0], id), "User cannot write in share");
+        Assert.isTrue(canRead(groupID, id), "Group cannot write in share");
+        Assert.isTrue(shares[id].groups.map[groupID].canRead(), "Share was not updated");
     }
-
 }

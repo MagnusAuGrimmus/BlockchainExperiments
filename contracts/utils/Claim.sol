@@ -9,22 +9,22 @@ library Claim
         Type access;
     }
 
-    function isActive(Data storage self) internal view returns (bool)
+    function isActive(Data self) internal pure returns (bool)
     {
         return self.id != 0;
     }
 
-    function canRead(Data storage self) internal view returns (bool)
+    function canRead(Data self) internal view returns (bool)
     {
         return isValid(self) && uint(self.access) >= uint(Type.READ);
     }
 
-    function canWrite(Data storage self) internal view returns (bool)
+    function canWrite(Data self) internal view returns (bool)
     {
         return isValid(self) && uint(self.access) >= uint(Type.WRITE);
     }
 
-    function isValid(Data storage self) internal view returns (bool)
+    function isValid(Data self) internal view returns (bool)
     {
         return isActive(self) && (self.time == 0 || now < self.time);
     }

@@ -1,7 +1,7 @@
 {
-  "name": "election",
-  "version": "1.0.0",
-  "description": "",
+  "name": "ShareCenter",
+  "version": "0.1.0",
+  "description": "A blockchain platform to manage RecordShares",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
@@ -17,6 +17,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Nucleus Health",
   "license": "ISC"
 }

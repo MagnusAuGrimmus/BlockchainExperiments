@@ -18,7 +18,8 @@ contract ShareCenter
       DOES_NOT_HAVE_SHARE, // 5
       SHARE_DOES_NOT_EXIST, // 6
       GROUP_NOT_ACTIVE, //7
-      NOT_IN_GROUP //8
+      NOT_IN_GROUP, //8
+      NOT_OWNER_OF_GROUP
     }
 
     using IterableSet_Integer for IterableSet_Integer.Data;
@@ -69,7 +70,7 @@ contract ShareCenter
     modifier isOwner()
     {
         if(msg.sender != owner)
-            Error(uint(ErrorCode.IS_NOT_OWNER));
+            emit Error(uint(ErrorCode.IS_NOT_OWNER));
         else
             _;
     }
@@ -77,7 +78,7 @@ contract ShareCenter
     modifier isUser(address addr)
     {
         if(users[addr].id == 0)
-            Error(uint(ErrorCode.IS_NOT_A_USER));
+            emit Error(uint(ErrorCode.IS_NOT_A_USER));
         else
             _;
     }
@@ -85,7 +86,15 @@ contract ShareCenter
     modifier isActiveGroup(uint id)
     {
         if(groups[id].id == 0)
-            Error(uint(ErrorCode.GROUP_NOT_ACTIVE));
+            emit Error(uint(ErrorCode.GROUP_NOT_ACTIVE));
+        else
+            _;
+    }
+
+    modifier ownsGroup(address addr, uint id)
+    {
+        if(groups[id].owner != addr)
+            emit Error(uint(ErrorCode.NOT_OWNER_OF_GROUP));
         else
             _;
     }
@@ -93,7 +102,7 @@ contract ShareCenter
     modifier isInGroup(address addr, uint id)
     {
         if(!groups[id].isInGroup(addr))
-            Error(uint(ErrorCode.NOT_IN_GROUP));
+            emit Error(uint(ErrorCode.NOT_IN_GROUP));
         else
             _;
     }
@@ -101,7 +110,7 @@ contract ShareCenter
     modifier isNotUser(address addr)
     {
         if(users[addr].id != 0)
-            Error(uint(ErrorCode.USER_ALREADY_EXISTS));
+            emit Error(uint(ErrorCode.USER_ALREADY_EXISTS));
         else
             _;
     }
@@ -109,7 +118,7 @@ contract ShareCenter
     modifier isRegisteredSystem()
     {
         if(!authorizedSystems.contains(msg.sender))
-            Error(uint(ErrorCode.IS_NOT_A_REGISTERED_SYSTEM));
+            emit Error(uint(ErrorCode.IS_NOT_A_REGISTERED_SYSTEM));
         else
             _;
     }
@@ -117,7 +126,7 @@ contract ShareCenter
     modifier ownShare(uint id)
     {
         if(!canWrite(msg.sender, id))
-            Error(uint(ErrorCode.DOES_NOT_OWN_SHARE));
+            emit Error(uint(ErrorCode.DOES_NOT_OWN_SHARE));
         else
             _;
     }
@@ -125,7 +134,7 @@ contract ShareCenter
     modifier hasShare(uint id)
     {
         if(!canWrite(msg.sender, id) && !canRead(msg.sender, id))
-            Error(uint(ErrorCode.DOES_NOT_HAVE_SHARE));
+            emit Error(uint(ErrorCode.DOES_NOT_HAVE_SHARE));
         else
             _;
     }
@@ -133,12 +142,12 @@ contract ShareCenter
     modifier shareExists(uint id)
     {
         if(shares[id].id == 0)
-            Error(uint(ErrorCode.SHARE_DOES_NOT_EXIST));
+            emit Error(uint(ErrorCode.SHARE_DOES_NOT_EXIST));
         else
             _;
     }
 
-    function ShareCenter() public
+    constructor() public
     {
         owner = msg.sender;
         shareCounter = 0;
@@ -149,9 +158,9 @@ contract ShareCenter
 
     function canRead(address addr, uint shareID) public view returns (bool)
     {
-        var (_, groups) = getGroups(addr);
-        for(uint i = 0; i < groups.length; i++)
-            if(canRead(groups[i], shareID))
+        (, uint[] memory groupIDs) = getGroups(addr);
+        for(uint i = 0; i < groupIDs.length; i++)
+            if(canRead(groupIDs[i], shareID))
                 return true;
         return false;
     }
@@ -180,7 +189,7 @@ contract ShareCenter
     function addSystem(address system) public isOwner returns (bool)
     {
         if(authorizedSystems.add(system))
-            SystemAdded(system);
+            emit SystemAdded(system);
     }
 
     function getUser(address addr) public isUser(addr) returns (bool found , uint userID, bytes32 username)
@@ -192,7 +201,7 @@ contract ShareCenter
     {
         users[addr].name = name;
         users[addr].id = ++userCounter;
-        UserAdded(addr, name);
+        emit UserAdded(addr, name);
         users[addr].personalGroupID = initGroup(addr);
     }
 
@@ -201,26 +210,26 @@ contract ShareCenter
         return (true, users[addr].personalGroupID);
     }
 
-    function getSubGroups(uint groupID) isActiveGroup(groupID) public returns (uint[])
-    {
-        return groups[groupID].subGroups.iterator();
-    }
-
-    function getGroups(address addr) isUser(addr) public returns (bool found, uint[] groupIDs)
+    function getGroups(address addr) isUser(addr) public view returns (bool found, uint[] groupIDs)
     {
         uint[] memory extraGroupIDs = users[addr].groups.iterator();
         groupIDs = new uint[](extraGroupIDs.length + 1);
         for(uint i = 0; i < extraGroupIDs.length; i++)
             groupIDs[i] = extraGroupIDs[i];
 
-        var (_, personalGroupID) = getPersonalGroupID(addr);
+        (, uint personalGroupID) = getPersonalGroupID(addr);
         groupIDs[extraGroupIDs.length] = personalGroupID;
         found = true;
     }
 
-    function getParentGroups(uint groupID) isActiveGroup(groupID) public returns (uint[])
+    function getParentGroups(uint groupID) isActiveGroup(groupID) public returns (bool, uint[])
     {
-        return groups[groupID].parentGroups.iterator();
+        return (true, groups[groupID].parentGroups.iterator());
+    }
+
+    function getSubGroups(uint groupID) isActiveGroup(groupID) public returns (bool, uint[])
+    {
+        return (true, groups[groupID].subGroups.iterator());
     }
 
     function initGroup(address addr) internal returns (uint groupID)
@@ -229,7 +238,7 @@ contract ShareCenter
         group.id = ++groupCounter;
         groups[group.id] = group;
         group.owner = addr;
-        GroupCreated(group.id);
+        emit GroupCreated(group.id);
         return group.id;
     }
 
@@ -240,19 +249,28 @@ contract ShareCenter
         user.groups.add(groupID);
     }
 
-    function addGroupToGroup(uint groupID, uint subgroupID) public isActiveGroup(groupID) isActiveGroup(subgroupID)
+    function addGroupToGroup(uint groupID, uint subgroupID) public
+    isActiveGroup(groupID)
+    isActiveGroup(subgroupID)
+    ownsGroup(msg.sender, groupID)
     {
         groups[groupID].addGroup(groups[subgroupID]);
-        GroupAdded(groupID, subgroupID);
+        emit GroupAdded(groupID, subgroupID);
     }
 
-    function removeGroupFromGroup(uint groupID, uint subgroupID) public isActiveGroup(groupID) isActiveGroup(subgroupID)
+    function removeGroupFromGroup(uint groupID, uint subgroupID) public
+    isActiveGroup(groupID)
+    isActiveGroup(subgroupID)
+    ownsGroup(msg.sender, groupID)
     {
         groups[groupID].removeGroup(groups[subgroupID]);
-        GroupRemoved(groupID, subgroupID);
+        emit GroupRemoved(groupID, subgroupID);
     }
 
-    function addUserToGroup(uint groupID, address addr) public isActiveGroup(groupID) isInGroup(msg.sender, groupID) isUser(addr)
+    function addUserToGroup(uint groupID, address addr) public
+    isActiveGroup(groupID)
+    ownsGroup(msg.sender, groupID)
+    isUser(addr)
     {
         groups[groupID].addUser(addr);
         users[addr].groups.add(groupID);
@@ -260,7 +278,7 @@ contract ShareCenter
 
     function getShares(uint groupID) public view isActiveGroup(groupID) returns (bool found, uint[] idWrite, bytes32[] hostWrite, bytes32[] pathWrite, uint[] idRead, bytes32[] hostRead, bytes32[] pathRead)
     {
-        Group.Data group = groups[groupID];
+        Group.Data memory group = groups[groupID];
         return getShares(group);
     }
 
@@ -304,7 +322,7 @@ contract ShareCenter
         for(uint i = 0; i < group.shares.list.length && index < group.authorizedRead; i++)
         {
             shareID = group.shares.list[i];
-            if(canRead(group.id, shareID))
+            if(canRead(group.id, shareID) && !canWrite(group.id, shareID))
             {
                 share = shares[shareID];
                 idRead[index] = share.id;
@@ -331,20 +349,20 @@ contract ShareCenter
         shares[shareID].groups.put(group.id, claim);
         group.addClaim(shareID, claim);
 
-        ShareCreated(shareCounter, groupID, host, path);
+        emit ShareCreated(shareCounter, groupID, host, path);
         return shareCounter;
     }
 
     function deleteShare(uint id) public isUser(msg.sender) shareExists(id) ownShare(id)
     {
         RecordShare storage share = shares[id];
-        Group.Data group;
+        Group.Data storage group;
         for(uint i = 0; i < share.groups.list.length; i++)
         {
             group = groups[share.groups.list[i]];
             group.removeClaim(id);
         }
-        ShareDeleted(id);
+        emit ShareDeleted(id);
         share.id = 0;
     }
 
@@ -356,14 +374,14 @@ contract ShareCenter
     {
         if(canWrite(groupID, shareID))
             return;
-        Claim.Data claim;
+        Claim.Data storage claim;
         claim.time = time;
         claim.id = ++claimCounter;
         claim.access = Claim.Type.WRITE;
         shares[shareID].groups.put(groupID, claim);
         groups[groupID].addClaim(shareID, claim);
         require(groups[groupID].shares.map[shareID].canWrite());
-        WriterAdded(shareID, groupID);
+        emit WriterAdded(shareID, groupID);
     }
 
     function authorizeRead(uint shareID, uint groupID, uint time) public
@@ -375,13 +393,13 @@ contract ShareCenter
         if(canRead(groupID, shareID))
             return;
         RecordShare storage share = shares[shareID];
-        Claim.Data claim;
+        Claim.Data storage claim;
         claim.time = time;
         claim.id = ++claimCounter;
         claim.access = Claim.Type.READ;
         share.groups.put(groupID, claim);
         groups[groupID].addClaim(share.id, claim);
-        ReaderAdded(shareID, groupID);
+        emit ReaderAdded(shareID, groupID);
     }
 
     function revokeWrite(uint shareID, uint groupID) public
@@ -395,7 +413,7 @@ contract ShareCenter
         RecordShare storage share = shares[shareID];
         shares[shareID].groups.remove(groupID);
         groups[groupID].removeClaim(share.id);
-        WriterRevoked(shareID, groupID);
+        emit WriterRevoked(shareID, groupID);
     }
 
     function revokeRead(uint shareID, uint groupID) public
@@ -410,6 +428,6 @@ contract ShareCenter
         RecordShare storage share = shares[shareID];
         shares[shareID].groups.remove(groupID);
         groups[groupID].removeClaim(share.id);
-        ReaderRevoked(shareID, groupID);
+        emit ReaderRevoked(shareID, groupID);
     }
 }
