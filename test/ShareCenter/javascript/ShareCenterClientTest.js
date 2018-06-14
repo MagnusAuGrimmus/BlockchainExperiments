@@ -11,7 +11,7 @@ contract('Test Create Share', function (accounts) {
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
-    })
+    });
 
     it('should create a share', async function () {
         var groupID = await getID(center);
@@ -32,7 +32,7 @@ contract('Test Delete Share', function (accounts) {
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
-    })
+    });
 
 
     it('should delete a share', async function () {
@@ -55,7 +55,7 @@ contract('Test Authorize Write', function (accounts) {
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
-    })
+    });
 
     it('should authorize ownership of a share', async function () {
         var groupID = await getID(center);
@@ -79,7 +79,7 @@ contract('Test Authorize Read', function (accounts) {
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
-    })
+    });
 
     it('should authorize reading of a share', async function () {
         var groupID = await getID(center);
@@ -103,7 +103,7 @@ contract('Test RevokeWrite', function (accounts) {
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
-    })
+    });
 
     it('should revoke ownership of a share', async function () {
         var groupID = await getID(center);
@@ -127,7 +127,7 @@ contract('Test Revoke Read', function (accounts) {
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
-    })
+    });
 
     it('should revoke reading of a share', async function () {
         var groupID = await getID(center);
@@ -161,7 +161,7 @@ contract('Test Family Get All Shares', function (accounts) {
         motherID = await getID(mother);
         sonID = await getID(son);
         await createScenario();
-    })
+    });
 
     async function createScenario() {
         share1ID = await createShare(grandfather, "grandfatherURI", grandfatherID);
@@ -175,13 +175,13 @@ contract('Test Family Get All Shares', function (accounts) {
     it('should get all shares for grandfather', async function () {
         var shares = await getAllShares(grandfather);
         checkIfShareExists(shares, grandfatherID, share1ID);
-    })
+    });
 
     it('should get all shares for mother', async function () {
         var shares = await getAllShares(mother);
         checkIfShareExists(shares, grandfatherID, share1ID);
         checkIfShareExists(shares, motherID, share2ID);
-    })
+    });
 
     it('should get all shares for son', async function () {
         var shares = await getAllShares(son);
@@ -189,4 +189,4 @@ contract('Test Family Get All Shares', function (accounts) {
         checkIfShareExists(shares, motherID, share2ID);
         checkIfShareExists(shares, sonID, share3ID);
     })
-})
+});

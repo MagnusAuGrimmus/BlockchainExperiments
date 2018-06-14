@@ -165,7 +165,7 @@ contract ShareCenter
 
     function canRead(address addr, uint shareID) public view returns (bool)
     {
-        (, uint[] memory groupIDs) = getGroups(addr);
+        (, uint[] memory groupIDs) = getGroupIDs(addr);
         for(uint i = 0; i < groupIDs.length; i++)
             if(canRead(groupIDs[i], shareID))
                 return true;
@@ -211,7 +211,7 @@ contract ShareCenter
         return (true, users[addr].personalGroupID);
     }
 
-    function getGroups(address addr) isUser(addr) public view returns (bool found, uint[] groupIDs)
+    function getGroupIDs(address addr) isUser(addr) public view returns (bool found, uint[] groupIDs)
     {
         uint[] memory extraGroupIDs = users[addr].groups.iterator();
         groupIDs = new uint[](extraGroupIDs.length + 1);

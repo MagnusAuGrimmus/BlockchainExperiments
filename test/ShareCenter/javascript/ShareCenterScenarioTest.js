@@ -12,7 +12,7 @@ contract('Test Doctor Patient Get All Shares', function (accounts) {
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[4]);
         await center.createUser(accounts[5]);
-    })
+    });
 
     it('should share a record', async function () {
         const groupID = await createGroup(patient);
@@ -22,7 +22,7 @@ contract('Test Doctor Patient Get All Shares', function (accounts) {
 
         checkIfShareExists(shares, groupID, shareID);
     })
-})
+});
 
 contract('Test Banner Verdad Case', function (accounts) {
     var center, bannerDoctor, verdadDoctor,
@@ -35,20 +35,20 @@ contract('Test Banner Verdad Case', function (accounts) {
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[1]);
         await center.createUser(accounts[2]);
-    })
+    });
 
     it('should create a share and groups', async function () {
         bannerGroupID = await createGroup(bannerDoctor);
         verdadGroupID = await createGroup(verdadDoctor);
         shareID = await createShare(bannerDoctor, "BannerURI", bannerGroupID);
-    })
+    });
 
     it('should give Verdad group access to share', async function () {
         await bannerDoctor.addGroupToGroup(bannerGroupID, verdadGroupID);
         const shares = await getAllShares(verdadDoctor);
 
         checkIfShareExists(shares, bannerGroupID, shareID);
-    })
+    });
 
     it('should remove Verdad group access to share', async function () {
         await bannerDoctor.removeGroupFromGroup(bannerGroupID, verdadGroupID);
@@ -56,7 +56,7 @@ contract('Test Banner Verdad Case', function (accounts) {
 
         assert.equal(shares[bannerGroupID], undefined);
     })
-})
+});
 
 contract('Test Circular Dependencies', function (accounts) {
     var center, user,
@@ -76,15 +76,15 @@ contract('Test Circular Dependencies', function (accounts) {
 
         await center.addGroupToGroup(groupMasterID, groupChildID);
         await user.addGroupToGroup(groupChildID, groupGrandChildID);
-    })
+    });
 
     it('should throw an error when user tries to add a group into itself', async function() {
         var call = () => center.addGroupToGroup(groupMasterID, groupMasterID);
         await checkError(call, 12);
-    })
+    });
 
     it('should throw an error when user tries to add a group that would create a circular dependency', async function() {
         var call = () => user.addGroupToGroup(groupGrandChildID, groupMasterID);
         await checkError(call, 12);
     })
-})
+});

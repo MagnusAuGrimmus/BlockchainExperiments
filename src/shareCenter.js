@@ -1,6 +1,7 @@
-const contract = require("truffle-contract")
+const contract = require("truffle-contract");
 const url = require('url');
 const ShareCenterArtifact = require("../build/contracts/ShareCenter");
+const CONTRACT_ADDRESS = undefined;
 
 var errorMessages = [
     'Owner does not exist', //0
@@ -16,7 +17,7 @@ var errorMessages = [
     'Already in group', //10
     'Invalid URI', //11
     'Cannot add Group', //12 //Need better Error Code
-]
+];
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
@@ -73,9 +74,14 @@ function error(id) {
     return {id, message: errorMessages[id]}
 }
 
+/**
+ * ShareCenter API
+ * @class
+ */
 class ShareCenter {
     /**
      * @constructor
+     *
      * @param {Object} web3 Web3 instance where the contract will run
      * @param {string} userAddress Address of the user
      * @param {string} contract Address Address of the contract (can be undefined)
@@ -100,10 +106,26 @@ class ShareCenter {
             this.getInstance = () => this.contract.deployed();
     }
 
+    // constructor(web3, userAddress) {
+    //     this.sender = userAddress;
+    //     this.web3 = web3;
+    //     this.contract = contract(ShareCenterArtifact);
+    //     this.contract.setProvider(web3.currentProvider);
+    //     this.contract.defaults({
+    //        from: userAddress,
+    //        gas: 4712388,
+    //        gasPrice: 100000000000
+    //     });
+    //     this.getInstance = () => this.contract.at(CONTRACT_ADDRESS);
+    // }
+
+    //TODO: With error case
+
     /**
      * Adds a system to the contract.
      * @param {string} addr Address of the system to add
-     * @returns {Promise<any>}
+     * @returns {{logs: Array}}
+     * @throws Caller must be the owner of the contract
      */
     async addSystem(addr) {
         return new Promise((resolve, reject) => {
@@ -126,7 +148,8 @@ class ShareCenter {
     /**
      * Retrieves the groupID of a user's personal group.
      * @param {string} [addr=userAddress] Address of the user
-     * @returns {Promise<any>}
+     * @returns {{value: number}} the personal groupID
+     * @throws User must exist
      */
     async getPersonalGroupID(addr = this.sender) {
         return new Promise((resolve, reject) => {
@@ -151,7 +174,11 @@ class ShareCenter {
      * Creates a user.
      * @param {string} addr Address of the user
      * @param {string} name Name of the user
-     * @returns {Promise<any>}
+     * 
+     * @returns {{logs: Array}} Logs in the logs key
+     * 
+     * @throws Caller must be a registered system
+     * @throws User must not exist
      */
     async createUser(addr) {
         return new Promise((resolve, reject) => {
@@ -173,13 +200,16 @@ class ShareCenter {
     /**
      * Retrieve the groupIDs of a user.
      * @param {string} addr Address of the user
-     * @returns {Promise<any>}
+     * 
+     * @returns {{value: Array}} Array of groupIDs
+     * 
+     * @throws User must exist
      */
     async getGroupIDs(addr) {
         return new Promise((resolve, reject) => {
             try {
                 this.getInstance().then(async function (instance) {
-                    var [found, result] = await instance.getGroups.call(addr);
+                    var [found, result] = await instance.getGroupIDs.call(addr);
                     if (found) {
                         var groupIDs = result.map(id => id.toNumber());
                         resolve({ value: groupIDs });
@@ -197,7 +227,10 @@ class ShareCenter {
 
     /**
      * Create a new group.
-     * @returns {Promise<any>}
+     *
+     * @returns {{value: number, logs: Array}} the groupID of the new group
+     *
+     * @throws Caller must be a registered system
      */
     async createGroup() {
         const addr = this.sender;
@@ -225,7 +258,9 @@ class ShareCenter {
      * Check to see if adding the group will cause any circular dependencies.
      * @param {number} groupID
      * @param {number} subgroupID
-     * @returns {Promise<boolean>}
+     *
+     * @returns {boolean}
+     *
      */
     async canAddGroupToGroup(groupID, subgroupID) {
         if(groupID === subgroupID)
@@ -242,7 +277,9 @@ class ShareCenter {
     /**
      * Retrieve the parent groups of a group.
      * @param {number} groupID
-     * @returns {Promise<any>}
+     * @returns {{value: Array}} Array of parent groups
+     *
+     * @throws groupID must be registered
      */
     async getParentGroups(groupID) {
         return new Promise((resolve, reject) => {
@@ -267,7 +304,9 @@ class ShareCenter {
     /**
      * Retrieve the subgroups of a group
      * @param {number} groupID
-     * @returns {Promise<any>}
+     * @returns {{value: Array}} Array of subgroups
+     *
+     * @throws groupID must be registered
      */
     async getSubGroups(groupID) {
         return new Promise((resolve, reject) => {
@@ -293,7 +332,11 @@ class ShareCenter {
      * Add a subgroup to a group.
      * @param {number} groupID
      * @param {number} subgroupID
-     * @returns {Promise<any>}
+     *
+     * @returns {{logs: Array}} Logs in the logs key
+     *
+     * @throws both groupIDs must be registered
+     * @throws caller must be the owner of the group
      */
     async addGroupToGroup(groupID, subgroupID) {
         return new Promise(async (resolve, reject) => {
@@ -323,7 +366,11 @@ class ShareCenter {
      * Remove a subgroup from a group.
      * @param {number} groupID
      * @param {number} subgroupID
-     * @returns {Promise<any>}
+     *
+     * @returns {{logs: Array}} Logs in the logs key
+     *
+     * @throws both groupIDs must be registered
+     * @throws caller must be the owner of the group
      */
     async removeGroupFromGroup(groupID, subgroupID) {
         return new Promise((resolve, reject) => {
@@ -347,7 +394,11 @@ class ShareCenter {
      * Add a user to a group.
      * @param {number} groupID
      * @param {string} addr Address of the user to add
-     * @returns {Promise<any>}
+     * @returns {{logs: Array}} Logs in the logs key
+     *
+     * @throws groupID must be registered
+     * @throws user address must be registered
+     * @throws caller must be the owner of the group
      */
     async addUserToGroup(groupID, addr) {
         return new Promise((resolve, reject) => {
@@ -370,7 +421,10 @@ class ShareCenter {
     /**
      * Retrieve the shares for a group.
      * @param {number} groupID
-     * @returns {Promise<any>}
+     *
+     * @returns {{authorizedWrite: Array, authorizedRead: Array}} Arrays of shares, separated by access privileges
+     *
+     * @throws groupID must be registered
      */
     async getShares(groupID) {
         var toUtf8 = uri => this.web3.toUtf8(uri);
@@ -379,17 +433,17 @@ class ShareCenter {
                 this.getInstance().then(async function (instance) {
                     var [found, idWrite, hostWrite, pathWrite, idRead, hostRead, pathRead] = await instance.getShares.call(groupID);
                     if (found) {
-                        idWrite = idWrite.map(id => id.toNumber())
-                        hostWrite = hostWrite.map(toUtf8)
-                        pathWrite = pathWrite.map(toUtf8)
-                        var uriWrite = makeURIs(hostWrite, pathWrite)
-                        var authorizedWrite = zip(idWrite, uriWrite)
+                        idWrite = idWrite.map(id => id.toNumber());
+                        hostWrite = hostWrite.map(toUtf8);
+                        pathWrite = pathWrite.map(toUtf8);
+                        var uriWrite = makeURIs(hostWrite, pathWrite);
+                        var authorizedWrite = zip(idWrite, uriWrite);
 
-                        idRead = idRead.map(id => id.toNumber())
-                        hostRead = hostRead.map(toUtf8)
-                        pathRead = pathRead.map(toUtf8)
+                        idRead = idRead.map(id => id.toNumber());
+                        hostRead = hostRead.map(toUtf8);
+                        pathRead = pathRead.map(toUtf8);
                         var uriRead = makeURIs(hostRead, pathRead);
-                        var authorizedRead = zip(idRead, uriRead)
+                        var authorizedRead = zip(idRead, uriRead);
 
                         resolve({authorizedWrite, authorizedRead})
                     }
@@ -406,7 +460,9 @@ class ShareCenter {
 
     /**
      * Retrieve all the shares assigned to a user.
-     * @returns {Promise<any>}
+     *
+     * @returns {{value: Object}} A dictionary with the groupID as key and shares as value
+     *
      */
     async getAllShares() {
         return new Promise(async (resolve, reject) => {
@@ -429,7 +485,7 @@ class ShareCenter {
      * @param {number} groupID
      * @param {Object} shares
      * @param {Set} groupsAdded
-     * @returns {Promise<*>}
+     * @returns {Object} A dictionary with the groupID as key and shares as value
      * @private
      */
     async _getAllShares(groupID, shares, groupsAdded = new Set()) {
@@ -441,7 +497,7 @@ class ShareCenter {
                 groupsAdded.add(groupID);
                 await this._getAllShares(groupID, shares, groupsAdded);
             }
-        })
+        });
         return shares;
     }
 
@@ -449,7 +505,11 @@ class ShareCenter {
      * Create a share for a group.
      * @param {string} uri Pointer to the share
      * @param {number} groupID groupID to which the share will be assigned
-     * @returns {Promise<any>}
+     * @returns {{value: {id: number, host: string, path: string}}} Share properties
+     *
+     * @throws uri must be <64 characters in length
+     * @throws groupID must be registered
+     * @throws caller must be a registered user
      */
     async createShare(uri, groupID) {
         var toUtf8 = uri => this.web3.toUtf8(uri);
@@ -461,10 +521,10 @@ class ShareCenter {
                         var result = await instance.createShare(host, path, groupID);
                         var err = handleErrors(result);
                         if (err === null) {
-                            var log = result.logs.find(log => log.event === 'ShareCreated')
-                            var id = log.args.id.toNumber()
-                            var host = toUtf8(log.args.host)
-                            var path = toUtf8(log.args.path)
+                            var log = result.logs.find(log => log.event === 'ShareCreated');
+                            var id = log.args.id.toNumber();
+                            var host = toUtf8(log.args.host);
+                            var path = toUtf8(log.args.path);
                             resolve({value: {id, host, path}, logs: result.logs})
                         }
                         else {
@@ -482,16 +542,27 @@ class ShareCenter {
         });
     }
 
-    async deleteShare(id) {
+
+    /**
+     * Deletes a share
+     * @param shareID
+     *
+     * @returns {{logs: Array}} Logs in the logs key
+     *
+     * @throws caller must be a registered user
+     * @throws caller must own share
+     * @throws shareID must exist
+     */
+    async deleteShare(shareID) {
         return new Promise((resolve, reject) => {
             try {
                 this.getInstance().then(async function (instance) {
-                    var result = await instance.deleteShare(id);
+                    var result = await instance.deleteShare(shareID);
                     var err = handleErrors(result);
                     if (err !== null)
                         reject({value: err, logs: result.logs});
                     else
-                        resolve({value: id, logs: result.logs});
+                        resolve({logs: result.logs});
                 })
             }
             catch (err) {
@@ -505,9 +576,19 @@ class ShareCenter {
      * @param {number} shareID
      * @param {number} groupID
      * @param {number} [time=0] Duration of the permission (0 means indefinite)
-     * @returns {Promise<any>}
+     *
+     * @returns {{logs: Array}} Logs in the logs key
+     *
+     * @throws Caller must be a registered user
+     * @throws groupID must be registered
+     * @throws shareID must be registered
+     * @throws caller must have write access to share
+     * @throws time must be nonegative
+     *
      */
     async authorizeWrite(shareID, groupID, time = 0) {
+        if(time < 0)
+            throw RangeError();
         return new Promise((resolve, reject) => {
             try {
                 this.getInstance().then(async function (instance) {
@@ -516,7 +597,7 @@ class ShareCenter {
                     if (err !== null)
                         reject({value: err, logs: result.logs});
                     else
-                        resolve({value: {shareID, groupID, time}, logs: result.logs});
+                        resolve({logs: result.logs});
                 })
             }
             catch (err) {
@@ -530,9 +611,18 @@ class ShareCenter {
      * @param {number} shareID
      * @param {number} groupID
      * @param {number} [time=0] Duration of the permission (0 means indefinite)
-     * @returns {Promise<any>}
+     *
+     * @returns {{logs: Array}} Logs in the logs key
+     *
+     * @throws Caller must be a registered user
+     * @throws groupID must be registered
+     * @throws shareID must be registered
+     * @throws caller must have write access to share
+     * @throws time must be nonegative
      */
     async authorizeRead(shareID, groupID, time = 0) {
+        if(time < 0)
+            throw RangeError();
         return new Promise((resolve, reject) => {
             try {
                 this.getInstance().then(async function (instance) {
@@ -541,7 +631,7 @@ class ShareCenter {
                     if (err !== null)
                         reject({value: err, logs: result.logs});
                     else
-                        resolve({value: {shareID, groupID, time}, logs: result.logs});
+                        resolve({logs: result.logs});
                 })
             }
             catch (err) {
@@ -554,7 +644,14 @@ class ShareCenter {
      * Revoke write privileges of a group.
      * @param {number} shareID
      * @param {number} groupID
-     * @returns {Promise<any>}
+     *
+     * @returns {{logs: Array}} Logs in the logs key
+     *
+     * @throws Caller must be a registered user
+     * @throws groupID must be registered
+     * @throws shareID must be registered
+     * @throws caller must have write access to share
+     * @throws time must be nonegative
      */
     async revokeWrite(shareID, groupID) {
         return new Promise((resolve, reject) => {
@@ -565,7 +662,7 @@ class ShareCenter {
                     if (err !== null)
                         reject({value: err, logs: result.logs});
                     else
-                        resolve({value: {shareID, groupID}, logs: result.logs});
+                        resolve({logs: result.logs});
                 })
             }
             catch (err) {
@@ -578,7 +675,14 @@ class ShareCenter {
      * Revoke read privileges of a group.
      * @param {number} shareID
      * @param {number} groupID
-     * @returns {Promise<any>}
+     *
+     * @returns {{logs: Array}} Logs in the logs key
+     *
+     * @throws Caller must be a registered user
+     * @throws groupID must be registered
+     * @throws shareID must be registered
+     * @throws caller must have write access to share
+     * @throws time must be nonegative
      */
     async revokeRead(shareID, groupID) {
         return new Promise((resolve, reject) => {
@@ -589,7 +693,7 @@ class ShareCenter {
                     if (err !== null)
                         reject({value: err, logs: result.logs});
                     else
-                        resolve({value: {shareID, groupID}, logs: result.logs});
+                        resolve({logs: result.logs});
                 })
             }
             catch (err) {
