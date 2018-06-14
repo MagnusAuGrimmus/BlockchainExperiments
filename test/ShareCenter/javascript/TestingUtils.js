@@ -1,6 +1,5 @@
 async function getID(center) {
-    var data = center.getPersonalGroupID();
-    console.log(data);
+    var data = await center.getPersonalGroupID();
     return data.value;
 }
 

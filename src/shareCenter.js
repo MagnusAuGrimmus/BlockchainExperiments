@@ -19,6 +19,17 @@ var errorMessages = [
     'Cannot add Group', //12 //Need better Error Code
 ];
 
+/*
+Node Errors:
+Invalid Provider (User error)
+Invalid Connection (User error)
+Invalid Response
+Connection timeout (We can do the provider instantiation in house and handle these errors)
+Defaults:
+gas: 90000
+gasPrice: undefined
+ */
+
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array)
@@ -92,7 +103,6 @@ class ShareCenter {
             options = {
                 from: userAddress,
                 gas: 4712388,
-                gasPrice: 100000000000
             }
         }
         this.sender = userAddress;
@@ -106,20 +116,14 @@ class ShareCenter {
             this.getInstance = () => this.contract.deployed();
     }
 
-    // constructor(web3, userAddress) {
+    // constructor(web3, userAddress, options) {
     //     this.sender = userAddress;
     //     this.web3 = web3;
     //     this.contract = contract(ShareCenterArtifact);
     //     this.contract.setProvider(web3.currentProvider);
-    //     this.contract.defaults({
-    //        from: userAddress,
-    //        gas: 4712388,
-    //        gasPrice: 100000000000
-    //     });
+    //     this.contract.defaults({from: userAddress, ...options});
     //     this.getInstance = () => this.contract.at(CONTRACT_ADDRESS);
     // }
-
-    //TODO: With error case
 
     /**
      * Adds a system to the contract.
