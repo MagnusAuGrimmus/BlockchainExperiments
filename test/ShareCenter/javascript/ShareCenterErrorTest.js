@@ -81,9 +81,9 @@ contract('ShareCenter Error Testing', function (accounts) {
         await checkError(call, 7);
     });
 
-    it("should throw error code 11 when createShare is called with really long URL", async function() {
+    it("should throw error code 100 when createShare is called with really long URL", async function() {
         var call = () => center.createShare("www.nucleusHealthReallyLongDeploymentUrl/reallyLongPathToRecordShare", groupID);
-        await checkError(call, 11);
+        await checkError(call, 100);
     });
 
     it("should throw error code 2 when deleteShare is called from fake user", async function () {

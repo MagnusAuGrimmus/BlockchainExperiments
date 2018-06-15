@@ -79,11 +79,11 @@ contract('Test Circular Dependencies', function (accounts) {
 
     it('should throw an error when user tries to add a group into itself', async function() {
         var call = () => center.addGroupToGroup(groupMasterID, groupMasterID);
-        await checkError(call, 12);
+        await checkError(call, 101);
     });
 
     it('should throw an error when user tries to add a group that would create a circular dependency', async function() {
         var call = () => user.addGroupToGroup(groupGrandChildID, groupMasterID);
-        await checkError(call, 12);
+        await checkError(call, 101);
     })
 });

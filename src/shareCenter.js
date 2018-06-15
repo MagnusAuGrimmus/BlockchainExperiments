@@ -4,21 +4,22 @@ const url = require('url');
 const ShareCenterArtifact = require("../build/contracts/ShareCenter");
 const CONTRACT_ADDRESS = undefined;
 
-var errorMessages = [
-    'Owner does not exist', //0
-    'User already exists', //1
-    'User does not exist', //2
-    'Caller is not a Registered System', //3
-    'Caller does not own share', //4
-    'Caller does not have share', //5
-    'Share does not exist', //6
-    'Group is not active', //7
-    'User is not in group', //8
-    'User is not owner of group', //9
-    'Already in group', //10
-    'Invalid URI', //11
-    'Cannot add Group', //12 //Need better Error Code
-];
+var errorMessages = {
+    0: 'Owner does not exist',
+    1: 'User already exists',
+    2: 'User does not exist',
+    3: 'Caller is not a Registered System',
+    4: 'Caller does not own share',
+    5: 'Caller does not have share',
+    6: 'Share does not exist',
+    7: 'Group is not active',
+    8: 'User is not in group',
+    9: 'User is not owner of group',
+    10: 'Already in group',
+
+    100: 'Invalid URI',
+    101: 'Cannot add Group' //Need better Error Code
+}
 
 /*
 Node Errors:
@@ -283,7 +284,7 @@ class ShareCenter {
             return {logs: result.logs};
         }
         else {
-            throw {value: error(12)};
+            throw {value: error(101)};
         }
     }
 
@@ -413,7 +414,7 @@ class ShareCenter {
             return {value: {id, host, path}, logs: result.logs};
         }
         else {
-            throw {value: error(11)};
+            throw {value: error(100)};
         }
     }
 
