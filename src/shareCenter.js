@@ -1,4 +1,5 @@
 const contract = require("truffle-contract");
+const Web3 = require('web3');
 const url = require('url');
 const ShareCenterArtifact = require("../build/contracts/ShareCenter");
 const CONTRACT_ADDRESS = undefined;
@@ -98,7 +99,7 @@ class ShareCenter {
      * @param {string} contract Address Address of the contract (can be undefined)
      * @param {Object} options TX Options (can be undefined)
      */
-    constructor(web3, userAddress, contractAddress, options) {
+    constructor(httpProvider, userAddress, contractAddress, options) {
         if (typeof options === "undefined") {
             options = {
                 from: userAddress,
@@ -106,9 +107,9 @@ class ShareCenter {
             }
         }
         this.sender = userAddress;
-        this.web3 = web3;
+        this.web3 = new Web3(new Web3.providers.HttpProvider(httpProvider));
         this.contract = contract(ShareCenterArtifact);
-        this.contract.setProvider(web3.currentProvider);
+        this.contract.setProvider(this.web3.currentProvider);
         this.contract.defaults(options);
         if(contractAddress)
             this.getInstance = () => this.contract.at(contractAddress);

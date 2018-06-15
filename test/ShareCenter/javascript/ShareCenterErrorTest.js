@@ -1,6 +1,5 @@
 const ShareCenter = require('../../../src/shareCenter');
-const Web3 = require('web3');
-const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:9545'));
+const HTTP_PROVIDER = 'http://localhost:9545';
 const {createShare, createGroup, checkError} = require('./TestingUtils');
 
 contract('ShareCenter Error Testing', function (accounts) {
@@ -12,10 +11,10 @@ contract('ShareCenter Error Testing', function (accounts) {
         user1Address = accounts[1];
         user2Address = accounts[2];
         fakeUserAddress = accounts[9];
-        center = new ShareCenter(web3, centerAddress);
-        user1 = new ShareCenter(web3, user1Address);
-        user2 = new ShareCenter(web3, user2Address);
-        fakeUser = new ShareCenter(web3, fakeUserAddress);
+        center = new ShareCenter(HTTP_PROVIDER, centerAddress);
+        user1 = new ShareCenter(HTTP_PROVIDER, user1Address);
+        user2 = new ShareCenter(HTTP_PROVIDER, user2Address);
+        fakeUser = new ShareCenter(HTTP_PROVIDER, fakeUserAddress);
         await center.addSystem(centerAddress);
         await center.createUser(centerAddress);
         await center.createUser(user1Address);

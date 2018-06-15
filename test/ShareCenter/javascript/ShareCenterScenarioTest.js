@@ -1,14 +1,13 @@
 const ShareCenter = require('../../../src/shareCenter');
-const Web3 = require('web3');
-const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:9545'));
+const HTTP_PROVIDER = 'http://localhost:9545';
 const { checkIfShareExists, getAllShares, createGroup, createShare, checkError } = require('./TestingUtils');
 
 contract('Test Doctor Patient Get All Shares', function (accounts) {
     var center, doctor, patient;
     before('setup', async function () {
-        center = new ShareCenter(web3, accounts[0]);
-        doctor = new ShareCenter(web3, accounts[4]);
-        patient = new ShareCenter(web3, accounts[5]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
+        doctor = new ShareCenter(HTTP_PROVIDER, accounts[4]);
+        patient = new ShareCenter(HTTP_PROVIDER, accounts[5]);
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[4]);
         await center.createUser(accounts[5]);
@@ -29,9 +28,9 @@ contract('Test Banner Verdad Case', function (accounts) {
         bannerGroupID, verdadGroupID, shareID;
 
     before('setup', async function () {
-        center = new ShareCenter(web3, accounts[0]);
-        bannerDoctor = new ShareCenter(web3, accounts[1]);
-        verdadDoctor = new ShareCenter(web3, accounts[2]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
+        bannerDoctor = new ShareCenter(HTTP_PROVIDER, accounts[1]);
+        verdadDoctor = new ShareCenter(HTTP_PROVIDER, accounts[2]);
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[1]);
         await center.createUser(accounts[2]);
@@ -63,8 +62,8 @@ contract('Test Circular Dependencies', function (accounts) {
         groupMasterID, groupChildID, groupGrandChildID;
 
     before('setup', async function() {
-        center = new ShareCenter(web3, accounts[0]);
-        user = new ShareCenter(web3, accounts[1]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
+        user = new ShareCenter(HTTP_PROVIDER, accounts[1]);
 
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);

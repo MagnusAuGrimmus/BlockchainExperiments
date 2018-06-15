@@ -7,7 +7,7 @@ contract('Estimate Gas Prices', function(accounts) {
     async function estimateGas(func, params) {
         const gas = await func.estimateGas(...params);
         const gasPrice = await web3.eth.gasPrice.toNumber();
-        return await web3.fromWei(gas * gasPrice);
+        return await web3.fromWei(gas * gasPrice) + " eth";
     }
 
     async function createShare(host, path, groupID) {
