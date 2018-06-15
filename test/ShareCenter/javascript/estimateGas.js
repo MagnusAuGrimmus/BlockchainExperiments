@@ -16,7 +16,7 @@ contract('Estimate Gas Prices', function(accounts) {
     }
 
     async function getPersonalGroupID(addr) {
-        const [_, groupID] = await instance.getPersonalGroupID(addr);
+        const [, groupID] = await instance.getPersonalGroupID(addr);
         return groupID;
     }
 

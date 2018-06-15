@@ -25,7 +25,7 @@ Node Errors:
 Invalid Provider (User error)
 Invalid Connection (User error)
 Invalid Response
-Connection timeout (We can do the provider instantiation in house and handle these errors)
+Connection timeout (We can do the provider instantiation in house and handle these errors) /Repeats
 Defaults:
 gas: 90000
 gasPrice: undefined
@@ -66,12 +66,8 @@ function zip(ids, uris) {
     return shares;
 }
 
-function isAddress(value) {
-    return typeof value === "string";
-}
-
 function handleErrors(result) {
-    var errorMessage = null;
+    var errorMessage = undefined;
     Array.from(result.logs).forEach((log) => {
         if (log.event === 'Error') {
             const id = log.args.id.toNumber();
@@ -79,7 +75,8 @@ function handleErrors(result) {
             return false;
         }
     });
-    return errorMessage;
+    if(errorMessage !== undefined)
+        throw {value: errorMessage, logs: result.logs};
 }
 
 function error(id) {
@@ -122,7 +119,7 @@ class ShareCenter {
     //     this.web3 = web3;
     //     this.contract = contract(ShareCenterArtifact);
     //     this.contract.setProvider(web3.currentProvider);
-    //     this.contract.defaults({from: userAddress, ...options});
+    //     this.contract.defaults({from: userAddress, gas: 4712388, ...options});
     //     this.getInstance = () => this.contract.at(CONTRACT_ADDRESS);
     // }
 
@@ -133,21 +130,10 @@ class ShareCenter {
      * @throws Caller must be the owner of the contract
      */
     async addSystem(addr) {
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var result = await instance.addSystem(addr);
-                    var err = handleErrors(result);
-                    if (err !== null)
-                        reject({value: err, logs: result.logs});
-                    else
-                        resolve({logs: result.logs});
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        const instance = await this.getInstance();
+        var result = await instance.addSystem(addr);
+        handleErrors(result);
+        return {logs: result.logs};
     }
 
     /**
@@ -157,22 +143,14 @@ class ShareCenter {
      * @throws User must exist
      */
     async getPersonalGroupID(addr = this.sender) {
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var [found, groupID] = await instance.getPersonalGroupID.call(addr);
-                    if (found) {
-                        resolve({value: groupID.toNumber()});
-                    }
-                    else {
-                        reject({value: error(2)});
-                    }
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        const instance = await this.getInstance();
+        var [found, groupID] = await instance.getPersonalGroupID.call(addr);
+        if (found) {
+            return {value: groupID.toNumber()};
+        }
+        else {
+            throw {value: error(2)};
+        }
     }
 
     /**
@@ -186,20 +164,10 @@ class ShareCenter {
      * @throws User must not exist
      */
     async createUser(addr) {
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var result = await instance.createUser(addr);
-                    var err = handleErrors(result);
-                    if (err !== null)
-                        reject({value: err, logs: result.logs});
-                    resolve({logs: result.logs});
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        const instance = await this.getInstance();
+        var result = await instance.createUser(addr);
+        handleErrors(result);
+        return {logs: result.logs};
     }
 
     /**
@@ -211,23 +179,15 @@ class ShareCenter {
      * @throws User must exist
      */
     async getGroupIDs(addr) {
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var [found, result] = await instance.getGroupIDs.call(addr);
-                    if (found) {
-                        var groupIDs = result.map(id => id.toNumber());
-                        resolve({ value: groupIDs });
-                    }
-                    else {
-                        reject({ value: error(2) })
-                    }
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        const instance = await this.getInstance();
+        var [found, result] = await instance.getGroupIDs.call(addr);
+        if (found) {
+            var groupIDs = result.map(id => id.toNumber());
+            return { value: groupIDs };
+        }
+        else {
+            throw { value: error(2) };
+        }
     }
 
     /**
@@ -239,24 +199,11 @@ class ShareCenter {
      */
     async createGroup() {
         const addr = this.sender;
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var result = await instance.createGroup(addr);
-                    var err = handleErrors(result);
-                    if (err === null) {
-                        var groupID = result.logs.find(log => log.event === "GroupCreated").args.id.toNumber();
-                        resolve({value: {groupID}, logs: result.logs});
-                    }
-                    else {
-                        reject({value: err, logs: result.logs});
-                    }
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        const instance = await this.getInstance();
+        var result = await instance.createGroup(addr);
+        handleErrors(result);
+        var groupID = result.logs.find(log => log.event === "GroupCreated").args.id.toNumber();
+        return {value: {groupID}, logs: result.logs};
     }
 
     /**
@@ -287,23 +234,15 @@ class ShareCenter {
      * @throws groupID must be registered
      */
     async getParentGroups(groupID) {
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    const [found, result] = await instance.getParentGroups.call(groupID);
-                    if(found) {
-                        const parents = result.map(id => id.toNumber());
-                        resolve({value: parents})
-                    }
-                    else {
-                        reject({value: error(7)})
-                    }
-                })
-            }
-            catch (err) {
-                reject(err)
-            }
-        })
+        const instance = await this.getInstance();
+        const [found, result] = await instance.getParentGroups.call(groupID);
+        if(found) {
+            const parents = result.map(id => id.toNumber());
+            return {value: parents};
+        }
+        else {
+            throw {value: error(7)};
+        }
     }
 
     /**
@@ -314,23 +253,15 @@ class ShareCenter {
      * @throws groupID must be registered
      */
     async getSubGroups(groupID) {
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    const [found, result] = await instance.getSubGroups.call(groupID);
-                    if(found) {
-                        const parents = result.map(id => id.toNumber());
-                        resolve({value: parents})
-                    }
-                    else {
-                        reject({value: error(7)})
-                    }
-                })
-            }
-            catch (err) {
-                reject(err)
-            }
-        })
+        const instance = await this.getInstance();
+        const [found, result] = await instance.getSubGroups.call(groupID);
+        if(found) {
+            const parents = result.map(id => id.toNumber());
+            return {value: parents};
+        }
+        else {
+            throw {value: error(7)};
+        }
     }
 
     /**
@@ -344,27 +275,16 @@ class ShareCenter {
      * @throws caller must be the owner of the group
      */
     async addGroupToGroup(groupID, subgroupID) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let canAdd = await this.canAddGroupToGroup(groupID, subgroupID);
-                if(canAdd) {
-                    this.getInstance().then(async function (instance) {
-                        var result = await instance.addGroupToGroup(groupID, subgroupID);
-                        var err = handleErrors(result);
-                        if (err !== null)
-                            reject({value: err, logs: result.logs});
-                        else
-                            resolve({logs: result.logs});
-                    })
-                }
-                else {
-                    reject({value: error(12)})
-                }
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        let canAdd = await this.canAddGroupToGroup(groupID, subgroupID);
+        if(canAdd) {
+            const instance = await this.getInstance();
+            var result = await instance.addGroupToGroup(groupID, subgroupID);
+            handleErrors(result);
+            return {logs: result.logs};
+        }
+        else {
+            throw {value: error(12)};
+        }
     }
 
     /**
@@ -378,21 +298,10 @@ class ShareCenter {
      * @throws caller must be the owner of the group
      */
     async removeGroupFromGroup(groupID, subgroupID) {
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var result = await instance.removeGroupFromGroup(groupID, subgroupID);
-                    var err = handleErrors(result);
-                    if (err !== null)
-                        reject({value: err, logs: result.logs});
-                    else
-                        resolve({logs: result.logs});
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        const instance = await this.getInstance();
+        var result = await instance.removeGroupFromGroup(groupID, subgroupID);
+        handleErrors(result);
+        return {logs: result.logs};
     }
 
     /**
@@ -406,21 +315,10 @@ class ShareCenter {
      * @throws caller must be the owner of the group
      */
     async addUserToGroup(groupID, addr) {
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var result = await instance.addUserToGroup(groupID, addr);
-                    var err = handleErrors(result);
-                    if (err !== null)
-                        reject({value: err, logs: result.logs});
-                    else
-                        resolve({logs: result.logs});
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        const instance = await this.getInstance();
+        var result = await instance.addUserToGroup(groupID, addr);
+        handleErrors(result);
+        return {logs: result.logs};
     }
 
     /**
@@ -433,34 +331,26 @@ class ShareCenter {
      */
     async getShares(groupID) {
         var toUtf8 = uri => this.web3.toUtf8(uri);
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var [found, idWrite, hostWrite, pathWrite, idRead, hostRead, pathRead] = await instance.getShares.call(groupID);
-                    if (found) {
-                        idWrite = idWrite.map(id => id.toNumber());
-                        hostWrite = hostWrite.map(toUtf8);
-                        pathWrite = pathWrite.map(toUtf8);
-                        var uriWrite = makeURIs(hostWrite, pathWrite);
-                        var authorizedWrite = zip(idWrite, uriWrite);
+        const instance = await this.getInstance();
+        var [found, idWrite, hostWrite, pathWrite, idRead, hostRead, pathRead] = await instance.getShares.call(groupID);
+        if (found) {
+            idWrite = idWrite.map(id => id.toNumber());
+            hostWrite = hostWrite.map(toUtf8);
+            pathWrite = pathWrite.map(toUtf8);
+            var uriWrite = makeURIs(hostWrite, pathWrite);
+            var authorizedWrite = zip(idWrite, uriWrite);
 
-                        idRead = idRead.map(id => id.toNumber());
-                        hostRead = hostRead.map(toUtf8);
-                        pathRead = pathRead.map(toUtf8);
-                        var uriRead = makeURIs(hostRead, pathRead);
-                        var authorizedRead = zip(idRead, uriRead);
+            idRead = idRead.map(id => id.toNumber());
+            hostRead = hostRead.map(toUtf8);
+            pathRead = pathRead.map(toUtf8);
+            var uriRead = makeURIs(hostRead, pathRead);
+            var authorizedRead = zip(idRead, uriRead);
 
-                        resolve({authorizedWrite, authorizedRead})
-                    }
-                    else {
-                        reject({value: error(7)})
-                    }
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        });
+            return {authorizedWrite, authorizedRead};
+        }
+        else {
+            throw {value: error(7)};
+        }
     }
 
     /**
@@ -470,19 +360,12 @@ class ShareCenter {
      *
      */
     async getAllShares() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                var groupIDs = (await this.getGroupIDs(this.sender)).value;
-                var shares = {};
-                await asyncForEach(groupIDs, async (groupID) => {
-                    await this._getAllShares(groupID, shares);
-                });
-                resolve({value: shares})
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        var groupIDs = (await this.getGroupIDs(this.sender)).value;
+        var shares = {};
+        await asyncForEach(groupIDs, async (groupID) => {
+            await this._getAllShares(groupID, shares);
+        });
+        return {value: shares};
     }
 
     /**
@@ -518,33 +401,20 @@ class ShareCenter {
      */
     async createShare(uri, groupID) {
         var toUtf8 = uri => this.web3.toUtf8(uri);
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var {host, path} = parseURI(uri);
-                    if (isValidURI(host, path)) {
-                        var result = await instance.createShare(host, path, groupID);
-                        var err = handleErrors(result);
-                        if (err === null) {
-                            var log = result.logs.find(log => log.event === 'ShareCreated');
-                            var id = log.args.id.toNumber();
-                            var host = toUtf8(log.args.host);
-                            var path = toUtf8(log.args.path);
-                            resolve({value: {id, host, path}, logs: result.logs})
-                        }
-                        else {
-                            reject({value: err, logs: result.logs})
-                        }
-                    }
-                    else {
-                        reject({value: error(11)})
-                    }
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        });
+        const instance = await this.getInstance();
+        var {host, path} = parseURI(uri);
+        if (isValidURI(host, path)) {
+            var result = await instance.createShare(host, path, groupID);
+            handleErrors(result);
+            var log = result.logs.find(log => log.event === 'ShareCreated');
+            var id = log.args.id.toNumber();
+            var host = toUtf8(log.args.host);
+            var path = toUtf8(log.args.path);
+            return {value: {id, host, path}, logs: result.logs};
+        }
+        else {
+            throw {value: error(11)};
+        }
     }
 
 
@@ -559,21 +429,10 @@ class ShareCenter {
      * @throws shareID must exist
      */
     async deleteShare(shareID) {
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var result = await instance.deleteShare(shareID);
-                    var err = handleErrors(result);
-                    if (err !== null)
-                        reject({value: err, logs: result.logs});
-                    else
-                        resolve({logs: result.logs});
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        });
+        const instance = await this.getInstance();
+        var result = await instance.deleteShare(shareID);
+        handleErrors(result);
+        return {logs: result.logs};
     }
 
     /**
@@ -588,27 +447,16 @@ class ShareCenter {
      * @throws groupID must be registered
      * @throws shareID must be registered
      * @throws caller must have write access to share
-     * @throws time must be nonegative
+     * @throws time must be nonnegative
      *
      */
     async authorizeWrite(shareID, groupID, time = 0) {
         if(time < 0)
             throw RangeError();
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var result = await instance.authorizeWrite(shareID, groupID, time);
-                    var err = handleErrors(result);
-                    if (err !== null)
-                        reject({value: err, logs: result.logs});
-                    else
-                        resolve({logs: result.logs});
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        const instance = await this.getInstance();
+        var result = await instance.authorizeWrite(shareID, groupID, time);
+        handleErrors(result);
+        return  {logs: result.logs};
     }
 
     /**
@@ -623,26 +471,15 @@ class ShareCenter {
      * @throws groupID must be registered
      * @throws shareID must be registered
      * @throws caller must have write access to share
-     * @throws time must be nonegative
+     * @throws time must be nonnegative
      */
     async authorizeRead(shareID, groupID, time = 0) {
         if(time < 0)
             throw RangeError();
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var result = await instance.authorizeRead(shareID, groupID, time);
-                    var err = handleErrors(result);
-                    if (err !== null)
-                        reject({value: err, logs: result.logs});
-                    else
-                        resolve({logs: result.logs});
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        const instance = await this.getInstance();
+        var result = await instance.authorizeRead(shareID, groupID, time);
+        handleErrors(result);
+        return  {logs: result.logs};
     }
 
     /**
@@ -656,24 +493,13 @@ class ShareCenter {
      * @throws groupID must be registered
      * @throws shareID must be registered
      * @throws caller must have write access to share
-     * @throws time must be nonegative
+     * @throws time must be nonnegative
      */
     async revokeWrite(shareID, groupID) {
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var result = await instance.revokeWrite(shareID, groupID);
-                    var err = handleErrors(result);
-                    if (err !== null)
-                        reject({value: err, logs: result.logs});
-                    else
-                        resolve({logs: result.logs});
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        const instance = await this.getInstance();
+        var result = await instance.revokeWrite(shareID, groupID);
+        handleErrors(result);
+        return {logs: result.logs};
     }
 
     /**
@@ -690,21 +516,10 @@ class ShareCenter {
      * @throws time must be nonegative
      */
     async revokeRead(shareID, groupID) {
-        return new Promise((resolve, reject) => {
-            try {
-                this.getInstance().then(async function (instance) {
-                    var result = await instance.revokeRead(shareID, groupID);
-                    var err = handleErrors(result);
-                    if (err !== null)
-                        reject({value: err, logs: result.logs});
-                    else
-                        resolve({logs: result.logs});
-                })
-            }
-            catch (err) {
-                reject(err);
-            }
-        })
+        const instance = await this.getInstance();
+        var result = await instance.revokeRead(shareID, groupID);
+        handleErrors(result);
+        return {logs: result.logs};
     }
 }
 
