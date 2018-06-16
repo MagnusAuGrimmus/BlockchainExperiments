@@ -87,3 +87,24 @@ contract('Test Circular Dependencies', function (accounts) {
         await checkError(call, 101);
     })
 });
+
+contract('Test multiple ShareCenter Instances', function (accounts) {
+    var center1, center2;
+
+    async function getContractAddress(center) {
+        const instance = await center.getInstance();
+        return instance.address;
+    }
+
+    it('should instantiate both centers', async function() {
+        center1 = new ShareCenter(HTTP_PROVIDER, accounts[0]);
+        center2 = new ShareCenter(HTTP_PROVIDER, accounts[0], await getContractAddress(center1));
+        center1.addSystem(accounts[0]);
+        center1.createUser(accounts[0]);
+    })
+
+    it('should test the second center', async function() {
+        await createGroup(center2);
+        await center2.getPersonalGroupID();
+    })
+})

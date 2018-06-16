@@ -115,11 +115,11 @@ class ShareCenter {
             this.getInstance = () => this.contract.deployed();
     }
 
-    // constructor(web3, userAddress, options) {
+    // constructor(httpProvider, userAddress, options) {
     //     this.sender = userAddress;
-    //     this.web3 = web3;
+    //     this.web3 = new Web3(new Web3.providers.HttpProvider(httpProvider));
     //     this.contract = contract(ShareCenterArtifact);
-    //     this.contract.setProvider(web3.currentProvider);
+    //     this.contract.setProvider(this.web3.currentProvider);
     //     this.contract.defaults({from: userAddress, gas: 4712388, ...options});
     //     this.getInstance = () => this.contract.at(CONTRACT_ADDRESS);
     // }
