@@ -1,5 +1,5 @@
 const ShareCenter = require('../../../src/shareCenter');
-const HTTP_PROVIDER = 'http://localhost:9545';
+const { HTTP_PROVIDER } = require('../../config.json');
 const {createShare, createGroup, checkError} = require('./TestingUtils');
 
 contract('ShareCenter Error Testing', function (accounts) {

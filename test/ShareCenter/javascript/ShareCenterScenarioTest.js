@@ -1,5 +1,5 @@
 const ShareCenter = require('../../../src/shareCenter');
-const HTTP_PROVIDER = 'http://localhost:9545';
+const { HTTP_PROVIDER } = require('../../config.json');
 const { checkIfShareExists, getAllShares, createGroup, createShare, checkError } = require('./TestingUtils');
 
 contract('Test Doctor Patient Get All Shares', function (accounts) {
