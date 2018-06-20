@@ -49,8 +49,8 @@ To deploy this on a live system, pass in the HTTP location of your running node
 
 ## Built With
 
-* [Web3](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Truffle](https://maven.apache.org/) - Dependency Management
+* [Web3](https://github.com/ethereum/web3.js/) - The web framework used
+* [Truffle](https://truffleframework.com/) - Dependency Management
 
 
 ## Authors
