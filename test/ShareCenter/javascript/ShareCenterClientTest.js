@@ -6,7 +6,7 @@ const {getID, getAllShares, createShare, checkIfShareExists} = require('./Testin
 contract('Test Create Share', function (accounts) {
     var center;
     before('setup', async function () {
-        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
@@ -27,7 +27,7 @@ contract('Test Create Share', function (accounts) {
 contract('Test Delete Share', function (accounts) {
     var center;
     before('setup', async function () {
-        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
@@ -49,8 +49,8 @@ contract('Test Delete Share', function (accounts) {
 contract('Test Authorize Write', function (accounts) {
     var center, user;
     before('setup', async function () {
-        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
-        user = new ShareCenter(HTTP_PROVIDER, accounts[1]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        user = new ShareCenter(HTTP_PROVIDER, accounts[1], {testingMode: true});
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
@@ -73,8 +73,8 @@ contract('Test Authorize Write', function (accounts) {
 contract('Test Authorize Read', function (accounts) {
     var center, user;
     before('setup', async function () {
-        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
-        user = new ShareCenter(HTTP_PROVIDER, accounts[1]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        user = new ShareCenter(HTTP_PROVIDER, accounts[1], {testingMode: true});
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
@@ -97,8 +97,8 @@ contract('Test Authorize Read', function (accounts) {
 contract('Test RevokeWrite', function (accounts) {
     var center, user;
     before('setup', async function () {
-        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
-        user = new ShareCenter(HTTP_PROVIDER, accounts[1]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        user = new ShareCenter(HTTP_PROVIDER, accounts[1], {testingMode: true});
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
@@ -121,8 +121,8 @@ contract('Test RevokeWrite', function (accounts) {
 contract('Test Revoke Read', function (accounts) {
     var center, user;
     before('setup', async function () {
-        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
-        user = new ShareCenter(HTTP_PROVIDER, accounts[1]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        user = new ShareCenter(HTTP_PROVIDER, accounts[1], {testingMode: true});
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
         await center.createUser(accounts[1]);
@@ -148,10 +148,10 @@ contract('Test Family Get All Shares', function (accounts) {
         grandfatherID, motherID, sonID,
         share1ID, share2ID, share3ID;
     it('setup', async function () {
-        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
-        grandfather = new ShareCenter(HTTP_PROVIDER, accounts[1]);
-        mother = new ShareCenter(HTTP_PROVIDER, accounts[2]);
-        son = new ShareCenter(HTTP_PROVIDER, accounts[3]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        grandfather = new ShareCenter(HTTP_PROVIDER, accounts[1], {testingMode: true});
+        mother = new ShareCenter(HTTP_PROVIDER, accounts[2], {testingMode: true});
+        son = new ShareCenter(HTTP_PROVIDER, accounts[3], {testingMode: true});
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[1]);
         await center.createUser(accounts[2]);

@@ -5,9 +5,9 @@ const { checkIfShareExists, getAllShares, createGroup, createShare, checkError }
 contract('Test Doctor Patient Get All Shares', function (accounts) {
     var center, doctor, patient;
     before('setup', async function () {
-        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
-        doctor = new ShareCenter(HTTP_PROVIDER, accounts[4]);
-        patient = new ShareCenter(HTTP_PROVIDER, accounts[5]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        doctor = new ShareCenter(HTTP_PROVIDER, accounts[4], {testingMode: true});
+        patient = new ShareCenter(HTTP_PROVIDER, accounts[5], {testingMode: true});
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[4]);
         await center.createUser(accounts[5]);
@@ -28,9 +28,9 @@ contract('Test Banner Verdad Case', function (accounts) {
         bannerGroupID, verdadGroupID, shareID;
 
     before('setup', async function () {
-        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
-        bannerDoctor = new ShareCenter(HTTP_PROVIDER, accounts[1]);
-        verdadDoctor = new ShareCenter(HTTP_PROVIDER, accounts[2]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        bannerDoctor = new ShareCenter(HTTP_PROVIDER, accounts[1], {testingMode: true});
+        verdadDoctor = new ShareCenter(HTTP_PROVIDER, accounts[2], {testingMode: true});
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[1]);
         await center.createUser(accounts[2]);
@@ -62,8 +62,8 @@ contract('Test Circular Dependencies', function (accounts) {
         groupMasterID, groupChildID, groupGrandChildID;
 
     before('setup', async function() {
-        center = new ShareCenter(HTTP_PROVIDER, accounts[0]);
-        user = new ShareCenter(HTTP_PROVIDER, accounts[1]);
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        user = new ShareCenter(HTTP_PROVIDER, accounts[1], {testingMode: true});
 
         await center.addSystem(accounts[0]);
         await center.createUser(accounts[0]);
@@ -97,8 +97,9 @@ contract('Test multiple ShareCenter Instances', function (accounts) {
     }
 
     it('should instantiate both centers', async function() {
-        center1 = new ShareCenter(HTTP_PROVIDER, accounts[0]);
-        center2 = new ShareCenter(HTTP_PROVIDER, accounts[0], await getContractAddress(center1));
+        center1 = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        const contractAddress = await getContractAddress(center1);
+        center2 = new ShareCenter(HTTP_PROVIDER, accounts[0], { contractAddress });
         center1.addSystem(accounts[0]);
         center1.createUser(accounts[0]);
     })

@@ -11,10 +11,10 @@ contract('ShareCenter Error Testing', function (accounts) {
         user1Address = accounts[1];
         user2Address = accounts[2];
         fakeUserAddress = accounts[9];
-        center = new ShareCenter(HTTP_PROVIDER, centerAddress);
-        user1 = new ShareCenter(HTTP_PROVIDER, user1Address);
-        user2 = new ShareCenter(HTTP_PROVIDER, user2Address);
-        fakeUser = new ShareCenter(HTTP_PROVIDER, fakeUserAddress);
+        center = new ShareCenter(HTTP_PROVIDER, centerAddress, {testingMode: true});
+        user1 = new ShareCenter(HTTP_PROVIDER, user1Address, {testingMode: true});
+        user2 = new ShareCenter(HTTP_PROVIDER, user2Address, {testingMode: true});
+        fakeUser = new ShareCenter(HTTP_PROVIDER, fakeUserAddress, {testingMode: true});
         await center.addSystem(centerAddress);
         await center.createUser(centerAddress);
         await center.createUser(user1Address);

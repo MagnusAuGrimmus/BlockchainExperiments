@@ -23,7 +23,7 @@ function contains(shares, shareID) {
 }
 
 function checkIfShareExists(shares, groupID, shareID) {
-    var {authorizedWrite} = shares[groupID];
+    var { authorizedWrite } = shares[groupID];
     assert.equal(authorizedWrite.length, 1);
     assert(contains(authorizedWrite, shareID));
 }
