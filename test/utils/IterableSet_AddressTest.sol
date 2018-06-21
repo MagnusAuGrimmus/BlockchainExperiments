@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 
-import "./utils/Tester.sol";
-import "../contracts/utils/IterableSet_Address.sol";
+import "./../Tester.sol";
+import "../../contracts/utils/IterableSet_Address.sol";
 import "truffle/Assert.sol";
 
 contract IterableSet_AddressTest is Tester

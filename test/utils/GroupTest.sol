@@ -1,8 +1,8 @@
 pragma solidity ^0.4.19;
 
-import "../contracts/utils/Group.sol";
-import "../contracts/utils/Claim.sol";
-import "../contracts/utils/IterableMapping_Integer_Claim.sol";
+import "../../contracts/utils/Group.sol";
+import "../../contracts/utils/Claim.sol";
+import "../../contracts/utils/IterableMapping_Integer_Claim.sol";
 import "truffle/Assert.sol";
 
 contract GroupTest

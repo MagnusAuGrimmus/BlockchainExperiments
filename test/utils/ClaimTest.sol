@@ -1,6 +1,6 @@
 pragma solidity ^0.4.19;
 
-import "../contracts/utils/Claim.sol";
+import "../../contracts/utils/Claim.sol";
 import "truffle/Assert.sol";
 
 contract ClaimTest

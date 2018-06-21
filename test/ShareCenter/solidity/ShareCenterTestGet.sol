@@ -2,7 +2,6 @@ pragma solidity ^0.4.18;
 import "./ShareCenterTester.sol";
 import "../../../contracts/utils/Claim.sol";
 import "truffle/Assert.sol";
-import "../../utils/TestingUtils.sol";
 
 contract ShareCenterTestGet is ShareCenterTester
 {

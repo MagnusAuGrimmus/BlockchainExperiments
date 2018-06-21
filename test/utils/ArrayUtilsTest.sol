@@ -1,6 +1,6 @@
 pragma solidity ^0.4.19;
 
-import "../contracts/utils/ArrayUtils.sol";
+import "../../contracts/utils/ArrayUtils.sol";
 import "truffle/Assert.sol";
 
 contract ArrayUtilsTest

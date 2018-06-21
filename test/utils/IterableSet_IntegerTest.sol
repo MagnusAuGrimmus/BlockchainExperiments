@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 
-import "./utils/Tester.sol";
-import "../contracts/utils/IterableSet_Integer.sol";
+import "./../Tester.sol";
+import "../../contracts/utils/IterableSet_Integer.sol";
 import "truffle/Assert.sol";
 
 contract IterableSet_IntegerTest is Tester

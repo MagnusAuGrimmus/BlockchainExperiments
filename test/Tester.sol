@@ -1,7 +1,6 @@
-pragma solidity ^0.4.18;
-import "truffle/Assert.sol";
+pragma solidity ^0.4.0;
 
-contract TestingUtils
+contract Tester
 {
     function equal(uint[] a, uint[] b) public pure returns (bool)
     {

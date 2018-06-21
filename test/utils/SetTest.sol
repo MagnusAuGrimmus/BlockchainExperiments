@@ -1,5 +1,5 @@
 pragma solidity ^0.4.18;
-import "../contracts/utils/Set.sol";
+import "../../contracts/utils/Set.sol";
 import "truffle/Assert.sol";
 contract SetTest
 {
