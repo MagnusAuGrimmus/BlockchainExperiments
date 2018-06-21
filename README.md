@@ -43,8 +43,8 @@ To deploy this on a live system, pass in the HTTP location of your running node
 
 ## Built With
 
-* [Web3](https://github.com/ethereum/web3.js/) - The web framework used
-* [Truffle](https://truffleframework.com/) - Dependency Management
+* [Web3](https://github.com/ethereum/web3.js/) - Solidity compiler and Ethereum interface
+* [Truffle](https://truffleframework.com/) - Contract deployment framework
 
 
 ## Authors
