@@ -25,8 +25,6 @@ const ShareCenter = require('sharecenter');
 ```
 
 
-### Using
-
 ## Running the tests
 
 To run the tests, you must initialize truffle's testrpc, compile and deploy the contracts, and run the tests
