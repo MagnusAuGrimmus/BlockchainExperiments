@@ -2,86 +2,66 @@ const contract = require('truffle-contract')
 const Web3 = require('web3')
 const url = require('url')
 const ShareCenterArtifact = require('../build/contracts/ShareCenter')
-const CONTRACT_ADDRESS = undefined
+const CONTRACT_ADDRESS = undefined // Waiting for deployment of contract to ethnet
 const GAS_DEFAULT = 4712388
 
-var errorMessages = {
-  0: 'Owner does not exist',
-  1: 'User already exists',
-  2: 'User does not exist',
-  3: 'Caller is not a Registered System',
-  4: 'Caller does not own share',
-  5: 'Caller does not have share',
-  6: 'Share does not exist',
-  7: 'Group is not active',
-  8: 'User is not in group',
-  9: 'User is not owner of group',
-  10: 'Already in group',
+//TODO: Write test with authorizeWrite time != 0
 
-  100: 'Invalid URI',
-  101: 'Circular Dependency: Cannot add Group'
+const errorCode = {
+  // Ethereum Errors passed through from ShareCenter.sol contract
+  IS_NOT_OWNER: 0,
+  USER_ALREADY_EXISTS: 1,
+  IS_NOT_A_USER: 2,
+  IS_NOT_A_REGISTERED_SYSTEM: 3,
+  DOES_NOT_OWN_SHARE: 4,
+  DOES_NOT_HAVE_SHARE: 5,
+  SHARE_DOES_NOT_EXIST: 6,
+  GROUP_NOT_ACTIVE: 7,
+  NOT_IN_GROUP: 8,
+  NOT_OWNER_OF_GROUP: 9,
+  IN_GROUP: 10,
+
+  // ShareCenter.js module specific errors
+  INVALID_URI: 100,
+  CIRCULAR_DEPENDENCY: 101,
+  NONNEGATIVE_TIME: 102
 }
 
+const errorMessages = {
+  // Ethereum Errors passed through from ShareCenter.sol contract
+  [errorCode.IS_NOT_OWNER]: 'Owner does not exist',
+  [errorCode.USER_ALREADY_EXISTS]: 'User already exists',
+  [errorCode.IS_NOT_A_USER]: 'User does not exist',
+  [errorCode.IS_NOT_A_REGISTERED_SYSTEM]: 'Caller is not a Registered System',
+  [errorCode.DOES_NOT_OWN_SHARE]: 'Caller does not own share',
+  [errorCode.DOES_NOT_HAVE_SHARE]: 'Caller does not have share',
+  [errorCode.SHARE_DOES_NOT_EXIST]: 'Share does not exist',
+  [errorCode.GROUP_NOT_ACTIVE]: 'Group is not active',
+  [errorCode.NOT_IN_GROUP]: 'User is not in group',
+  [errorCode.NOT_OWNER_OF_GROUP]: 'User is not owner of group',
+  [errorCode.IN_GROUP]: 'User or Group is already in group',
 
-function isValidURI (host, path) {
-  return host.length <= 32 && path.length <= 32
-}
-
-function parseURI (uri) {
-  var {host, path} = url.parse(uri)
-  host = host || ''
-  path = path || ''
-  return {host, path}
-}
-
-function makeURI (host, path) {
-  if (host)
-    return `${host}/${path}`
-  return path
-}
-
-function makeURIs (hosts, paths) {
-  return hosts.map((host, index) => makeURI(host, paths[index]))
-}
-
-function zip (ids, uris) {
-  return ids.map((id, index) => {
-    return {id, uri: uris[index]}
-  })
-}
-
-function handleErrors (result) {
-  var errorMessage = undefined
-  Array.from(result.logs).forEach((log) => {
-    if (log.event === 'Error') {
-      const id = log.args.id.toNumber()
-      errorMessage = error(id)
-      return false
-    }
-  })
-  if (errorMessage !== undefined)
-    throw {value: errorMessage, logs: result.logs}
-}
-
-function error (id) {
-  return {id, message: errorMessages[id]}
+  // ShareCenter.js module specific errors
+  [errorCode.INVALID_URI]: 'Invalid length URI',
+  [errorCode.CIRCULAR_DEPENDENCY]: 'Circular Dependency: Cannot add Group',
+  [errorCode.NONNEGATIVE_TIME]: 'Time must be nonnegative'
 }
 
 /**
  * ShareCenter API
- * @class
+ * @class For a given web session, construct a ShareCenter object for each user bound to the web session.
  */
 class ShareCenter {
   /**
    * @constructor
    *
    * @param {Object} httpProvider Location of web3 instance
-   * @param {String} userAddress Address of the user
-   * @param {Object} [options]
-   * @param {number} [options.gas] Maximum amount of gas a contract method can use
+   * @param {String} userAddress Blockchain Address of the user
+   * @param {Object} [options] Options for configuring the ShareCenter contract
+   * @param {number} [options.gas=4712388] Maximum amount of gas a contract method can use
    * @param {number} [options.gasPrice] Maximum amount of wei that can be spent on gas
-   * @param {boolean} [options.testingMode=false] Deploys new contract if testingMode is true
-   * @param {String} [options.contractAddress] optional address to load contract from
+   * @param {boolean} [options.testingMode=false] Deploys new contract if testingMode is true. Do not use testingMode = true in production!
+   * @param {String} [options.contractAddress] optional address to load contract from. Should not be used for production, only for specific test scenarios.
    */
   constructor (httpProvider, userAddress, options = {}) {
     this.sender = userAddress
@@ -101,8 +81,9 @@ class ShareCenter {
   }
 
   /**
-   * Adds a system to the contract.
-   * @param {String} addr Address of the system to add
+   * A system that's going to operate ShareCenter on behalf of the users must be registered beforehand. This must be called before users can be added to the contract.
+   * In production, this function cannot be called by anyone besides NucleusHealth. May be used for testing purposes.
+   * @param {String} addr Blockchain Address of the system to add
    * @returns {{logs: Array}}
    * @throws Caller must be the owner of the contract
    */
@@ -115,7 +96,7 @@ class ShareCenter {
 
   /**
    * Retrieves the groupID of a user's personal group.
-   * @param {String} [addr=userAddress] Address of the user
+   * @param {String} [addr=userAddress] Blockchain Address of the user
    * @returns {{value: number}} the personal groupID
    * @throws User must exist
    */
@@ -125,15 +106,14 @@ class ShareCenter {
     if (found)
       return {value: groupID.toNumber()}
     else
-      throw {value: error(2)}
+      throw {value: formatError(errorCode.IS_NOT_A_USER)}
   }
 
   /**
-   * Creates a user.
-   * @param {String} addr Address of the user
-   * @param {String} name Name of the user
+   * Creates a user in the context of the system that's calling the method.
+   * @param {String} addr Blockchain Address of the user
    *
-   * @returns {{logs: Array}} Logs in the logs key
+   * @returns {{logs: Array}}
    *
    * @throws Caller must be a registered system
    * @throws User must not exist
@@ -147,7 +127,7 @@ class ShareCenter {
 
   /**
    * Retrieve the groupIDs of a user.
-   * @param {String} addr Address of the user
+   * @param {String} addr Blockchain Address of the user
    *
    * @returns {{value: Array}} Array of groupIDs
    *
@@ -161,11 +141,11 @@ class ShareCenter {
       return {value: groupIDs}
     }
     else
-      throw {value: error(2)}
+      throw {value: formatError(errorCode.IS_NOT_A_USER)}
   }
 
   /**
-   * Create a new group.
+   * Create a new group in the context of the user indicated in the constructor.
    *
    * @returns {{value: number, logs: Array}} the groupID of the new group
    *
@@ -178,26 +158,6 @@ class ShareCenter {
     handleErrors(result)
     var groupID = result.logs.find(log => log.event === 'GroupCreated').args.id.toNumber()
     return {value: {groupID}, logs: result.logs}
-  }
-
-  /**
-   * Check to see if adding the group will cause any circular dependencies.
-   * @param {number} groupID
-   * @param {number} subgroupID
-   *
-   * @returns {boolean}
-   *
-   */
-  async canAddGroupToGroup (groupID, subgroupID) {
-    if (groupID === subgroupID)
-      return false
-    const parentGroups = (await this.getParentGroups(groupID)).value
-    for (let i = 0; i < parentGroups.length; i++) {
-      let result = await this.canAddGroupToGroup(parentGroups[i], subgroupID)
-      if (!result)
-        return false
-    }
-    return true
   }
 
   /**
@@ -215,7 +175,7 @@ class ShareCenter {
       return {value: parents}
     }
     else
-      throw {value: error(7)}
+      throw {value: formatError(errorCode.GROUP_NOT_ACTIVE)}
   }
 
   /**
@@ -233,12 +193,12 @@ class ShareCenter {
       return {value: subGroups}
     }
     else {
-      throw {value: error(7)}
+      throw {value: formatError(errorCode.GROUP_NOT_ACTIVE)}
     }
   }
 
   /**
-   * Add a subgroup to a group.
+   * Add a subgroup to a group. groupID and subgroupID must be created beforehand via createGroup
    * @param {number} groupID
    * @param {number} subgroupID
    *
@@ -246,9 +206,10 @@ class ShareCenter {
    *
    * @throws both groupIDs must be registered
    * @throws caller must be the owner of the group
+   * @throws Addition of subgroup must not cause a circular dependency
    */
   async addGroupToGroup (groupID, subgroupID) {
-    let canAdd = await this.canAddGroupToGroup(groupID, subgroupID)
+    let canAdd = await this._canAddGroupToGroup(groupID, subgroupID)
     if (canAdd) {
       const instance = await this.getInstance()
       var result = await instance.addGroupToGroup(groupID, subgroupID)
@@ -256,7 +217,7 @@ class ShareCenter {
       return {logs: result.logs}
     }
     else {
-      throw {value: error(101)}
+      throw {value: formatError(errorCode.CIRCULAR_DEPENDENCY)}
     }
   }
 
@@ -280,8 +241,8 @@ class ShareCenter {
   /**
    * Add a user to a group.
    * @param {number} groupID
-   * @param {String} addr Address of the user to add
-   * @returns {{logs: Array}} Logs in the logs key
+   * @param {String} addr Blockchain Address of the user to add
+   * @returns {{logs: Array}}
    *
    * @throws groupID must be registered
    * @throws user address must be registered
@@ -322,14 +283,14 @@ class ShareCenter {
       return {authorizedWrite, authorizedRead}
     }
     else {
-      throw {value: error(7)}
+      throw {value: formatError(errorCode.GROUP_NOT_ACTIVE)}
     }
   }
 
   /**
    * Retrieve all the shares assigned to a user.
    *
-   * @returns {{value: Object}} A dictionary with the groupID as key and shares as value
+   * @returns {{value: {groupID1: Array, groupID2: Array, ...}} A dictionary with the groupID as key and shares as value
    *
    */
   async getAllShares () {
@@ -337,6 +298,158 @@ class ShareCenter {
     var shares = {}
     await Promise.all(groupIDs.map(groupID => this._getAllShares(groupID, shares)))
     return {value: shares}
+  }
+
+  /**
+   * Create a share for a group.
+   * @param {String} uri Pointer to the share
+   * @param {number} groupID groupID to which the share will be assigned
+   * @returns {{value: {id: number, host: string, path: string}}} Share properties
+   *
+   * @throws uri must be <64 characters in length
+   * @throws groupID must be registered
+   * @throws caller must be a registered user
+   */
+  async addShare (uri, groupID) {
+    var toUtf8 = uri => this.web3.toUtf8(uri)
+    const instance = await this.getInstance()
+    var {host, path} = parseURI(uri)
+    if (isValidURI(host, path)) {
+      var result = await instance.addShare(host, path, groupID)
+      handleErrors(result)
+      var log = result.logs.find(log => log.event === 'ShareCreated')
+      var id = log.args.id.toNumber()
+      var host = toUtf8(log.args.host)
+      var path = toUtf8(log.args.path)
+      return {value: {id, host, path}, logs: result.logs}
+    }
+    else {
+      throw {value: formatError(errorCode.INVALID_URI)}
+    }
+  }
+
+  /**
+   * Deletes a share
+   * @param shareID
+   *
+   * @returns {{logs: Array}}
+   *
+   * @throws caller must be a registered user
+   * @throws caller must own share
+   * @throws shareID must exist
+   */
+  async deleteShare (shareID) {
+    const instance = await this.getInstance()
+    var result = await instance.deleteShare(shareID)
+    handleErrors(result)
+    return {logs: result.logs}
+  }
+
+  /**
+   * Grant write privileges to a group.
+   * @param {number} shareID
+   * @param {number} groupID
+   * @param {number} [time=0] Duration in seconds of the permission (0 means indefinite)
+   *
+   * @returns {{logs: Array}}
+   *
+   * @throws Caller must be a registered user
+   * @throws groupID must be registered
+   * @throws shareID must be registered
+   * @throws caller must have write access to share
+   * @throws time must be nonnegative
+   *
+   */
+  async authorizeWrite (shareID, groupID, time = 0) {
+    if (time < 0)
+      throw {value: formatError(errorCode.NONNEGATIVE_TIME)}
+    const instance = await this.getInstance()
+    var result = await instance.authorizeWrite(shareID, groupID, time)
+    handleErrors(result)
+    return {logs: result.logs}
+  }
+
+  /**
+   * Authorize read privileges to a group.
+   * @param {number} shareID
+   * @param {number} groupID
+   * @param {number} [time=0] Duration of the permission (0 means indefinite)
+   *
+   * @returns {{logs: Array}}
+   *
+   * @throws Caller must be a registered user
+   * @throws groupID must be registered
+   * @throws shareID must be registered
+   * @throws caller must have write access to share
+   * @throws time must be nonnegative
+   */
+  async authorizeRead (shareID, groupID, time = 0) {
+    if (time < 0)
+      throw {value: formatError(errorCode.NONNEGATIVE_TIME)}
+    const instance = await this.getInstance()
+    var result = await instance.authorizeRead(shareID, groupID, time)
+    handleErrors(result)
+    return {logs: result.logs}
+  }
+
+  /**
+   * Revoke write privileges of a group.
+   * @param {number} shareID
+   * @param {number} groupID
+   *
+   * @returns {{logs: Array}}
+   *
+   * @throws Caller must be a registered user
+   * @throws groupID must be registered
+   * @throws shareID must be registered
+   * @throws caller must have write access to share
+   * @throws time must be nonnegative
+   */
+  async revokeWrite (shareID, groupID) {
+    const instance = await this.getInstance()
+    var result = await instance.revokeWrite(shareID, groupID)
+    handleErrors(result)
+    return {logs: result.logs}
+  }
+
+  /**
+   * Revoke read privileges of a group.
+   * @param {number} shareID
+   * @param {number} groupID
+   *
+   * @returns {{logs: Array}}
+   *
+   * @throws Caller must be a registered user
+   * @throws groupID must be registered
+   * @throws shareID must be registered
+   * @throws caller must have write access to share
+   * @throws time must be nonegative
+   */
+  async revokeRead (shareID, groupID) {
+    const instance = await this.getInstance()
+    var result = await instance.revokeRead(shareID, groupID)
+    handleErrors(result)
+    return {logs: result.logs}
+  }
+
+  /**
+   * Check to see if adding the group will cause any circular dependencies.
+   * @param {number} groupID
+   * @param {number} subgroupID
+   *
+   * @returns {boolean}
+   * @private
+   */
+  async _canAddGroupToGroup (groupID, subgroupID) {
+    if (groupID === subgroupID)
+      return false
+    const parentGroups = (await this.getParentGroups(groupID)).value
+    for (let i = 0; i < parentGroups.length; i++) {
+      let result = await this._canAddGroupToGroup(parentGroups[i], subgroupID)
+      if (!result)
+        return false
+    }
+    return true
   }
 
   /**
@@ -360,138 +473,56 @@ class ShareCenter {
     await Promise.all(parents.value.map(groupID => getParentShares(groupID)))
     return shares
   }
+}
 
-  /**
-   * Create a share for a group.
-   * @param {String} uri Pointer to the share
-   * @param {number} groupID groupID to which the share will be assigned
-   * @returns {{value: {id: number, host: string, path: string}}} Share properties
-   *
-   * @throws uri must be <64 characters in length
-   * @throws groupID must be registered
-   * @throws caller must be a registered user
-   */
-  async createShare (uri, groupID) {
-    var toUtf8 = uri => this.web3.toUtf8(uri)
-    const instance = await this.getInstance()
-    var {host, path} = parseURI(uri)
-    if (isValidURI(host, path)) {
-      var result = await instance.createShare(host, path, groupID)
-      handleErrors(result)
-      var log = result.logs.find(log => log.event === 'ShareCreated')
-      var id = log.args.id.toNumber()
-      var host = toUtf8(log.args.host)
-      var path = toUtf8(log.args.path)
-      return {value: {id, host, path}, logs: result.logs}
+function isValidURI (host, path) {
+  return host.length <= 32 && path.length <= 32;
+}
+
+function parseURI (uri) {
+  var {host, path} = url.parse(uri)
+  host = host || ''
+  path = path || ''
+  return {host, path}
+}
+
+function makeURI (host, path) {
+  if (host)
+    return `${host}/${path}`
+  return path
+}
+
+function makeURIs (hosts, paths) {
+  return hosts.map((host, index) => makeURI(host, paths[index]))
+}
+
+/**
+ * Python standard zip function
+ * @param ids
+ * @param uris
+ * @returns {Array} Array with the elements of ids and uris intertwined like a zipper
+ */
+function zip (ids, uris) {
+  return ids.map((id, index) => {
+    return {id, uri: uris[index]}
+  })
+}
+
+function handleErrors (result) {
+  var errorMessage = undefined
+  Array.from(result.logs).forEach((log) => {
+    if (log.event === 'Error') {
+      const id = log.args.id.toNumber()
+      errorMessage = formatError(id)
+      return false
     }
-    else {
-      throw {value: error(100)}
-    }
-  }
+  })
+  if (errorMessage !== undefined)
+    throw {value: errorMessage, logs: result.logs}
+}
 
-  /**
-   * Deletes a share
-   * @param shareID
-   *
-   * @returns {{logs: Array}} Logs in the logs key
-   *
-   * @throws caller must be a registered user
-   * @throws caller must own share
-   * @throws shareID must exist
-   */
-  async deleteShare (shareID) {
-    const instance = await this.getInstance()
-    var result = await instance.deleteShare(shareID)
-    handleErrors(result)
-    return {logs: result.logs}
-  }
-
-  /**
-   * Authorize write privileges to a group.
-   * @param {number} shareID
-   * @param {number} groupID
-   * @param {number} [time=0] Duration of the permission (0 means indefinite)
-   *
-   * @returns {{logs: Array}} Logs in the logs key
-   *
-   * @throws Caller must be a registered user
-   * @throws groupID must be registered
-   * @throws shareID must be registered
-   * @throws caller must have write access to share
-   * @throws time must be nonnegative
-   *
-   */
-  async authorizeWrite (shareID, groupID, time = 0) {
-    if (time < 0)
-      throw RangeError()
-    const instance = await this.getInstance()
-    var result = await instance.authorizeWrite(shareID, groupID, time)
-    handleErrors(result)
-    return {logs: result.logs}
-  }
-
-  /**
-   * Authorize read privileges to a group.
-   * @param {number} shareID
-   * @param {number} groupID
-   * @param {number} [time=0] Duration of the permission (0 means indefinite)
-   *
-   * @returns {{logs: Array}} Logs in the logs key
-   *
-   * @throws Caller must be a registered user
-   * @throws groupID must be registered
-   * @throws shareID must be registered
-   * @throws caller must have write access to share
-   * @throws time must be nonnegative
-   */
-  async authorizeRead (shareID, groupID, time = 0) {
-    if (time < 0)
-      throw RangeError()
-    const instance = await this.getInstance()
-    var result = await instance.authorizeRead(shareID, groupID, time)
-    handleErrors(result)
-    return {logs: result.logs}
-  }
-
-  /**
-   * Revoke write privileges of a group.
-   * @param {number} shareID
-   * @param {number} groupID
-   *
-   * @returns {{logs: Array}} Logs in the logs key
-   *
-   * @throws Caller must be a registered user
-   * @throws groupID must be registered
-   * @throws shareID must be registered
-   * @throws caller must have write access to share
-   * @throws time must be nonnegative
-   */
-  async revokeWrite (shareID, groupID) {
-    const instance = await this.getInstance()
-    var result = await instance.revokeWrite(shareID, groupID)
-    handleErrors(result)
-    return {logs: result.logs}
-  }
-
-  /**
-   * Revoke read privileges of a group.
-   * @param {number} shareID
-   * @param {number} groupID
-   *
-   * @returns {{logs: Array}} Logs in the logs key
-   *
-   * @throws Caller must be a registered user
-   * @throws groupID must be registered
-   * @throws shareID must be registered
-   * @throws caller must have write access to share
-   * @throws time must be nonegative
-   */
-  async revokeRead (shareID, groupID) {
-    const instance = await this.getInstance()
-    var result = await instance.revokeRead(shareID, groupID)
-    handleErrors(result)
-    return {logs: result.logs}
-  }
+function formatError (id) {
+  return {id, message: errorMessages[id]}
 }
 
 module.exports = ShareCenter

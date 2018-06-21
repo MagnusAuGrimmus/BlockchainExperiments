@@ -1,6 +1,6 @@
 const ShareCenter = require('../../../src/shareCenter');
 const { HTTP_PROVIDER } = require('../../config.json');
-const {createShare, createGroup, checkError} = require('./TestingUtils');
+const {addShare, createGroup, checkError} = require('./TestingUtils');
 
 contract('ShareCenter Error Testing', function (accounts) {
     var center, user1, user2, fakeUser,
@@ -23,7 +23,7 @@ contract('ShareCenter Error Testing', function (accounts) {
         emptyGroupID = await createGroup(user2);
         fakeID = 123456789;
         await center.addUserToGroup(groupID, user1Address);
-        shareID = await createShare(center, "uri", groupID);
+        shareID = await addShare(center, "uri", groupID);
     });
 
     it("should throw error code 0 when addSystem is called from user that isn't the owner", async function () {
@@ -71,18 +71,18 @@ contract('ShareCenter Error Testing', function (accounts) {
         await checkError(call, 2);
     });
 
-    it("should throw error code 2 when createShare is called from fake user", async function () {
-        var call = () => fakeUser.createShare("uri", groupID);
+    it("should throw error code 2 when addShare is called from fake user", async function () {
+        var call = () => fakeUser.addShare("uri", groupID);
         await checkError(call, 2);
     });
 
-    it("should throw error code 7 when createShare is called with fake group", async function () {
-        var call = () => center.createShare("uri", fakeID);
+    it("should throw error code 7 when addShare is called with fake group", async function () {
+        var call = () => center.addShare("uri", fakeID);
         await checkError(call, 7);
     });
 
-    it("should throw error code 100 when createShare is called with really long URL", async function() {
-        var call = () => center.createShare("www.nucleusHealthReallyLongDeploymentUrl/reallyLongPathToRecordShare", groupID);
+    it("should throw error code 100 when addShare is called with really long URL", async function() {
+        var call = () => center.addShare("www.nucleusHealthReallyLongDeploymentUrl/reallyLongPathToRecordShare", groupID);
         await checkError(call, 100);
     });
 

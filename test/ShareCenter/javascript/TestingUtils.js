@@ -8,8 +8,8 @@ async function getAllShares(center) {
     return data.value;
 }
 
-async function createShare(center, uri, groupID) {
-    var data = await center.createShare(uri, groupID);
+async function addShare(center, uri, groupID) {
+    var data = await center.addShare(uri, groupID);
     return data.value.id;
 }
 
@@ -22,13 +22,13 @@ function contains(shares, shareID) {
     return shares.filter(share => share.id === shareID).length > 0;
 }
 
-function checkIfShareExists(shares, groupID, shareID) {
+function checkIfShareIsOwned(shares, groupID, shareID) {
     var { authorizedWrite } = shares[groupID];
-    assert.equal(authorizedWrite.length, 1);
     assert(contains(authorizedWrite, shareID));
+    return true;
 }
 
-async function checkError(call, expectedErrorCode) {
+async function checkError(call, expectedErrorCode = undefined) {
     var success = false;
     try {
         var data = await call();
@@ -36,9 +36,14 @@ async function checkError(call, expectedErrorCode) {
         success = true;
     }
     catch (err) {
-        assert.equal(err.value.id, expectedErrorCode, "Incorrect Error Code");
+        if(expectedErrorCode !== undefined)
+            assert.equal(err.value.id, expectedErrorCode, "Incorrect Error Code");
     }
     assert(!success, "Did not throw an Error");
 }
 
-module.exports = {getID, getAllShares, createShare, contains, createGroup, checkIfShareExists, checkError};
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+module.exports = {getID, getAllShares, addShare, contains, createGroup, checkIfShareIsOwned, checkError, sleep};

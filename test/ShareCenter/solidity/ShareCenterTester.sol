@@ -1,10 +1,8 @@
 pragma solidity ^0.4.18;
-import "../../contracts/ShareCenter.sol";
-import "./ThrowProxy.sol";
+import "../../../contracts/ShareCenter.sol";
 
 contract ShareCenterTester is ShareCenter
 {
-    ThrowProxy public proxy;
     address[] public accounts;
     bytes32 public uri = "www.share1.com";
     bytes32 public host = "nucleus.com";
@@ -22,7 +20,6 @@ contract ShareCenterTester is ShareCenter
 
     constructor() ShareCenter() public
     {
-        proxy = new ThrowProxy(address(this));
         accounts.push(0x1);
         accounts.push(0x2);
         accounts.push(0x3);

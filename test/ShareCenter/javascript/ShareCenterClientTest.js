@@ -1,6 +1,6 @@
 const ShareCenter = require('../../../src/shareCenter');
 const { HTTP_PROVIDER } = require('../../config.json');
-const {getID, getAllShares, createShare, checkIfShareExists} = require('./TestingUtils');
+const {getID, getAllShares, addShare, checkIfShareIsOwned} = require('./TestingUtils');
 
 
 contract('Test Create Share', function (accounts) {
@@ -12,9 +12,9 @@ contract('Test Create Share', function (accounts) {
         await center.createUser(accounts[1]);
     })
 
-    it('should create a share', async function () {
+    it('should add a share', async function () {
         var groupID = await getID(center);
-        var data = await center.createShare("nucleushealth.com/abc123", groupID);
+        var data = await center.addShare("nucleushealth.com/abc123", groupID);
         var shares = await getAllShares(center);
         var {authorizedWrite, authorizedRead} = shares[groupID];
         assert.equal(data.logs[0].event, "ShareCreated");
@@ -36,7 +36,7 @@ contract('Test Delete Share', function (accounts) {
 
     it('should delete a share', async function () {
         var groupID = await getID(center);
-        var shareID = await createShare(center, "nucleushealth.com/abc123", groupID);
+        var shareID = await addShare(center, "nucleushealth.com/abc123", groupID);
         var data = await center.deleteShare(shareID);
         var shares = await getAllShares(center);
         var {authorizedWrite, authorizedRead} = shares[groupID];
@@ -58,7 +58,7 @@ contract('Test Authorize Write', function (accounts) {
 
     it('should authorize ownership of a share', async function () {
         var groupID = await getID(center);
-        var shareID = await createShare(center, "nucleushealth.com/abc123", groupID);
+        var shareID = await addShare(center, "nucleushealth.com/abc123", groupID);
         var userGroupID = await getID(user);
         var data = await center.authorizeWrite(shareID, userGroupID);
         var shares = await getAllShares(user);
@@ -83,7 +83,7 @@ contract('Test Authorize Read', function (accounts) {
     it('should authorize reading of a share', async function () {
         var groupID = await getID(center);
         var userGroupID = await getID(user);
-        var shareID = await createShare(center, "nucleushealth.com/abc123", groupID);
+        var shareID = await addShare(center, "nucleushealth.com/abc123", groupID);
         var data = await center.authorizeRead(shareID, userGroupID);
         var shares = await getAllShares(user);
         var {authorizedWrite, authorizedRead} = shares[userGroupID];
@@ -106,7 +106,7 @@ contract('Test RevokeWrite', function (accounts) {
 
     it('should revoke ownership of a share', async function () {
         var groupID = await getID(center);
-        var shareID = await createShare(center, "nucleushealth.com/abc123", groupID);
+        var shareID = await addShare(center, "nucleushealth.com/abc123", groupID);
         var userGroupID = await getID(user);
         await center.authorizeWrite(shareID, userGroupID);
         var data = await center.revokeWrite(shareID, userGroupID);
@@ -130,7 +130,7 @@ contract('Test Revoke Read', function (accounts) {
 
     it('should revoke reading of a share', async function () {
         var groupID = await getID(center);
-        var shareID = await createShare(center, "nucleushealth.com/abc123", groupID);
+        var shareID = await addShare(center, "nucleushealth.com/abc123", groupID);
         var userGroupID = await getID(user);
         await center.authorizeRead(shareID, userGroupID);
         var data = await center.revokeRead(shareID, userGroupID);
@@ -163,9 +163,9 @@ contract('Test Family Get All Shares', function (accounts) {
     });
 
     async function createScenario() {
-        share1ID = await createShare(grandfather, "grandfatherURI", grandfatherID);
-        share2ID = await createShare(mother, "motherURI", motherID);
-        share3ID = await createShare(son, "sonURI", sonID);
+        share1ID = await addShare(grandfather, "grandfatherURI", grandfatherID);
+        share2ID = await addShare(mother, "motherURI", motherID);
+        share3ID = await addShare(son, "sonURI", sonID);
         await grandfather.addGroupToGroup(grandfatherID, motherID);
         await grandfather.addGroupToGroup(grandfatherID, sonID);
         await mother.addGroupToGroup(motherID, sonID);
@@ -173,19 +173,19 @@ contract('Test Family Get All Shares', function (accounts) {
 
     it('should get all shares for grandfather', async function () {
         var shares = await getAllShares(grandfather);
-        checkIfShareExists(shares, grandfatherID, share1ID);
+        checkIfShareIsOwned(shares, grandfatherID, share1ID);
     });
 
     it('should get all shares for mother', async function () {
         var shares = await getAllShares(mother);
-        checkIfShareExists(shares, grandfatherID, share1ID);
-        checkIfShareExists(shares, motherID, share2ID);
+        checkIfShareIsOwned(shares, grandfatherID, share1ID);
+        checkIfShareIsOwned(shares, motherID, share2ID);
     });
 
     it('should get all shares for son', async function () {
         var shares = await getAllShares(son);
-        checkIfShareExists(shares, grandfatherID, share1ID);
-        checkIfShareExists(shares, motherID, share2ID);
-        checkIfShareExists(shares, sonID, share3ID);
+        checkIfShareIsOwned(shares, grandfatherID, share1ID);
+        checkIfShareIsOwned(shares, motherID, share2ID);
+        checkIfShareIsOwned(shares, sonID, share3ID);
     })
 });

@@ -1,6 +1,6 @@
 const ShareCenter = require('../../../src/shareCenter');
 const { HTTP_PROVIDER } = require('../../config.json');
-const { checkIfShareExists, getAllShares, createGroup, createShare, checkError } = require('./TestingUtils');
+const { checkIfShareIsOwned, sleep, getAllShares, createGroup, addShare, checkError, getID } = require('./TestingUtils');
 
 contract('Test Doctor Patient Get All Shares', function (accounts) {
     var center, doctor, patient;
@@ -15,11 +15,11 @@ contract('Test Doctor Patient Get All Shares', function (accounts) {
 
     it('should share a record', async function () {
         const groupID = await createGroup(patient);
-        const shareID = await createShare(patient, "PatientURI", groupID);
+        const shareID = await addShare(patient, "PatientURI", groupID);
         await patient.addUserToGroup(groupID, accounts[4]);
         const shares = await getAllShares(doctor);
 
-        checkIfShareExists(shares, groupID, shareID);
+        checkIfShareIsOwned(shares, groupID, shareID);
     })
 });
 
@@ -39,14 +39,14 @@ contract('Test Banner Verdad Case', function (accounts) {
     it('should create a share and groups', async function () {
         bannerGroupID = await createGroup(bannerDoctor);
         verdadGroupID = await createGroup(verdadDoctor);
-        shareID = await createShare(bannerDoctor, "BannerURI", bannerGroupID);
+        shareID = await addShare(bannerDoctor, "BannerURI", bannerGroupID);
     });
 
     it('should give Verdad group access to share', async function () {
         await bannerDoctor.addGroupToGroup(bannerGroupID, verdadGroupID);
         const shares = await getAllShares(verdadDoctor);
 
-        checkIfShareExists(shares, bannerGroupID, shareID);
+        checkIfShareIsOwned(shares, bannerGroupID, shareID);
     });
 
     it('should remove Verdad group access to share', async function () {
@@ -100,12 +100,86 @@ contract('Test multiple ShareCenter Instances', function (accounts) {
         center1 = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
         const contractAddress = await getContractAddress(center1);
         center2 = new ShareCenter(HTTP_PROVIDER, accounts[0], { contractAddress });
-        center1.addSystem(accounts[0]);
-        center1.createUser(accounts[0]);
+        await center1.addSystem(accounts[0]);
+        await center1.createUser(accounts[0]);
     })
 
     it('should test the second center', async function() {
         await createGroup(center2);
         await center2.getPersonalGroupID();
+    })
+})
+
+contract('Test Get Shares with multiple shares', function (accounts) {
+    var center, user, accountIndex,
+      groupID, centerGroupID;
+    const URI = "URI";
+    before('setup', async function() {
+        accountIndex = 0;
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        await center.addSystem(accounts[0]);
+        await center.createUser(accounts[0]);
+        centerGroupID = await getID(center);
+    })
+
+    beforeEach('setup test case', async function() {
+        user = new ShareCenter(HTTP_PROVIDER, accounts[++accountIndex], {testingMode: true});
+        await center.createUser(accounts[accountIndex]);
+        groupID = await createGroup(user);
+    })
+
+  /**
+   * Adds a number of shares
+   * @param {number} numShares the number of shares to add
+   * @returns {Array} the shareIDs of all the shares added
+   */
+    async function addShares(numShares) {
+        let shares = [...Array(numShares)].map(() => addShare(user, URI, groupID));
+        return await Promise.all(shares);
+    }
+
+    function checkIfSharesAreOwned(shares, shareIDs) {
+        return shareIDs.every(shareID => checkIfShareIsOwned(shares, groupID, shareID));
+    }
+
+    it('should add a bunch of shares', async function() {
+        let shareIDs = await addShares(5);
+        let shares = await getAllShares(user);
+        checkIfSharesAreOwned(shares, shareIDs);
+    })
+
+    it('should remove deleted shares', async function() {
+        let shareIDs = await addShares(5);
+        await Promise.all(shareIDs.slice(0, 2).map(shareID => user.deleteShare(shareID)));
+
+        let shares = await getAllShares(user);
+        checkIfSharesAreOwned(shares, shareIDs.slice(2));
+        shareIDs.slice(0, 2).forEach(async (shareID) => await checkError(() => checkIfShareIsOwned(shares, groupID, shareID)));
+    })
+});
+
+contract('It should test the time limit of authorize claims', function(accounts) {
+    var center, user,
+      centerGroupID, userGroupID, shareID;
+
+    before('setup', async function() {
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], { testingMode: true });
+        user = new ShareCenter(HTTP_PROVIDER, accounts[1], {testingMode: true});
+        await center.addSystem(accounts[0]);
+        await center.createUser(accounts[0]);
+        await center.createUser(accounts[1]);
+        centerGroupID = await getID(center);
+        userGroupID = await getID(user);
+        shareID = await addShare(center, "uri", centerGroupID);
+    })
+
+    it('should give write privileges for only 1 second', async function() {
+        await center.authorizeWrite(shareID, userGroupID, 1);
+
+        let shares = await getAllShares(user);
+        checkIfShareIsOwned(shares, userGroupID, shareID);
+        await sleep(2000);
+        shares = await getAllShares(user);
+        await checkError(() => checkIfShareIsOwned(shares, userGroupID, shareID));
     })
 })

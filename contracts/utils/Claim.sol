@@ -26,6 +26,6 @@ library Claim
 
     function isValid(Data self) internal view returns (bool)
     {
-        return isActive(self) && (self.time == 0 || now < self.time);
+        return isActive(self) && (self.time == 0 || now <= self.time);
     }
 }

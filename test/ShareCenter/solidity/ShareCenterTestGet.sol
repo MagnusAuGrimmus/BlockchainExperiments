@@ -1,5 +1,5 @@
 pragma solidity ^0.4.18;
-import "../../utils/ShareCenterTester.sol";
+import "./ShareCenterTester.sol";
 import "../../../contracts/utils/Claim.sol";
 import "truffle/Assert.sol";
 import "../../utils/TestingUtils.sol";
@@ -12,9 +12,9 @@ contract ShareCenterTestGet is ShareCenterTester
     {
         (, uint senderGroupID) = getPersonalGroupID(msg.sender);
         (, uint userGroupID) = getPersonalGroupID(accounts[0]);
-        uint id1 = createShare(host, path, senderGroupID);
-        uint id2 = createShare(host, path, senderGroupID);
-        uint id3 = createShare(host, path, senderGroupID);
+        uint id1 = addShare(host, path, senderGroupID);
+        uint id2 = addShare(host, path, senderGroupID);
+        uint id3 = addShare(host, path, senderGroupID);
         authorizeWrite(id1, userGroupID, 0);
         authorizeWrite(id2, userGroupID, 0);
         authorizeRead(id3, userGroupID, 0);

@@ -1,5 +1,5 @@
 pragma solidity ^0.4.18;
-import "../../utils/ShareCenterTester.sol";
+import "./ShareCenterTester.sol";
 import "../../../contracts/utils/Claim.sol";
 import "truffle/Assert.sol";
 
@@ -10,7 +10,7 @@ contract ShareCenterTestRevokeWrite is ShareCenterTester
     function testRevokeWrite() public
     {
         (, uint senderGroupID) = getPersonalGroupID(msg.sender);
-        uint id = createShare(host, path, senderGroupID);
+        uint id = addShare(host, path, senderGroupID);
         (, uint groupID) = getPersonalGroupID(accounts[0]);
         authorizeWrite(id, groupID, 0);
         revokeWrite(id, groupID);

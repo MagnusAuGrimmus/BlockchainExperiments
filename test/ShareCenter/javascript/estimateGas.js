@@ -11,8 +11,8 @@ contract('Estimate Gas Prices', function(accounts) {
         return `${gas} gas, ${eth} eth`;
     }
 
-    async function createShare(host, path, groupID) {
-        const data = await instance.createShare(host, path, groupID);
+    async function addShare(host, path, groupID) {
+        const data = await instance.addShare(host, path, groupID);
         return data.logs[0].args.id.toNumber();
     }
 
@@ -28,7 +28,7 @@ contract('Estimate Gas Prices', function(accounts) {
         for(let i = 0; i < 5; i++)
             await instance.createUser(accounts[i]);
         groupID = await getPersonalGroupID(accounts[0]);
-        shareID = await createShare('a', 'b', groupID);
+        shareID = await addShare('a', 'b', groupID);
         await instance.authorizeWrite(shareID, await getPersonalGroupID(accounts[1]), 0);
         await instance.authorizeRead(shareID, await getPersonalGroupID(accounts[2]), 0);
     })
@@ -36,7 +36,7 @@ contract('Estimate Gas Prices', function(accounts) {
     it("should log the ether costs of all mutator methods", async function() {
         console.log("Create User: ", await estimateGas(instance.createUser, [accounts[9]]));
         console.log("Create Group", await estimateGas(instance.createGroup, [accounts[0]]));
-        console.log("Create Share: ", await estimateGas(instance.createShare, ['hub2.nucleus.io', '/statShare/r7oPSzh8bwbWTAa9P', groupID]));
+        console.log("Create Share: ", await estimateGas(instance.addShare, ['hub2.nucleus.io', '/statShare/r7oPSzh8bwbWTAa9P', groupID]));
         console.log("Delete Share: ", await estimateGas(instance.deleteShare, [shareID]));
         console.log("Authorize Write: ", await estimateGas(instance.authorizeWrite, [shareID, await getPersonalGroupID(accounts[3]), 0]));
         console.log("Authorize Read: ", await estimateGas(instance.authorizeRead, [shareID, await getPersonalGroupID(accounts[4]), 0]));

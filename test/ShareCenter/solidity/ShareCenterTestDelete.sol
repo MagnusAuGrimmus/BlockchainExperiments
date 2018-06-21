@@ -1,5 +1,5 @@
 pragma solidity ^0.4.18;
-import "../../utils/ShareCenterTester.sol";
+import "./ShareCenterTester.sol";
 import "../../../contracts/utils/Claim.sol";
 import "truffle/Assert.sol";
 
