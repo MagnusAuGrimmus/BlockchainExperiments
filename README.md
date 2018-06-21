@@ -14,7 +14,7 @@ A step by step series of examples that tell you how to get a development env run
 In npm
 
 ```
-npm install -save sharecenter
+npm install --save sharecenter
 ```
 
 Using Node.js
@@ -30,10 +30,6 @@ const ShareCenter = require('sharecenter');
 ## Running the tests
 
 To run the tests, you must initialize truffle's testrpc, compile and deploy the contracts, and run the tests
-
-### Break down into end to end tests
-
-Explain what these tests test and why
 
 ```
 rm -r build
