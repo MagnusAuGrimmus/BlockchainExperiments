@@ -5,8 +5,6 @@ const ShareCenterArtifact = require('../build/contracts/ShareCenter')
 const CONTRACT_ADDRESS = undefined // Waiting for deployment of contract to ethnet
 const GAS_DEFAULT = 4712388
 
-//TODO: Write test with authorizeWrite time != 0
-
 const errorCode = {
   // Ethereum Errors passed through from ShareCenter.sol contract
   IS_NOT_OWNER: 0,
@@ -24,8 +22,15 @@ const errorCode = {
   // ShareCenter.js module specific errors
   INVALID_URI: 100,
   CIRCULAR_DEPENDENCY: 101,
-  NONNEGATIVE_TIME: 102
+  NONNEGATIVE_TIME: 102,
+
+  //Node errors passed through from web3/truffle packages
+  INVALID_JSON_RESPONSE: 200,
+  CONNECTION_ERROR: 201,
+  PROVIDER_NOT_SET: 202,
+  CONNECTION_TIMEOUT: 203
 }
+
 
 const errorMessages = {
   // Ethereum Errors passed through from ShareCenter.sol contract
@@ -44,7 +49,21 @@ const errorMessages = {
   // ShareCenter.js module specific errors
   [errorCode.INVALID_URI]: 'Invalid length URI',
   [errorCode.CIRCULAR_DEPENDENCY]: 'Circular Dependency: Cannot add Group',
-  [errorCode.NONNEGATIVE_TIME]: 'Time must be nonnegative'
+  [errorCode.NONNEGATIVE_TIME]: 'Time must be nonnegative',
+
+  //Node errors passed through from web3/truffle packages
+  [errorCode.INVALID_JSON_RESPONSE]: "Node threw an invalid JSON Response. Check to see if your node is running",
+  [errorCode.CONNECTION_ERROR]: "Cannot connect to node. Check to see if your node is running",
+  [errorCode.PROVIDER_NOT_SET]: "Invalid Provider. Check the http provider used to initialze object",
+  [errorCode.CONNECTION_TIMEOUT]: "Connection timeout. Check to see if your node is running"
+
+}
+
+const nodeErrorKeywords = {
+  "Invalid JSON RPC response": errorCode.INVALID_JSON_RESPONSE,
+  "CONNECTION ERROR": errorCode.CONNECTION_ERROR,
+  "Provider not set": errorCode.PROVIDER_NOT_SET,
+  "CONNECTION TIMEOUT": errorCode.CONNECTION_ERROR,
 }
 
 /**
@@ -77,7 +96,13 @@ class ShareCenter {
     if (options.testingMode)
       this.getInstance = () => this.contract.deployed()
     else
-      this.getInstance = () => this.contract.at(options.contractAddress || CONTRACT_ADDRESS)
+      this.getInstance = () => {
+        return new Promise((resolve, reject) => {
+          this.contract.at(options.contractAddress || CONTRACT_ADDRESS)
+            .then(instance => resolve(instance))
+            .catch(err => reject(handleNodeErrors(err)));
+        });
+      }
   }
 
   /**
@@ -506,6 +531,16 @@ function zip (ids, uris) {
   return ids.map((id, index) => {
     return {id, uri: uris[index]}
   })
+}
+
+function handleNodeErrors (err) {
+  let errMessage = undefined;
+  Object.keys(nodeErrorKeywords).forEach(phrase => {
+    if(err.message.includes(phrase)) {
+      errMessage = formatError(nodeErrorKeywords[phrase]);
+    }
+  })
+  return errMessage || err;
 }
 
 function handleErrors (result) {
