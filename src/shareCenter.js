@@ -54,7 +54,7 @@ const errorMessages = {
   //Node errors passed through from web3/truffle packages
   [errorCode.INVALID_JSON_RESPONSE]: "Node threw an invalid JSON Response. Check to see if your node is running",
   [errorCode.CONNECTION_ERROR]: "Cannot connect to node. Check to see if your node is running",
-  [errorCode.PROVIDER_NOT_SET]: "Invalid Provider. Check the http provider used to initialze object",
+  [errorCode.PROVIDER_NOT_SET]: "Invalid Provider. Check the http provider used to initialize object",
   [errorCode.CONNECTION_TIMEOUT]: "Connection timeout. Check to see if your node is running"
 
 }
