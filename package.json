@@ -1,7 +1,12 @@
 {
-  "name": "sharecenter",
-  "version": "0.1.0",
-  "description": "A blockchain platform to manage RecordShares",
+  "name": "nucleushealth-sharing",
+  "version": "1.0.0",
+  "description": "A mechanism to store pointers to medical records, manage access control, and control access claims on the Ethereum blockchain.",
+  "keywords": [ "medical", "imaging", "health", "block", "chain", "blockchain", "ethereum" ],
+  "homepage": "https://github.com/MagnusAuGrimmus/BlockchainExperiments/blob/master/README.md",
+  "license": "MIT",
+  "author": "Avi Verma",
+  "contributors": [ "Grant Cermak" ],
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -15,12 +20,10 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/MagnusAuGrimmus/BlockchainExperiments"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Nucleus Health",
-  "license": "ISC"
+  }
 }
