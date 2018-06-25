@@ -1,4 +1,4 @@
-# ShareCenter
+# Nucleus Health Blockchain Sharing
 
 API to interact with the ShareCenter contract on Ethereum
 
@@ -14,26 +14,21 @@ A step by step series of examples that tell you how to get a development env run
 In npm
 
 ```
-npm install --save sharecenter
+npm i --save nucleushealth-sharing
 ```
 
 Using Node.js
 
 ```
 //Load the API
-const ShareCenter = require('sharecenter');
+const ShareCenter = require('nucleushealth-sharing');
 ```
 
 
 ## Running the tests
 
-To run the tests, you must initialize truffle's testrpc, compile and deploy the contracts, and run the tests
-
 ```
-rm -r build
-truffle develop
-deploy
-test
+npm test
 ```
 
 
