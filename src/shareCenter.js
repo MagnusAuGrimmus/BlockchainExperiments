@@ -106,6 +106,17 @@ class ShareCenter {
   }
 
   /**
+   * Check to see if system is added
+   * @param {string} addr Blockchain Address of the system
+   * @returns {boolean}
+   */
+  async isAddedSystem(addr) {
+    const instance = await this.getInstance();
+    var result = await instance.isAddedSystem.call(addr);
+    return { value: result };
+  }
+
+  /**
    * A system that's going to operate ShareCenter on behalf of the users must be registered beforehand. This must be called before users can be added to the contract.
    * In production, this function cannot be called by anyone besides NucleusHealth. May be used for testing purposes.
    * @param {String} addr Blockchain Address of the system to add

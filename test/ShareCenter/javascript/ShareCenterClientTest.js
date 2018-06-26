@@ -2,6 +2,16 @@ const ShareCenter = require('../../../src/shareCenter');
 const { HTTP_PROVIDER } = require('../../config.json');
 const {getID, getAllShares, addShare, checkIfShareIsOwned} = require('./TestingUtils');
 
+contract('Test System Added', function (accounts) {
+    var center;
+    it('should add a system', async function() {
+        center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        await center.addSystem(accounts[0]);
+        assert((await center.isAddedSystem(accounts[0])).value);
+        assert(!(await center.isAddedSystem(accounts[1])).value);
+    })
+})
+
 
 contract('Test Create Share', function (accounts) {
     var center;

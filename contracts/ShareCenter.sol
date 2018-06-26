@@ -196,12 +196,21 @@ contract ShareCenter
         return groups[groupID].shares.map[shareID].canWrite();
     }
 
+    function isAddedSystem(address system) public
+    returns (bool)
+    {
+        return authorizedSystems.flags[system];
+    }
+
     function addSystem(address system) public
     isOwner
     returns (bool)
     {
-        if(authorizedSystems.add(system))
+        if(authorizedSystems.add(system)) {
             emit SystemAdded(system);
+            return false;
+        }
+        return true;
     }
 
     function createUser(address addr) public
