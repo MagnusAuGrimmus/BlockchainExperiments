@@ -290,9 +290,9 @@ class ShareCenter {
       handleEthErrors(result);
       const log = result.logs.find(log => log.event === 'ShareCreated');
       const id = log.args.id.toNumber();
-      var host = toUtf8(log.args.host);
-      var path = toUtf8(log.args.path);
-      return { value: { id, host, path }, logs: result.logs };
+      const returnedHost = toUtf8(log.args.host);
+      const returnedPath = toUtf8(log.args.path);
+      return { value: { id, returnedHost, returnedPath }, logs: result.logs };
     }
     throw new InputError(errorCode.INVALID_URI);
   }
@@ -331,13 +331,12 @@ class ShareCenter {
    */
   async authorizeWrite(shareID, groupID, time = 0) {
     if (time >= 0) {
-      const instance = await this.getInstance()
-      const result = await instance.authorizeWrite(shareID, groupID, time)
-      handleEthErrors(result)
-      return {logs: result.logs}
-    } else {
-      throw new InputError(errorCode.NONNEGATIVE_TIME)
+      const instance = await this.getInstance();
+      const result = await instance.authorizeWrite(shareID, groupID, time);
+      handleEthErrors(result);
+      return { logs: result.logs };
     }
+    throw new InputError(errorCode.NONNEGATIVE_TIME);
   }
 
   /**
@@ -356,13 +355,12 @@ class ShareCenter {
    */
   async authorizeRead(shareID, groupID, time = 0) {
     if (time >= 0) {
-      const instance = await this.getInstance()
-      const result = await instance.authorizeRead(shareID, groupID, time)
-      handleEthErrors(result)
-      return {logs: result.logs}
-    } else {
-      throw new InputError(errorCode.NONNEGATIVE_TIME)
+      const instance = await this.getInstance();
+      const result = await instance.authorizeRead(shareID, groupID, time);
+      handleEthErrors(result);
+      return { logs: result.logs };
     }
+    throw new InputError(errorCode.NONNEGATIVE_TIME);
   }
 
   /**
@@ -416,11 +414,10 @@ class ShareCenter {
   async _canAddGroupToGroup(groupID, subgroupID) {
     if (groupID === subgroupID) { return false; }
     const parentGroups = (await this.getParentGroups(groupID)).value;
-    for (let i = 0; i < parentGroups.length; i++) {
-      const result = await this._canAddGroupToGroup(parentGroups[i], subgroupID);
-      if (!result) { return false; }
-    }
-    return true;
+    const call = (parentID, subID) => this._canAddGroupToGroup(parentID, subID);
+    const checkParents = parentGroups.map(parentGroupID => call(parentGroupID, subgroupID));
+    const result = await Promise.all(checkParents);
+    return result.every(noCircularDependency => noCircularDependency);
   }
 
   /**
@@ -435,13 +432,13 @@ class ShareCenter {
     const result = await this.getShares(groupID);
     shares[groupID] = result;
     const parents = await this.getParentGroups(groupID);
-    const getParentShares = async groupID => {
-      if (!groupsAdded.has(groupID)) {
-        groupsAdded.add(groupID);
-        await this._getAllShares(groupID, shares, groupsAdded);
+    const getParentShares = async parentGroupID => {
+      if (!groupsAdded.has(parentGroupID)) {
+        groupsAdded.add(parentGroupID);
+        await this._getAllShares(parentGroupID, shares, groupsAdded);
       }
     };
-    await Promise.all(parents.value.map(groupID => getParentShares(groupID)));
+    await Promise.all(parents.value.map(parentGroupID => getParentShares(parentGroupID)));
     return shares;
   }
 }

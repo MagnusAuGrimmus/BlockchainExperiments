@@ -30,4 +30,4 @@ function zip(ids, uris) {
   return ids.map((id, index) => ({ id, uri: uris[index] }));
 }
 
-module.exports = {isValidURI, parseURI, makeURIs, makeURI, zip };
+module.exports = { isValidURI, parseURI, makeURIs, makeURI, zip };

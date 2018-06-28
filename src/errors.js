@@ -63,28 +63,16 @@ const nodeErrorKeywords = {
   'CONNECTION TIMEOUT': errorCode.CONNECTION_ERROR,
 };
 
-function handleEthErrors(result) {
-  const log = Array.from(result.logs).find(log => {
-    return log.event === 'Error';
-  })
-
-  if(log) {
-    const id = log.args.id.toNumber();
-    throw new EthError(id, result.logs);
-  }
-}
-
 class IDError extends Error {
   constructor(id, logs) {
     super();
-    this.message = this.getMessage(id);
+    this.message = IDError.getMessage(id);
     this.id = id;
-    this.logs = logs
+    this.logs = logs;
     Error.captureStackTrace(this, IDError);
   }
-
-  getMessage(errorCode) {
-    return errorMessages[errorCode] || "Error";
+  static getMessage(id) {
+    return errorMessages[id] || 'Error';
   }
 }
 
@@ -95,19 +83,24 @@ class InputError extends IDError {}
 class EthNodeError extends Error {
   constructor(message) {
     super();
-    this.id = this.getID(message);
-    this.message = this.getMessage(this.id) || message;
+    this.id = EthNodeError.getID(message);
+    this.message =  EthNodeError.getMessage(this.id) || message;
     Error.captureStackTrace(this, EthNodeError);
   }
-  
-  getID(err) {
-    return Object.keys(nodeErrorKeywords).find(phrase => {
-      return err.message.includes(phrase);
-    })
+  static getID(err) {
+    return Object.keys(nodeErrorKeywords).find(phrase => err.message.includes(phrase));
   }
+  static getMessage(id) {
+    return errorMessages[id] || 'Ethereum Node Error';
+  }
+}
 
-  getMessage(errorCode) {
-    return errorMessages[errorCode];
+function handleEthErrors(result) {
+  const errorLog = Array.from(result.logs).find(log => log.event === 'Error');
+
+  if (errorLog) {
+    const id = errorLog.args.id.toNumber();
+    throw new EthError(id, result.logs);
   }
 }
 
