@@ -183,3 +183,15 @@ contract('It should test the time limit of authorize claims', function(accounts)
         await checkError(() => checkIfShareIsOwned(shares, userGroupID, shareID));
     })
 })
+
+contract('It should test interactions with 2 systems', function(accounts) {
+    it('should add users from both systems', async function() {
+        const center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+        await center.addSystem(accounts[1]);
+        await center.addSystem(accounts[2]);
+        const system1 = new ShareCenter(HTTP_PROVIDER, accounts[1], {testingMode: true});
+        const system2 = new ShareCenter(HTTP_PROVIDER, accounts[2], {testingMode: true});
+        await system1.createUser(accounts[3]);
+        await system2.createUser(accounts[4]);
+    })
+})

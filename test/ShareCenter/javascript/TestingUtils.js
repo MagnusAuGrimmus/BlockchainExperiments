@@ -37,7 +37,7 @@ async function checkError(call, expectedErrorCode = undefined) {
     }
     catch (err) {
         if(expectedErrorCode !== undefined)
-            assert.equal(err.value.id, expectedErrorCode, "Incorrect Error Code");
+            assert.equal(err.id, expectedErrorCode, "Incorrect Error Code");
     }
     assert(!success, "Did not throw an Error");
 }

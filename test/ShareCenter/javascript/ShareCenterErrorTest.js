@@ -121,6 +121,11 @@ contract('ShareCenter Error Testing', function (accounts) {
         await checkError(call, 6);
     });
 
+    it("should throw error code 102 when authorizeWrite is called with a negative time", async function () {
+        var call = () => center.authorizeWrite(shareID, emptyGroupID, -1);
+        await checkError(call, 102);
+    });
+
     it("should throw error code 2 when authorizeRead is called from fake user", async function () {
         var call = () => fakeUser.authorizeRead(shareID, emptyGroupID, 0);
         await checkError(call, 2);
@@ -139,6 +144,11 @@ contract('ShareCenter Error Testing', function (accounts) {
     it("should throw error code 6 when authorizeRead is called on nonexistant share", async function () {
         var call = () => center.authorizeRead(fakeID, emptyGroupID, 0);
         await checkError(call, 6);
+    });
+
+    it("should throw error code 102 when authorizeRead is called with a negative time", async function () {
+        var call = () => center.authorizeRead(shareID, emptyGroupID, -1);
+        await checkError(call, 102);
     });
 
     it("should throw error code 2 when revokeWrite is called from fake user", async function () {
