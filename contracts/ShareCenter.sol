@@ -58,7 +58,7 @@ contract ShareCenter
     event GroupAdded(uint groupID, uint subgroupID);
     event GroupRemoved(uint groupID, uint subgroupID);
     event GroupCreated(uint id);
-    event ShareCreated(uint id, uint groupID, bytes32 host, bytes32 path);
+    event ShareAdded(uint id, uint groupID, bytes32 host, bytes32 path);
     event ShareDeleted(uint id);
     event WriterAdded(uint shareID, uint groupID);
     event ReaderAdded(uint shareID, uint groupID);
@@ -385,7 +385,7 @@ contract ShareCenter
         shares[shareID].groups.put(group.id, claim);
         group.addClaim(shareID, claim);
 
-        emit ShareCreated(shareCounter, groupID, host, path);
+        emit ShareAdded(shareCounter, groupID, host, path);
         return shareCounter;
     }
 

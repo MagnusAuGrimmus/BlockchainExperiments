@@ -7,6 +7,23 @@ const { isValidURI, parseURI, makeURIs, zip } = require('./methods');
 const CONTRACT_ADDRESS = undefined; // Waiting for deployment of contract to ethnet
 const GAS_DEFAULT = 4712388;
 
+const EVENTS = [
+  'SystemAdded',
+  'UserAdded',
+  'GroupAdded',
+  'SystemAdded',
+  'UserAdded',
+  'GroupAdded',
+  'GroupRemoved',
+  'GroupCreated',
+  'ShareAdded',
+  'ShareDeleted',
+  'WriterAdded',
+  'ReaderAdded',
+  'WriterRevoked',
+  'ReaderRevoked',
+]
+
 /**
  * ShareCenter API
  * @class For a given web session,
@@ -38,6 +55,29 @@ class ShareCenter {
     this.contract.setProvider(this.web3.currentProvider);
     this.contract.defaults(contractOptions);
     this.options = options;
+    this.initListeners();
+  }
+  
+  initListeners() {
+    this.eventListeners = {}
+    EVENTS.forEach(event => {
+      this.eventListeners[event] = () => {}
+    });
+  }
+
+  setEventListener(event, listener) {
+    if(EVENTS.includes(event))
+      this.eventListeners[event] = listener;
+    else
+      throw new InputError(errorCode.INVALID_EVENT_NAME);
+  }
+
+  async watchEvents(listeners) {
+    for(let event in listeners)
+      this.setEventListener(event, listeners[event]);
+    const instance = await this.getInstance();
+    for(let event in this.eventListeners)
+      instance[event]().watch(this.eventListeners[event]);
   }
 
   async getInstance() {
@@ -288,7 +328,7 @@ class ShareCenter {
     if (isValidURI(host, path)) {
       const result = await instance.addShare(host, path, groupID);
       handleEthErrors(result);
-      const log = result.logs.find(log => log.event === 'ShareCreated');
+      const log = result.logs.find(log => log.event === 'ShareAdded');
       const id = log.args.id.toNumber();
       const returnedHost = toUtf8(log.args.host);
       const returnedPath = toUtf8(log.args.path);

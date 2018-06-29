@@ -27,7 +27,7 @@ contract('Test Create Share', function (accounts) {
         var data = await center.addShare("nucleushealth.com/abc123", groupID);
         var shares = await getAllShares(center);
         var {authorizedWrite, authorizedRead} = shares[groupID];
-        assert.equal(data.logs[0].event, "ShareCreated");
+        assert.equal(data.logs[0].event, "ShareAdded");
         assert.equal(authorizedWrite[0].id, data.value.id);
         assert.equal(authorizedWrite[0].uri, "nucleushealth.com/abc123");
         assert.equal(authorizedRead.length, 0);

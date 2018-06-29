@@ -16,6 +16,7 @@ const errorCode = {
   INVALID_URI: 100,
   CIRCULAR_DEPENDENCY: 101,
   NONNEGATIVE_TIME: 102,
+  INVALID_EVENT_NAME: 103,
 
   // Node errors passed through from web3/truffle packages
   INVALID_JSON_RESPONSE: 200,
@@ -43,6 +44,7 @@ const errorMessages = {
   [errorCode.INVALID_URI]: 'Invalid length URI',
   [errorCode.CIRCULAR_DEPENDENCY]: 'Circular Dependency: Cannot add Group',
   [errorCode.NONNEGATIVE_TIME]: 'Time must be nonnegative',
+  [errorCode.INVALID_EVENT_NAME]: 'Event does not exist',
 
   // Node errors passed through from web3/truffle packages
   [errorCode.INVALID_JSON_RESPONSE]:
