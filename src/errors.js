@@ -93,7 +93,7 @@ class EthNodeError extends Error {
     return Object.keys(nodeErrorKeywords).find(phrase => err.message.includes(phrase));
   }
   static getMessage(id) {
-    return errorMessages[id] || 'Ethereum Node Error';
+    return errorMessages[id];
   }
 }
 

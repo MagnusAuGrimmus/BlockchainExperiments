@@ -55,6 +55,7 @@ class ShareCenter {
     this.contract.setProvider(this.web3.currentProvider);
     this.contract.defaults(contractOptions);
     this.options = options;
+    this.instance = null;
     this.initListeners();
   }
   
@@ -80,15 +81,20 @@ class ShareCenter {
       instance[event]().watch(this.eventListeners[event]);
   }
 
-  async getInstance() {
-    try {
-      if (this.options.testingMode) {
-        return this.contract.deployed();
+  getInstance() {
+    if(!this.instance) {
+      try {
+        if (this.options.testingMode) {
+          this.instance = this.contract.deployed();
+        }
+        else {
+          this.instance = this.contract.at(this.options.contractAddress || CONTRACT_ADDRESS);
+        }
+      } catch (err) {
+        throw new EthNodeError(err);
       }
-      return this.contract.at(this.options.contractAddress || CONTRACT_ADDRESS);
-    } catch (err) {
-      throw new EthNodeError(err);
     }
+    return this.instance;
   }
 
   /**
@@ -129,6 +135,20 @@ class ShareCenter {
     const [found, groupID] = await instance.getPersonalGroupID.call(addr);
     if (found) { return { value: groupID.toNumber() }; }
     throw new EthError(errorCode.IS_NOT_A_USER);
+  }
+
+  /**
+   * Get the users of a current group
+   * @param {number} groupID
+   * @returns {Array} array of user blockchain Address
+   */
+  async getUsers(groupID) {
+    const instance = await this.getInstance();
+    const [found, users] = await instance.getUsers.call(groupID);
+    if (found) {
+      return { value: users }
+    }
+    throw new EthError(errorCode.GROUP_NOT_ACTIVE);
   }
 
   /**

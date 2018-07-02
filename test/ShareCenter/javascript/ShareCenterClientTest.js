@@ -1,6 +1,6 @@
 const ShareCenter = require('../../../src/shareCenter');
 const { HTTP_PROVIDER } = require('../../config.json');
-const {getID, getAllShares, addShare, checkIfShareIsOwned} = require('./TestingUtils');
+const {getID, getAllShares, addShare, checkIfShareIsOwned, createGroup } = require('./TestingUtils');
 
 contract('Test System Added', function (accounts) {
     var center;
@@ -9,6 +9,22 @@ contract('Test System Added', function (accounts) {
         await center.addSystem(accounts[0]);
         assert((await center.isAddedSystem(accounts[0])).value);
         assert(!(await center.isAddedSystem(accounts[1])).value);
+    })
+})
+
+contract('Test Get Users', function (accounts) {
+    var center;
+    it('should get the users', async function() {
+      center = new ShareCenter(HTTP_PROVIDER, accounts[0], {testingMode: true});
+      await center.addSystem(accounts[0]);
+      await center.createUser(accounts[0]);
+      await center.createUser(accounts[1]);
+      const groupID = await createGroup(center);
+      await center.addUserToGroup(groupID, accounts[1]);
+      const users = (await center.getUsers(groupID)).value;
+      console.log(users);
+      assert(users.includes(accounts[0]));
+      assert(users.includes(accounts[1]))
     })
 })
 

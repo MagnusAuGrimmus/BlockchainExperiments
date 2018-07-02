@@ -7,7 +7,7 @@ library IterableSet_Address
         address[] list;
     }
 
-    function size(Data storage self) public view returns (uint)
+    function size(Data storage self) internal view returns (uint)
     {
         return self.list.length;
     }

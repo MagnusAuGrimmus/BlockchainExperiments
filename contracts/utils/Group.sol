@@ -47,6 +47,15 @@ library Group
         return self.users.contains(addr);
     }
 
+    function getUsers(Data storage self) internal view returns (address[] users)
+    {
+        users = new address[](self.users.list.length + 1);
+        for(uint i = 0; i < users.length - 1; i++)
+            users[i] = self.users.list[i];
+        users[users.length - 1] = self.owner;
+        return users;
+    }
+
     function addUser(Data storage self, address addr) internal returns (bool)
     {
         return self.users.add(addr);

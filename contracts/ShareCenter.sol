@@ -213,6 +213,13 @@ contract ShareCenter
         return true;
     }
 
+    function getUsers(uint groupID) public
+    isActiveGroup(groupID)
+    returns (bool, address[])
+    {
+        return (true, groups[groupID].getUsers());
+    }
+
     function createUser(address addr) public
     isRegisteredSystem
     isNotUser(addr)
@@ -270,9 +277,8 @@ contract ShareCenter
     isUser(addr)
     returns (uint groupID)
     {
-        User storage user = users[addr];
         groupID = initGroup(addr);
-        user.groups.add(groupID);
+        users[addr].groups.add(groupID);
     }
 
     function addGroupToGroup(uint groupID, uint subgroupID) public
