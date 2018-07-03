@@ -4,7 +4,7 @@ module.exports = {
       host: "127.0.0.1",
       port: 8545,
       network_id: "*",
-      gas: 5000000,
+      gas: 7000000,
     },
     staging: {
       host: "localhost",

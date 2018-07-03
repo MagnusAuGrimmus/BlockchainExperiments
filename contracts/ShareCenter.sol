@@ -53,17 +53,17 @@ contract ShareCenter
     uint groupCounter = 0;
     uint userCounter = 0;
 
-    event SystemAdded(address addr);
-    event UserAdded(address addr);
-    event GroupAdded(uint groupID, uint subgroupID);
-    event GroupRemoved(uint groupID, uint subgroupID);
-    event GroupCreated(uint id);
-    event ShareAdded(uint id, uint groupID, bytes32 host, bytes32 path);
-    event ShareDeleted(uint id);
-    event WriterAdded(uint shareID, uint groupID);
-    event ReaderAdded(uint shareID, uint groupID);
-    event WriterRevoked(uint shareID, uint groupID);
-    event ReaderRevoked(uint shareID, uint groupID);
+    event SystemAdded(address addr, address sender);
+    event UserAdded(address addr, address sender);
+    event GroupAdded(uint groupID, uint subgroupID, address sender);
+    event GroupRemoved(uint groupID, uint subgroupID, address sender);
+    event GroupCreated(uint id, address sender);
+    event ShareAdded(uint id, uint groupID, bytes32 host, bytes32 path, address sender);
+    event ShareDeleted(uint id, address sender);
+    event WriterAdded(uint shareID, uint groupID, address sender);
+    event ReaderAdded(uint shareID, uint groupID, address sender);
+    event WriterRevoked(uint shareID, uint groupID, address sender);
+    event ReaderRevoked(uint shareID, uint groupID, address sender);
     event Error(uint id);
 
     modifier isOwner()
@@ -207,7 +207,7 @@ contract ShareCenter
     returns (bool)
     {
         if(authorizedSystems.add(system)) {
-            emit SystemAdded(system);
+            emit SystemAdded(system, msg.sender);
             return false;
         }
         return true;
@@ -225,7 +225,7 @@ contract ShareCenter
     isNotUser(addr)
     {
         users[addr].active = true;
-        emit UserAdded(addr);
+        emit UserAdded(addr, msg.sender);
         users[addr].personalGroupID = initGroup(addr);
     }
 
@@ -269,7 +269,7 @@ contract ShareCenter
         group.id = ++groupCounter;
         groups[group.id] = group;
         group.owner = addr;
-        emit GroupCreated(group.id);
+        emit GroupCreated(group.id, msg.sender);
         return group.id;
     }
 
@@ -287,7 +287,7 @@ contract ShareCenter
     ownsGroup(msg.sender, groupID)
     {
         groups[groupID].addGroup(groups[subgroupID]);
-        emit GroupAdded(groupID, subgroupID);
+        emit GroupAdded(groupID, subgroupID, msg.sender);
     }
 
     function removeGroupFromGroup(uint groupID, uint subgroupID) public
@@ -296,7 +296,7 @@ contract ShareCenter
     ownsGroup(msg.sender, groupID)
     {
         groups[groupID].removeGroup(groups[subgroupID]);
-        emit GroupRemoved(groupID, subgroupID);
+        emit GroupRemoved(groupID, subgroupID, msg.sender);
     }
 
     function addUserToGroup(uint groupID, address addr) public
@@ -391,7 +391,7 @@ contract ShareCenter
         shares[shareID].groups.put(group.id, claim);
         group.addClaim(shareID, claim);
 
-        emit ShareAdded(shareCounter, groupID, host, path);
+        emit ShareAdded(shareCounter, groupID, host, path, msg.sender);
         return shareCounter;
     }
 
@@ -407,7 +407,7 @@ contract ShareCenter
             group = groups[share.groups.list[i]];
             group.removeClaim(id);
         }
-        emit ShareDeleted(id);
+        emit ShareDeleted(id, msg.sender);
         share.id = 0;
     }
 
@@ -426,7 +426,7 @@ contract ShareCenter
         shares[shareID].groups.put(groupID, claim);
         groups[groupID].addClaim(shareID, claim);
         require(groups[groupID].shares.map[shareID].canWrite());
-        emit WriterAdded(shareID, groupID);
+        emit WriterAdded(shareID, groupID, msg.sender);
     }
 
     function authorizeRead(uint shareID, uint groupID, uint time) public
@@ -443,7 +443,7 @@ contract ShareCenter
         claim.access = Claim.Type.READ;
         shares[shareID].groups.put(groupID, claim);
         groups[groupID].addClaim(shareID, claim);
-        emit ReaderAdded(shareID, groupID);
+        emit ReaderAdded(shareID, groupID, msg.sender);
     }
 
     function revokeWrite(uint shareID, uint groupID) public
@@ -457,7 +457,7 @@ contract ShareCenter
         RecordShare storage share = shares[shareID];
         shares[shareID].groups.remove(groupID);
         groups[groupID].removeClaim(share.id);
-        emit WriterRevoked(shareID, groupID);
+        emit WriterRevoked(shareID, groupID, msg.sender);
     }
 
     function revokeRead(uint shareID, uint groupID) public
@@ -472,6 +472,6 @@ contract ShareCenter
         RecordShare storage share = shares[shareID];
         shares[shareID].groups.remove(groupID);
         groups[groupID].removeClaim(share.id);
-        emit ReaderRevoked(shareID, groupID);
+        emit ReaderRevoked(shareID, groupID, msg.sender);
     }
 }
