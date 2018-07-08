@@ -3,6 +3,7 @@ pragma solidity ^0.4.19;
 library IterableSet_Integer
 {
     struct Data {
+        bool active;
         mapping(uint => uint) indices;
         uint[] list;
     }

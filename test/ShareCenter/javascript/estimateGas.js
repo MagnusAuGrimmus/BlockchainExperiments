@@ -1,5 +1,5 @@
 var ShareCenter = artifacts.require("ShareCenter");
-
+const { initCenter, addShare, createGroup } = require('./TestingUtils');
 
 contract('Estimate Gas Prices', function(accounts) {
     var instance, groupID, web3, shareID;
@@ -11,36 +11,21 @@ contract('Estimate Gas Prices', function(accounts) {
         return `${gas} gas, ${eth} eth`;
     }
 
-    async function addShare(host, path, groupID) {
-        const data = await instance.addShare(host, path, groupID);
-        return data.logs[0].args.id.toNumber();
-    }
-
-    async function getPersonalGroupID(addr) {
-        const [, groupID] = await instance.getPersonalGroupID(addr);
-        return groupID;
-    }
-
     before('setup', async function() {
-        instance = await ShareCenter.new();
-        web3 = ShareCenter.web3;
+        const center = initCenter(accounts[0]);
+        instance = await center.getInstance();
+        web3 = center.web3;
         await instance.addSystem(accounts[0]);
         for(let i = 0; i < 5; i++)
             await instance.createUser(accounts[i]);
-        groupID = await getPersonalGroupID(accounts[0]);
-        shareID = await addShare('a', 'b', groupID);
-        await instance.authorizeWrite(shareID, await getPersonalGroupID(accounts[1]), 0);
-        await instance.authorizeRead(shareID, await getPersonalGroupID(accounts[2]), 0);
+        groupID = await createGroup(center);
+        shareID = await addShare(center, "uri", groupID);
     })
 
     it("should log the ether costs of all mutator methods", async function() {
         console.log("Create User: ", await estimateGas(instance.createUser, [accounts[9]]));
-        console.log("Create Group", await estimateGas(instance.createGroup, [accounts[0]]));
-        console.log("Create Share: ", await estimateGas(instance.addShare, ['hub2.nucleus.io', '/statShare/r7oPSzh8bwbWTAa9P', groupID]));
+        console.log("Create Group", await estimateGas(instance.createGroup, []));
+        console.log("Create Share: ", await estimateGas(instance.addShare, ['hub2.nucleus.io', '/statShare/r7oPSzh8bwbWTAa9P', groupID, 0, 2]));
         console.log("Delete Share: ", await estimateGas(instance.deleteShare, [shareID]));
-        console.log("Authorize Write: ", await estimateGas(instance.authorizeWrite, [shareID, await getPersonalGroupID(accounts[3]), 0]));
-        console.log("Authorize Read: ", await estimateGas(instance.authorizeRead, [shareID, await getPersonalGroupID(accounts[4]), 0]));
-        console.log("Revoke Write", await estimateGas(instance.revokeWrite, [shareID, await getPersonalGroupID(accounts[1])]));
-        console.log("Revoke Read", await estimateGas(instance.revokeRead, [shareID, await getPersonalGroupID(accounts[2])]));
     })
 })

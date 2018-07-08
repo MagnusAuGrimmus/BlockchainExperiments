@@ -3,8 +3,8 @@ mkfifo pipe
 truffle develop <pipe &
 pid=$!
 echo "deploy" >pipe
-sleep 10
+sleep 5
 echo "test" >pipe
-sleep 75
+sleep 20
 kill -INT $pid
 rm pipe

@@ -1,16 +1,13 @@
-async function getID(center) {
-    var data = await center.getPersonalGroupID();
-    return data.value;
+const ShareCenter = require('../../../src/shareCenter');
+const { HTTP_PROVIDER } = require('../../config.json');
+
+function initCenter(account) {
+    return new ShareCenter(HTTP_PROVIDER, account, { testingMode: true });
 }
 
-async function getAllShares(center) {
-    var data = await center.getAllShares();
-    return data.value;
-}
-
-async function addShare(center, uri, groupID) {
-    var data = await center.addShare(uri, groupID);
-    return data.value.id;
+async function addShare(center, uri, groupID, time = 0, access = ShareCenter.ACCESS.WRITE) {
+    var data = await center.addShare(uri, groupID, time, access);
+    return data.value.shareID;
 }
 
 async function createGroup(center) {
@@ -23,8 +20,8 @@ function contains(shares, shareID) {
 }
 
 function checkIfShareIsOwned(shares, groupID, shareID) {
-    var { authorizedWrite } = shares[groupID];
-    assert(contains(authorizedWrite, shareID));
+    var shares = shares[groupID];
+    assert(contains(shares, shareID));
     return true;
 }
 
@@ -46,4 +43,12 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-module.exports = {getID, getAllShares, addShare, contains, createGroup, checkIfShareIsOwned, checkError, sleep};
+module.exports = {
+    initCenter,
+    addShare,
+    contains,
+    createGroup,
+    checkIfShareIsOwned,
+    checkError,
+    sleep
+};

@@ -3,6 +3,7 @@ pragma solidity ^0.4.19;
 library IterableSet_Address
 {
     struct Data {
+        bool active;
         mapping(address => uint) indices;
         address[] list;
     }

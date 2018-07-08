@@ -4,14 +4,23 @@ library Claim
     enum Type {INACTIVE, READ, WRITE}
     struct Data
     {
-        uint id;
         uint time;
         Type access;
     }
 
+    function getType(uint access) internal pure returns (Type)
+    {
+        require(access <= 2);
+        if(access == 1)
+            return Type.READ;
+        if(access == 2)
+            return Type.WRITE;
+        return Type.INACTIVE;
+    }
+
     function isActive(Data self) internal pure returns (bool)
     {
-        return self.id != 0;
+        return self.access != Type.INACTIVE;
     }
 
     function canRead(Data self) internal view returns (bool)
