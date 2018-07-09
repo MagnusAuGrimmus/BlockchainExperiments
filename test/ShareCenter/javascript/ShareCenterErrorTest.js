@@ -45,7 +45,7 @@ contract('ShareCenter Error Testing', function (accounts) {
   })
 
   it('should throw error code 2 when getGroupIDs is called on fake user', async function () {
-    var call = () => fakeUser.getGroupIDs(fakeUserAddress)
+    var call = () => fakeUser.getGroupIDs()
     await checkError(call, 2)
   })
 
@@ -113,6 +113,7 @@ contract('Test Circular Dependencies', function (accounts) {
 
     await center.addGroupToGroup(groupMasterID, groupChildID)
     await user.addGroupToGroup(groupChildID, groupGrandChildID)
+    await user.acceptGroup(groupMasterID);
   })
 
   it('should throw an error when user tries to add a group into itself', async function () {

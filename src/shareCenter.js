@@ -2,7 +2,7 @@ const contract = require('truffle-contract');
 const Web3 = require('web3');
 const ShareCenterArtifact = require('../build/contracts/ShareCenter');
 const { errorCode, EthError, EthNodeError, InputError, handleEthErrors, handleTimeError, handleURIError } = require('./errors');
-const { isValidURI, parseURI, makeURIs, zip } = require('./methods');
+const {  parseURI, makeURIs, zip } = require('./methods');
 
 const CONTRACT_ADDRESS = undefined; // Waiting for deployment of contract to ethnet
 const GAS_DEFAULT = 4712388;
@@ -18,10 +18,6 @@ const EVENTS = [
   'GroupCreated',
   'ShareAdded',
   'ShareDeleted',
-  'WriterAdded',
-  'ReaderAdded',
-  'WriterRevoked',
-  'ReaderRevoked',
 ]
 
 /**
@@ -185,12 +181,23 @@ class ShareCenter {
    *
    * @throws User must exist
    */
-  async getPendingGroupIDs(addr) {
+  async getPendingUserGroupIDs() {
     const instance = await this.getInstance();
-    const [found, result] = await instance.getPendingGroupIDs.call(addr);
+    const [found, result] = await instance.getPendingUserGroupIDs.call();
     if (found) {
       const groupIDs = result.map(id => id.toNumber());
       return groupIDs;
+    } throw new EthError(errorCode.IS_NOT_A_USER);
+  }
+
+  async getPendingGroupGroupIDs() {
+    const instance = await this.getInstance();
+    const [found, groupIDs, subgroupIDs] = await instance.getPendingGroupGroupIDs.call();
+    if (found) {
+      return groupIDs.map((groupID,index) => ({
+        groupID: groupID.toNumber(),
+        subgroupID: subgroupIDs[index].toNumber()
+      }));
     } throw new EthError(errorCode.IS_NOT_A_USER);
   }
 
@@ -202,9 +209,9 @@ class ShareCenter {
    *
    * @throws User must exist
    */
-  async getGroupIDs(addr) {
+  async getGroupIDs() {
     const instance = await this.getInstance();
-    const [found, result] = await instance.getGroupIDs.call(addr);
+    const [found, result] = await instance.getGroupIDs.call(this.sender);
     if (found) {
       const groupIDs = result.map(id => id.toNumber());
       return groupIDs;
@@ -357,7 +364,7 @@ class ShareCenter {
    *
    */
   async getAllShares() {
-    const groupIDs = await this.getGroupIDs(this.sender);
+    const groupIDs = await this.getGroupIDs();
     const shares = {};
     await Promise.all(groupIDs.map(groupID => this._getAllShares(groupID, shares)));
     return shares;

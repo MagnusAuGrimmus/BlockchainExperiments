@@ -21,12 +21,6 @@ contract ShareCenter
         IS_PENDING_GROUP // 11
     }
 
-    enum Access {
-        INACTIVE,
-        READ,
-        WRITE
-    }
-
     using IterableSet_Integer for IterableSet_Integer.Data;
     using IterableSet_Address for IterableSet_Address.Data;
     using Group for Group.Data;
@@ -46,6 +40,8 @@ contract ShareCenter
         address system;
         IterableSet_Integer.Data groups;
         IterableSet_Integer.Data pending;
+        IterableSet_Integer.Data pendingGroupIDs;
+        mapping(uint => uint) pendingSubGroupIDs;
         IterableSet_Address.Data whitelist;
         IterableSet_Address.Data blacklist;
     }
@@ -71,8 +67,6 @@ contract ShareCenter
     event WriterRevoked(uint shareID, uint groupID, address sender);
     event ReaderRevoked(uint shareID, uint groupID, address sender);
     event Error(uint id);
-    event Log(uint a, uint b, uint c);
-    event Log2(uint[] a);
 
     modifier isOwner()
     {
@@ -164,7 +158,7 @@ contract ShareCenter
 
     modifier isPendingGroup(uint groupID)
     {
-        if(users[msg.sender].pending.contains(groupID))
+        if(users[msg.sender].pending.contains(groupID) || users[msg.sender].pendingGroupIDs.contains(groupID))
             _;
         else
             emit Error(uint(ErrorCode.IS_PENDING_GROUP));
@@ -236,6 +230,7 @@ contract ShareCenter
     {
         users[addr].active = true;
         users[addr].system = msg.sender;
+        users[addr].whitelist.add(addr);
         emit UserCreated(addr, msg.sender);
     }
 
@@ -253,11 +248,23 @@ contract ShareCenter
         users[msg.sender].blacklist.add(addr);
     }
 
-    function getPendingGroupIDs() public view
+    function getPendingUserGroupIDs() public view
     isUser(msg.sender)
     returns (bool, uint[])
     {
         return (true, users[msg.sender].pending.iterator());
+    }
+
+    function getPendingGroupGroupIDs() public view
+    isUser(msg.sender)
+    returns (bool found, uint[] groupIDs, uint[] subgroupIDs)
+    {
+        User storage user = users[msg.sender];
+        groupIDs = user.pendingGroupIDs.iterator();
+        subgroupIDs = new uint[](groupIDs.length);
+        for(uint i = 0; i < groupIDs.length; i++)
+            subgroupIDs[i] = user.pendingSubGroupIDs[groupIDs[i]];
+        found = true;
     }
 
     function getGroupIDs(address addr) public view
@@ -298,8 +305,14 @@ contract ShareCenter
     isActiveGroup(subgroupID)
     ownsGroup(msg.sender, groupID)
     {
-        groups[groupID].addGroup(groups[subgroupID]);
-        emit GroupAdded(groupID, subgroupID, msg.sender);
+        address addr = groups[subgroupID].owner;
+        if(users[addr].whitelist.contains(msg.sender))
+            _addGroupToGroup(groupID, subgroupID);
+        else if(!users[addr].blacklist.contains(msg.sender))
+        {
+            users[addr].pendingGroupIDs.add(groupID);
+            users[addr].pendingSubGroupIDs[groupID] = subgroupID;
+        }
     }
 
     function removeGroupFromGroup(uint groupID, uint subgroupID) public
@@ -314,7 +327,18 @@ contract ShareCenter
     function acceptGroup(uint groupID) public
     isPendingGroup(groupID)
     {
-        _addUserToGroup(groupID, msg.sender);
+        User storage user = users[msg.sender];
+        if(user.pending.contains(groupID))
+        {
+            _addUserToGroup(groupID, msg.sender);
+            users[msg.sender].pending.remove(groupID);
+        }
+        else if(user.pendingGroupIDs.contains(groupID))
+        {
+            uint subgroupID = user.pendingSubGroupIDs[groupID];
+            _addGroupToGroup(groupID, subgroupID);
+            users[msg.sender].pendingGroupIDs.remove(groupID);
+        }
     }
 
     function addUserToGroup(uint groupID, address addr) public
@@ -323,12 +347,9 @@ contract ShareCenter
     isUser(addr)
     {
         if(users[addr].whitelist.contains(msg.sender))
-        {
             _addUserToGroup(groupID, addr);
-        }
         else if(!users[addr].blacklist.contains(msg.sender))
             users[addr].pending.add(groupID);
-
     }
 
     function removeUserFromGroup(uint groupID, address addr) public
@@ -398,5 +419,11 @@ contract ShareCenter
         users[addr].groups.add(groupID);
         groups[groupID].users.add(addr);
         emit UserAdded(addr, groupID, msg.sender);
+    }
+
+    function _addGroupToGroup(uint groupID, uint subgroupID) internal
+    {
+        groups[groupID].addGroup(groups[subgroupID]);
+        emit GroupAdded(groupID, subgroupID, msg.sender);
     }
 }
