@@ -4,6 +4,9 @@ import "./utils/IterableSet_Address.sol";
 import "./utils/Group.sol";
 import "./utils/Claim.sol";
 
+//TODO: Give gas back on blacklist
+//TODO: Add blacklist error code
+
 contract ShareCenter
 {
     enum ErrorCode {

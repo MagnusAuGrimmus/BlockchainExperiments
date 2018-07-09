@@ -65,12 +65,12 @@ contract('ShareCenter Error Testing', function (accounts) {
   })
 
   it('should throw error code 2 when addShare is called from fake user', async function () {
-    var call = () => fakeUser.addShare('uri', groupID, 0, center.ACCESS.WRITE)
+    var call = () => fakeUser.addShare('uri', groupID, center.DURATION.INDEFINITE, center.ACCESS.WRITE)
     await checkError(call, 2)
   })
 
   it('should throw error code 7 when addShare is called with fake group', async function () {
-    var call = () => center.addShare('uri', fakeID, 0, center.ACCESS.WRITE)
+    var call = () => center.addShare('uri', fakeID, center.DURATION.INDEFINITE, center.ACCESS.WRITE)
     await checkError(call, 7)
   })
 

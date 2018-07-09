@@ -38,7 +38,7 @@ contract('Test Create Share', function (accounts) {
 
   it('should add a share', async function () {
     var groupID = await createGroup(center)
-    var data = await center.addShare('nucleushealth.com/abc123', groupID, 0, center.ACCESS.WRITE)
+    var data = await center.addShare('nucleushealth.com/abc123', groupID, center.DURATION.INDEFINITE, center.ACCESS.WRITE)
     var shares = (await center.getAllShares())[groupID]
     assert.equal(data.logs[0].event, 'ShareAdded', 'Incorrect event triggered')
     assert.equal(shares[0].id, data.value.shareID, 'Share ID not correct')

@@ -26,15 +26,24 @@ const EVENTS = [
  * construct a ShareCenter object for each user bound to the web session.
  */
 class ShareCenter {
+  static get DURATION() {
+    return {
+      INDEFINITE: 0
+    }
+  }
   static get ACCESS() {
     return {
-      'READ': 1,
-      'WRITE': 2,
+      READ: 1,
+      WRITE: 2,
     }
   }
 
   get ACCESS() {
     return this.constructor.ACCESS;
+  }
+
+  get DURATION() {
+    return this.constructor.DURATION;
   }
   /**
    * @constructor
