@@ -9,9 +9,7 @@ const GAS_DEFAULT = 4712388;
 
 const EVENTS = [
   'SystemAdded',
-  'UserAdded',
-  'GroupAdded',
-  'SystemAdded',
+  'UserCreated',
   'UserAdded',
   'GroupAdded',
   'GroupRemoved',

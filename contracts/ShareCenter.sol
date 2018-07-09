@@ -65,10 +65,6 @@ contract ShareCenter
     event GroupCreated(uint id, address sender);
     event ShareAdded(uint id, uint groupID, bytes32 host, bytes32 path, uint time, uint access, address sender);
     event ShareDeleted(uint id, address sender);
-    event WriterAdded(uint shareID, uint groupID, address sender);
-    event ReaderAdded(uint shareID, uint groupID, address sender);
-    event WriterRevoked(uint shareID, uint groupID, address sender);
-    event ReaderRevoked(uint shareID, uint groupID, address sender);
     event Error(uint id);
 
     modifier isOwner()
