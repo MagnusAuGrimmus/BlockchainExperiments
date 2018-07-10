@@ -26,4 +26,8 @@ function zip(ids, uris) {
   return ids.map((id, index) => ({ id, uri: uris[index] }));
 }
 
-module.exports = {  parseURI, makeURIs, zip };
+function isAddress(key) {
+  return key === 'addr' || key === 'sender';
+}
+
+module.exports = {  parseURI, makeURIs, zip, isAddress };

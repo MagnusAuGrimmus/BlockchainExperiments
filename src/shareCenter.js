@@ -2,7 +2,7 @@ const contract = require('truffle-contract');
 const Web3 = require('web3');
 const ShareCenterArtifact = require('../build/contracts/ShareCenter');
 const { errorCode, EthError, EthNodeError, InputError, handleEthErrors, handleTimeError, handleURIError } = require('./errors');
-const {  parseURI, makeURIs, zip } = require('./methods');
+const {  parseURI, makeURIs, zip, isAddress } = require('./methods');
 
 const CONTRACT_ADDRESS = undefined; // Waiting for deployment of contract to ethnet
 const GAS_DEFAULT = 4712388;
@@ -79,6 +79,16 @@ class ShareCenter {
     });
   }
 
+  listen(err, response) {
+    for (const key in response.args) {
+      if(typeof response[key] === 'object')
+        response.args[key] = response.args[key].toNumber();
+      if(!isAddress(key))
+        response.args[key] = this.web3.toUtf8(key);
+    }
+    this.eventListeners[response.event](err, response);
+  }
+
   setEventListener(event, listener) {
     if(EVENTS.includes(event))
       this.eventListeners[event] = listener;
@@ -91,7 +101,7 @@ class ShareCenter {
       this.setEventListener(event, listeners[event]);
     const instance = await this.getInstance();
     for(let event in this.eventListeners)
-      instance[event]().watch(this.eventListeners[event]);
+      instance[event]().watch((err, response) => this.listen(err, response, this.eventListeners[event]));
   }
 
   getInstance() {
