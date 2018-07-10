@@ -27,7 +27,7 @@ function zip(ids, uris) {
 }
 
 function isAddress(key) {
-  return key === 'addr' || key === 'sender';
+  return typeof key === 'string' && key.length === 42;
 }
 
 module.exports = {  parseURI, makeURIs, zip, isAddress };

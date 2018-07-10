@@ -79,14 +79,15 @@ class ShareCenter {
     });
   }
 
-  listen(err, response) {
+  listen(err, response, call) {
     for (const key in response.args) {
-      if(typeof response[key] === 'object')
-        response.args[key] = response.args[key].toNumber();
-      if(!isAddress(key))
-        response.args[key] = this.web3.toUtf8(key);
+      const arg = response.args[key];
+      if(typeof arg === 'object')
+        response.args[key] = arg.toNumber();
+      else if(!isAddress(arg))
+        response.args[key] = this.web3.toUtf8(arg);
     }
-    this.eventListeners[response.event](err, response);
+    call(err, response);
   }
 
   setEventListener(event, listener) {
