@@ -16,18 +16,16 @@ function makeURIs(hosts, paths) {
   return hosts.map((host, index) => makeURI(host, paths[index]));
 }
 
-/**
- * Python standard zip function
- * @param ids
- * @param uris
- * @returns {Array} Array with the elements of ids and uris intertwined like a zipper
- */
-function zip(ids, uris) {
-  return ids.map((id, index) => ({ id, uri: uris[index] }));
+function zip(key1, arr1, key2, arr2) {
+  return arr1.map((element, index) => ({ [key1]: element, [key2]: arr2[index] }));
 }
 
 function isAddress(key) {
   return typeof key === 'string' && key.length === 42;
 }
 
-module.exports = {  parseURI, makeURIs, zip, isAddress };
+function convertBigNumbers(arr) {
+  return arr.map(num => num.toNumber());
+}
+
+module.exports = {  parseURI, makeURIs, zip, isAddress, convertBigNumbers };

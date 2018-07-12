@@ -1,5 +1,5 @@
-const ShareCenter = require('../../../src/shareCenter')
-const {HTTP_PROVIDER} = require('../../config.json')
+const ShareCenter = require('../../src/shareCenter')
+const {HTTP_PROVIDER} = require('../config.json')
 const {initCenter, checkIfShareIsOwned, sleep, createGroup, addShare, checkError} = require('./TestingUtils')
 
 contract('Test Doctor Patient Get All Shares', function (accounts) {
@@ -22,7 +22,7 @@ contract('Test Doctor Patient Get All Shares', function (accounts) {
     const groupID = await createGroup(patient)
     const shareID = await addShare(patient, 'PatientURI', groupID)
     await patient.addUserToGroup(groupID, doctorAddress)
-    await doctor.acceptGroup(groupID)
+    await doctor.acceptParentGroup(groupID)
     const shares = await doctor.getAllShares();
 
     checkIfShareIsOwned(shares, groupID, shareID)
@@ -49,8 +49,8 @@ contract('Test Banner Verdad Case', function (accounts) {
   })
 
   it('should give Verdad group access to share', async function () {
-    await bannerDoctor.addGroupToGroup(bannerGroupID, verdadGroupID)
-    await verdadDoctor.acceptGroup(bannerGroupID);
+    await bannerDoctor.addGroupToGroup(bannerGroupID, verdadGroupID);
+    await verdadDoctor.acceptParentGroup(bannerGroupID, verdadGroupID);
     const shares = await verdadDoctor.getAllShares();
 
     checkIfShareIsOwned(shares, bannerGroupID, shareID)
@@ -152,7 +152,7 @@ contract('It should test the time limit of authorize claims', function (accounts
     await center.createUser(userAddress)
     groupID = await createGroup(center)
     await center.addUserToGroup(groupID, userAddress)
-    await user.acceptGroup(groupID)
+    await user.acceptParentGroup(groupID)
   })
 
   it('should give write privileges for only 1 second', async function () {

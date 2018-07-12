@@ -2,7 +2,7 @@ const contract = require('truffle-contract');
 const Web3 = require('web3');
 const ShareCenterArtifact = require('../build/contracts/ShareCenter');
 const { errorCode, EthError, EthNodeError, InputError, handleEthErrors, handleTimeError, handleURIError } = require('./errors');
-const {  parseURI, makeURIs, zip, isAddress } = require('./methods');
+const {  parseURI, makeURIs, zip, isAddress, convertBigNumbers } = require('./methods');
 
 const CONTRACT_ADDRESS = undefined; // Waiting for deployment of contract to ethnet
 const GAS_DEFAULT = 4712388;
@@ -199,23 +199,36 @@ class ShareCenter {
    *
    * @throws User must exist
    */
-  async getPendingUserGroupIDs() {
+  async getUserInvites() {
     const instance = await this.getInstance();
-    const [found, result] = await instance.getPendingUserGroupIDs.call();
+    const [found, result] = await instance.getUserInvites.call();
     if (found) {
-      const groupIDs = result.map(id => id.toNumber());
+      const groupIDs = convertBigNumbers(result);
       return groupIDs;
     } throw new EthError(errorCode.IS_NOT_A_USER);
   }
 
-  async getPendingGroupGroupIDs() {
+  async getGroupInvites() {
     const instance = await this.getInstance();
-    const [found, groupIDs, subgroupIDs] = await instance.getPendingGroupGroupIDs.call();
+    const [found, groupIDs, parentGroupIDs] = await instance.getGroupInvites.call();
     if (found) {
-      return groupIDs.map((groupID,index) => ({
-        groupID: groupID.toNumber(),
-        subgroupID: subgroupIDs[index].toNumber()
-      }));
+      return zip('groupID', convertBigNumbers(groupIDs), 'parentGroupID', convertBigNumbers(parentGroupIDs));
+    } throw new EthError(errorCode.IS_NOT_A_USER);
+  }
+
+  async getSubgroupInvites() {
+    const instance = await this.getInstance();
+    const [found, groupIDs, subgroupIDs] = await instance.getSubgroupInvites.call();
+    if (found) {
+      return zip('groupID', convertBigNumbers(groupIDs), 'subgroupID', convertBigNumbers(subgroupIDs));
+    } throw new EthError(errorCode.IS_NOT_A_USER);
+  }
+
+  async getPersonalGroupID() {
+    const instance = await this.getInstance();
+    const [found, personalGroupID] = await instance.getPersonalGroupID().call();
+    if (found) {
+      return personalGroupID;
     } throw new EthError(errorCode.IS_NOT_A_USER);
   }
 
@@ -231,7 +244,7 @@ class ShareCenter {
     const instance = await this.getInstance();
     const [found, result] = await instance.getGroupIDs.call(this.sender);
     if (found) {
-      const groupIDs = result.map(id => id.toNumber());
+      const groupIDs = convertBigNumbers(result);
       return groupIDs;
     } throw new EthError(errorCode.IS_NOT_A_USER);
   }
@@ -262,7 +275,7 @@ class ShareCenter {
     const instance = await this.getInstance();
     const [found, result] = await instance.getParentGroups.call(groupID);
     if (found) {
-      const parents = result.map(id => id.toNumber());
+      const parents = convertBigNumbers(result);
       return parents;
     } throw new EthError(errorCode.GROUP_NOT_ACTIVE);
   }
@@ -278,10 +291,21 @@ class ShareCenter {
     const instance = await this.getInstance();
     const [found, result] = await instance.getSubGroups.call(groupID);
     if (found) {
-      const subGroups = result.map(id => id.toNumber());
+      const subGroups = convertBigNumbers(result)
       return subGroups;
     }
     throw new EthError(errorCode.GROUP_NOT_ACTIVE);
+  }
+
+  async addSubGroup(groupID, parentGroupID) {
+    const canAdd = await this._canAddGroupToGroup(parentGroupID, groupID);
+    if (canAdd) {
+      const instance = await this.getInstance();
+      const result = await instance.addSubGroup(groupID, parentGroupID);
+      handleEthErrors(result);
+      return { logs: result.logs };
+    }
+    throw new InputError(errorCode.CIRCULAR_DEPENDENCY);
   }
 
   /**
@@ -323,11 +347,22 @@ class ShareCenter {
     return { logs: result.logs };
   }
 
-  async acceptGroup(groupID) {
-	  const instance = await this.getInstance();
-	  const result = await instance.acceptGroup(groupID);
+  async acceptParentGroup(parentGroupID, groupID) {
+    const instance = await this.getInstance();
+    let result;
+    if(groupID)
+	    result = await instance.acceptParentGroupAsGroup(parentGroupID, groupID);
+    else
+      result = await instance.acceptParentGroupAsUser(parentGroupID);
 	  handleEthErrors(result);
 	  return { logs: result.logs };
+  }
+
+  async acceptSubgroup(subgroupID, groupID) {
+    const instance = await this.getInstance();
+    const result = await instance.acceptSubgroup(subgroupID, groupID);
+    handleEthErrors(result);
+    return { logs: result.logs };
   }
 
   /**
@@ -367,10 +402,10 @@ class ShareCenter {
     const instance = await this.getInstance();
     let [found, length, shareIDs, hosts, paths] = await instance.getShares.call(groupID);
     if (found) {
-      shareIDs = shareIDs.slice(0, length).map(id => id.toNumber());
+      shareIDs = convertBigNumbers(shareIDs.slice(0, length));
       hosts = hosts.slice(0, length).map(toUtf8);
       paths = paths.slice(0, length).map(toUtf8);
-      return zip(shareIDs, makeURIs(hosts, paths));
+      return zip('id', shareIDs, 'uri', makeURIs(hosts, paths));
     }
     throw new EthError(errorCode.GROUP_NOT_ACTIVE);
   }

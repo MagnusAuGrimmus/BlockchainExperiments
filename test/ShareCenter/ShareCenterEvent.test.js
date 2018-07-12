@@ -16,4 +16,8 @@ contract('ShareCenter Event Test', function(accounts) {
   it("should log the ether costs of all mutator methods", async function() {
     await addShare(center, "uri/path", groupID);
   })
+
+  it('turn off event listener', async function() {
+    center.setEventListener('ShareAdded', () => {})
+  })
 })

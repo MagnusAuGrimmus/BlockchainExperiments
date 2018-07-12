@@ -1,6 +1,7 @@
 pragma solidity ^0.4.19;
 import "./utils/IterableSet_Integer.sol";
 import "./utils/IterableSet_Address.sol";
+import "./utils/IterableSet_Pair.sol";
 import "./utils/Group.sol";
 import "./utils/Claim.sol";
 
@@ -21,11 +22,14 @@ contract ShareCenter
         NOT_IN_GROUP, // 8
         NOT_OWNER_OF_GROUP, // 9
         IN_GROUP, // 10
-        IS_PENDING_GROUP // 11
+        IS_NOT_PENDING_USER, // 11
+        IS_NOT_PENDING_GROUP, // 12
+        IS_NOT_PENDING_SUBGROUP // 13
     }
 
     using IterableSet_Integer for IterableSet_Integer.Data;
     using IterableSet_Address for IterableSet_Address.Data;
+    using IterableSet_Pair for IterableSet_Pair.Data;
     using Group for Group.Data;
     using Claim for Claim.Data;
 
@@ -41,10 +45,11 @@ contract ShareCenter
     struct User {
         bool active;
         address system;
+        uint personalGroupID;
         IterableSet_Integer.Data groups;
-        IterableSet_Integer.Data pending;
-        IterableSet_Integer.Data pendingGroupIDs;
-        mapping(uint => uint) pendingSubGroupIDs;
+        IterableSet_Integer.Data pendingUsers;
+        IterableSet_Pair.Data pendingGroups;
+        IterableSet_Pair.Data pendingSubgroups;
         IterableSet_Address.Data whitelist;
         IterableSet_Address.Data blacklist;
     }
@@ -155,12 +160,28 @@ contract ShareCenter
             _;
     }
 
-    modifier isPendingGroup(uint groupID)
+    modifier isPendingUser(uint groupID)
     {
-        if(users[msg.sender].pending.contains(groupID) || users[msg.sender].pendingGroupIDs.contains(groupID))
+        if(users[msg.sender].pendingUsers.contains(groupID))
             _;
         else
-            emit Error(uint(ErrorCode.IS_PENDING_GROUP));
+            emit Error(uint(ErrorCode.IS_NOT_PENDING_USER));
+    }
+
+    modifier isPendingGroup(uint groupID, uint otherGroupID)
+    {
+        if(users[msg.sender].pendingGroups.contains(groupID, otherGroupID))
+            _;
+        else
+            emit Error(uint(ErrorCode.IS_NOT_PENDING_GROUP));
+    }
+
+    modifier isPendingSubgroup(uint groupID, uint otherGroupID)
+    {
+        if(users[msg.sender].pendingSubgroups.contains(groupID, otherGroupID))
+            _;
+        else
+            emit Error(uint(ErrorCode.IS_NOT_PENDING_SUBGROUP));
     }
 
     constructor() public
@@ -216,6 +237,13 @@ contract ShareCenter
         }
     }
 
+    function getPersonalGroupID(address addr) public
+    isUser(addr)
+    returns (uint)
+    {
+        return users[addr].personalGroupID;
+    }
+
     function getUsers(uint groupID) public
     isActiveGroup(groupID)
     returns (bool, address[])
@@ -231,6 +259,7 @@ contract ShareCenter
         users[addr].system = msg.sender;
         users[addr].whitelist.add(addr);
         emit UserCreated(addr, msg.sender);
+        users[addr].personalGroupID = _initGroup(addr);
     }
 
     function whitelist(address addr) public
@@ -247,22 +276,26 @@ contract ShareCenter
         users[msg.sender].blacklist.add(addr);
     }
 
-    function getPendingUserGroupIDs() public view
+    function getUserInvites() public view
     isUser(msg.sender)
     returns (bool, uint[])
     {
-        return (true, users[msg.sender].pending.iterator());
+        return (true, users[msg.sender].pendingUsers.iterator());
     }
 
-    function getPendingGroupGroupIDs() public view
+    function getGroupInvites() public view
+    isUser(msg.sender)
+    returns (bool found, uint[] groupIDs, uint[] parentGroupIDs)
+    {
+        (groupIDs, parentGroupIDs) = users[msg.sender].pendingGroups.iterator();
+        found = true;
+    }
+
+    function getSubgroupInvites() public view
     isUser(msg.sender)
     returns (bool found, uint[] groupIDs, uint[] subgroupIDs)
     {
-        User storage user = users[msg.sender];
-        groupIDs = user.pendingGroupIDs.iterator();
-        subgroupIDs = new uint[](groupIDs.length);
-        for(uint i = 0; i < groupIDs.length; i++)
-            subgroupIDs[i] = user.pendingSubGroupIDs[groupIDs[i]];
+        (groupIDs, subgroupIDs) = users[msg.sender].pendingSubgroups.iterator();
         found = true;
     }
 
@@ -290,16 +323,24 @@ contract ShareCenter
     isUser(msg.sender)
     returns (uint)
     {
-        Group.Data storage group = groups[groupCounter + 1];
-        group.id = ++groupCounter;
-        groups[group.id] = group;
-        group.owner = msg.sender;
-        users[msg.sender].groups.add(group.id);
-        emit GroupCreated(group.id, msg.sender);
-        return group.id;
+        _initGroup(msg.sender);
+    }
+
+    function addSubGroup(uint groupID, uint parentGroupID) public
+    isUser(msg.sender)
+    isActiveGroup(groupID)
+    isActiveGroup(parentGroupID)
+    ownsGroup(msg.sender, groupID)
+    {
+        address addr = groups[parentGroupID].owner;
+        if(users[addr].whitelist.contains(msg.sender))
+            _addGroupToGroup(parentGroupID, groupID);
+        else if(!users[addr].blacklist.contains(msg.sender))
+            users[addr].pendingSubgroups.add(parentGroupID, groupID);
     }
 
     function addGroupToGroup(uint groupID, uint subgroupID) public
+    isUser(msg.sender)
     isActiveGroup(groupID)
     isActiveGroup(subgroupID)
     ownsGroup(msg.sender, groupID)
@@ -308,10 +349,7 @@ contract ShareCenter
         if(users[addr].whitelist.contains(msg.sender))
             _addGroupToGroup(groupID, subgroupID);
         else if(!users[addr].blacklist.contains(msg.sender))
-        {
-            users[addr].pendingGroupIDs.add(groupID);
-            users[addr].pendingSubGroupIDs[groupID] = subgroupID;
-        }
+            users[addr].pendingGroups.add(groupID, subgroupID);
     }
 
     function removeGroupFromGroup(uint groupID, uint subgroupID) public
@@ -323,21 +361,25 @@ contract ShareCenter
         emit GroupRemoved(groupID, subgroupID, msg.sender);
     }
 
-    function acceptGroup(uint groupID) public
-    isPendingGroup(groupID)
+    function acceptParentGroupAsUser(uint parentGroupID) public
+    isPendingUser(parentGroupID)
     {
-        User storage user = users[msg.sender];
-        if(user.pending.contains(groupID))
-        {
-            _addUserToGroup(groupID, msg.sender);
-            users[msg.sender].pending.remove(groupID);
-        }
-        else if(user.pendingGroupIDs.contains(groupID))
-        {
-            uint subgroupID = user.pendingSubGroupIDs[groupID];
-            _addGroupToGroup(groupID, subgroupID);
-            users[msg.sender].pendingGroupIDs.remove(groupID);
-        }
+        _addUserToGroup(parentGroupID, msg.sender);
+        users[msg.sender].pendingUsers.remove(parentGroupID);
+    }
+
+    function acceptParentGroupAsGroup(uint parentGroupID, uint groupID) public
+    isPendingGroup(parentGroupID, groupID)
+    {
+        _addGroupToGroup(parentGroupID, groupID);
+        users[msg.sender].pendingGroups.remove(parentGroupID, groupID);
+    }
+
+    function acceptSubgroup(uint subgroupID, uint groupID) public
+    isPendingSubgroup(groupID, subgroupID)
+    {
+        _addGroupToGroup(groupID, subgroupID);
+        users[msg.sender].pendingSubgroups.remove(groupID, subgroupID);
     }
 
     function addUserToGroup(uint groupID, address addr) public
@@ -348,7 +390,7 @@ contract ShareCenter
         if(users[addr].whitelist.contains(msg.sender))
             _addUserToGroup(groupID, addr);
         else if(!users[addr].blacklist.contains(msg.sender))
-            users[addr].pending.add(groupID);
+            users[addr].pendingUsers.add(groupID);
     }
 
     function removeUserFromGroup(uint groupID, address addr) public
@@ -387,6 +429,7 @@ contract ShareCenter
     function addShare(bytes32 host, bytes32 path, uint groupID, uint time, uint access) public
     isUser(msg.sender)
     isActiveGroup(groupID)
+    isInGroup(msg.sender, groupID)
     {
         uint shareID = ++shareCounter;
         shares[shareID].owner = msg.sender;
@@ -411,6 +454,18 @@ contract ShareCenter
         groups[shares[shareID].groupID].shares.remove(shareID);
         delete shares[shareID];
         emit ShareDeleted(shareID, msg.sender);
+    }
+
+    function _initGroup(address addr) internal
+    returns (uint)
+    {
+        Group.Data storage group = groups[groupCounter + 1];
+        group.id = ++groupCounter;
+        groups[group.id] = group;
+        group.owner = addr;
+        users[addr].groups.add(group.id);
+        emit GroupCreated(group.id, addr);
+        return group.id;
     }
 
     function _addUserToGroup(uint groupID, address addr) internal

@@ -92,7 +92,7 @@ contract('Test Blacklist', function (accounts) {
 
     assert(!(await checkIfGroupWasAdded(center)), 'Group ID was added from blacklisted source');
 
-    const pendingGroupIDs = await center.getPendingUserGroupIDs();
+    const pendingGroupIDs = await center.getUserInvites();
     assert(!pendingGroupIDs.includes(groupID), 'Group ID was added to pending from blacklisted source');
   })
 
@@ -101,7 +101,7 @@ contract('Test Blacklist', function (accounts) {
 
     assert(!(await checkIfGroupWasAdded(center)), 'Group ID was added from blacklisted source');
 
-    const pendingGroupIDs = await center.getPendingGroupGroupIDs();
+    const pendingGroupIDs = await center.getGroupInvites();
     console.log(pendingGroupIDs);
     assert(!pendingGroupIDs.includes({ groupID, subgroupID }), 'Group ID was added to pending from blacklisted source');
   })
@@ -135,9 +135,9 @@ contract('Test Family Get All Shares', function (accounts) {
     await grandfather.addGroupToGroup(grandfatherGroupID, sonGroupID)
     await mother.addGroupToGroup(motherGroupID, sonGroupID)
 
-    await mother.acceptGroup(grandfatherGroupID)
-    await son.acceptGroup(grandfatherGroupID)
-    await son.acceptGroup(motherGroupID)
+    await mother.acceptParentGroup(grandfatherGroupID, motherGroupID)
+    await son.acceptParentGroup(grandfatherGroupID, sonGroupID)
+    await son.acceptParentGroup(motherGroupID, sonGroupID)
   }
 
   it('should get all shares for grandfather', async function () {

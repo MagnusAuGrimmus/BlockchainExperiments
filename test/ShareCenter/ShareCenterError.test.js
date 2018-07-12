@@ -113,7 +113,7 @@ contract('Test Circular Dependencies', function (accounts) {
 
     await center.addGroupToGroup(groupMasterID, groupChildID)
     await user.addGroupToGroup(groupChildID, groupGrandChildID)
-    await user.acceptGroup(groupMasterID);
+    await user.acceptParentGroup(groupMasterID, groupChildID);
   })
 
   it('should throw an error when user tries to add a group into itself', async function () {

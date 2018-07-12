@@ -5,6 +5,6 @@ pid=$!
 echo "deploy" >pipe
 sleep 10
 echo "test" >pipe
-sleep 20
+sleep 25
 kill -INT $pid
 rm pipe
