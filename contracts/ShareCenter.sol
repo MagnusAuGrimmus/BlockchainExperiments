@@ -239,9 +239,9 @@ contract ShareCenter
 
     function getPersonalGroupID(address addr) public
     isUser(addr)
-    returns (uint)
+    returns (bool, uint)
     {
-        return users[addr].personalGroupID;
+        return (true, users[addr].personalGroupID);
     }
 
     function getUsers(uint groupID) public
@@ -306,7 +306,8 @@ contract ShareCenter
         return (true, users[msg.sender].groups.iterator());
     }
 
-    function getParentGroups(uint groupID) isActiveGroup(groupID) public
+    function getParentGroups(uint groupID) public
+    isActiveGroup(groupID)
     returns (bool, uint[])
     {
         return (true, groups[groupID].parentGroups.iterator());
@@ -384,8 +385,8 @@ contract ShareCenter
 
     function addUserToGroup(uint groupID, address addr) public
     isActiveGroup(groupID)
-    ownsGroup(msg.sender, groupID)
     isUser(addr)
+    ownsGroup(msg.sender, groupID)
     {
         if(users[addr].whitelist.contains(msg.sender))
             _addUserToGroup(groupID, addr);

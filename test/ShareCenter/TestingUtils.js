@@ -32,7 +32,7 @@ function checkIfShareIsOwned (shares, groupID, shareID) {
   return true
 }
 
-async function checkError (call, expectedErrorCode = undefined) {
+async function checkError (call, expectedErrorCode = null) {
   var success = false
   try {
     var data = await call()
@@ -40,8 +40,8 @@ async function checkError (call, expectedErrorCode = undefined) {
     success = true
   }
   catch (err) {
-    if (expectedErrorCode !== undefined)
-      assert.equal(err.id, expectedErrorCode, 'Incorrect Error Code')
+    if (expectedErrorCode !== null)
+      assert(err.id === expectedErrorCode, 'Incorrect Error Code')
   }
   assert(!success, 'Did not throw an Error')
 }

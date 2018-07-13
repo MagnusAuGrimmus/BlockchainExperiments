@@ -2,7 +2,7 @@ const contract = require('truffle-contract');
 const Web3 = require('web3');
 const ShareCenterArtifact = require('../build/contracts/ShareCenter');
 const { errorCode, EthError, EthNodeError, InputError, handleEthErrors, handleTimeError, handleURIError } = require('./errors');
-const {  parseURI, makeURIs, zip, isAddress, convertBigNumbers } = require('./methods');
+const {  parseURI, makeURIs, zip, parseEvent, convertBigNumbers, getDuration } = require('./methods');
 
 const CONTRACT_ADDRESS = undefined; // Waiting for deployment of contract to ethnet
 const GAS_DEFAULT = 4712388;
@@ -80,13 +80,7 @@ class ShareCenter {
   }
 
   listen(err, response, call) {
-    for (const key in response.args) {
-      const arg = response.args[key];
-      if(typeof arg === 'object')
-        response.args[key] = arg.toNumber();
-      else if(!isAddress(arg))
-        response.args[key] = this.web3.toUtf8(arg);
-    }
+    parseEvent(response);
     call(err, response);
   }
 
@@ -224,9 +218,9 @@ class ShareCenter {
     } throw new EthError(errorCode.IS_NOT_A_USER);
   }
 
-  async getPersonalGroupID() {
+  async getPersonalGroupID(addr=this.sender) {
     const instance = await this.getInstance();
-    const [found, personalGroupID] = await instance.getPersonalGroupID().call();
+    const [found, personalGroupID] = await instance.getPersonalGroupID.call(addr);
     if (found) {
       return personalGroupID;
     } throw new EthError(errorCode.IS_NOT_A_USER);
@@ -393,7 +387,7 @@ class ShareCenter {
    * Retrieve the shares for a group.
    * @param {number} groupID
    *
-   * @returns {{authorizedWrite: Array, authorizedRead: Array}} Arrays of shares, separated by access privileges
+   * @returns {[{id: {number}, uri: {string}, ...]} Arrays of shares
    *
    * @throws groupID must be registered
    */
@@ -429,7 +423,7 @@ class ShareCenter {
    * @param {number} groupID groupID to which the share will be assigned
    * @param {number} time duration of share
    * @param {number} access Access level
-   * @returns {{value: {id: number, host: string, path: string}}} Share properties
+   * @returns {{value: {shareID: number}}} Share properties
    *
    * @throws uri must be <64 characters in length
    * @throws groupID must be registered
@@ -438,6 +432,8 @@ class ShareCenter {
   async addShare(uri, groupID, time, access = 2) {
     const { host, path } = parseURI(uri);
     handleURIError(host, path);
+    if(time instanceof Date)
+      time = getDuration(time);
     handleTimeError(time);
 
     const instance = await this.getInstance();

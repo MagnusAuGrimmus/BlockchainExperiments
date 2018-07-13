@@ -21,76 +21,173 @@ contract('ShareCenter Error Testing', function (accounts) {
     emptyGroupID = await createGroup(user2)
     fakeID = 123456789
     await center.addUserToGroup(groupID, user1Address)
+    await user1.acceptParentGroup(groupID);
     shareID = await addShare(center, 'uri', groupID)
   })
 
   it('should throw error code 0 when addSystem is called from user that isn\'t the owner', async function () {
-    var call = () => user1.addSystem(user1Address)
+    const call = () => user1.addSystem(user1Address)
     await checkError(call, 0)
   })
 
+  it('should throw error code 2 when getPersonalGroupID is called on fake user', async function () {
+    const call = () => center.getPersonalGroupID(fakeUserAddress)
+    await checkError(call, 2)
+  })
+
+  it('should throw error code 7 when getUsers is called from fake group', async function () {
+    const call = () => center.getUsers(fakeID)
+    await checkError(call, 7)
+  })
+
   it('should throw error code 3 when createUser is called from unregistered system', async function () {
-    var call = () => user1.createUser(centerAddress)
+    const call = () => user1.createUser(centerAddress)
     await checkError(call, 3)
   })
 
   it('should throw error code 1 when createUser is called with existing user', async function () {
-    var call = () => center.createUser(centerAddress)
+    const call = () => center.createUser(centerAddress)
     await checkError(call, 1)
   })
 
-  it('should throw error code 2 when createGroup is called from fake user', async function () {
-    var call = () => fakeUser.createGroup()
+  it('should throw error code 2 when whitelist is called on fake user', async function () {
+    const call = () => center.whitelist(fakeUserAddress)
+    await checkError(call, 2)
+  })
+  
+  it('should throw error code 2 when whitelist is called from fake user', async function () {
+    const call = () => fakeUser.whitelist(user1Address)
+    await checkError(call, 2)
+  })
+  
+  it('should throw error code 2 when blacklist is called on fake user', async function () {
+    const call = () => center.blacklist(fakeUserAddress)
+    await checkError(call, 2)
+  })
+  
+  it('should throw error code 2 when blacklist is called from fake user', async function () {
+    const call = () => fakeUser.blacklist(user1Address)
+    await checkError(call, 2)
+  })
+
+  it('should throw error code 2 when getUserInvites is called from fake user', async function () {
+    const call = () => fakeUser.getUserInvites()
+    await checkError(call, 2)
+  })
+
+  it('should throw error code 2 when getGroupInvites is called from fake user', async function () {
+    const call = () => fakeUser.getGroupInvites()
+    await checkError(call, 2)
+  })
+
+  it('should throw error code 2 when getSubgroupInvites is called from fake user', async function () {
+    const call = () => fakeUser.getSubgroupInvites()
     await checkError(call, 2)
   })
 
   it('should throw error code 2 when getGroupIDs is called on fake user', async function () {
-    var call = () => fakeUser.getGroupIDs()
+    const call = () => fakeUser.getGroupIDs()
     await checkError(call, 2)
   })
 
   it('should throw error code 7 when getParentGroups is called from fake group', async function () {
-    var call = () => center.getParentGroups(fakeID)
+    const call = () => center.getParentGroups(fakeID)
     await checkError(call, 7)
   })
 
   it('should throw error code 7 when getSubGroups is called from fake group', async function () {
-    var call = () => center.getSubGroups(fakeID)
+    const call = () => center.getSubGroups(fakeID)
+    await checkError(call, 7)
+  })
+
+  it('should throw error code 2 when createGroup is called from fake user', async function () {
+    const call = () => fakeUser.createGroup()
+    await checkError(call, 2)
+  })
+
+  it('should throw error code 2 when addGroupToGroup is called from fake user', async function () {
+    const call = () => fakeUser.addGroupToGroup(groupID, emptyGroupID);
+    await checkError(call, 2)
+  })
+
+  it('should throw error code 7 when addGroupToGroup is called with fake group', async function () {
+    let call = () => center.addGroupToGroup(groupID, fakeID);
+    await checkError(call, 7)
+    call = () => center.addGroupToGroup(fakeID, groupID);
     await checkError(call, 7)
   })
 
   it('should throw error code 9 when addGroupToGroup is called from nonowner', async function () {
-    var call = () => user1.addGroupToGroup(groupID, emptyGroupID)
+    const call = () => user1.addGroupToGroup(groupID, emptyGroupID)
     await checkError(call, 9)
   })
 
+  it('should throw error code 7 when removeGroupFromGroup is called with fake group', async function () {
+    let call = () => center.removeGroupFromGroup(groupID, fakeID);
+    await checkError(call, 7)
+    call = () => center.removeGroupFromGroup(fakeID, groupID);
+    await checkError(call, 7)
+  })
+
+  it('should throw error code 9 when removeGroupFromGroup is called from nonowner', async function () {
+    const call = () => user1.removeGroupFromGroup(groupID, emptyGroupID)
+    await checkError(call, 9)
+  })
+  
+  it('should throw error code 11 when acceptParentGroup is called on nonpending group', async function() {
+    let call = () => center.acceptParentGroup(fakeID);
+    await checkError(call, 11)
+    call = () => center.acceptParentGroup(groupID, emptyGroupID);
+    await checkError(call, 12);
+  })
+
+  it('should throw error code 11 when acceptSubGroup is called on nonpending subgroup', async function() {
+    let call = () => center.acceptSubgroup(groupID, emptyGroupID);
+    await checkError(call, 13)
+  })
+
+  it('should throw error code 7 when addUserToGroup is called with fake group', async function () {
+    let call = () => center.addUserToGroup(fakeID, user1Address);
+    await checkError(call, 7)
+  })
+
+  it('should throw error code 9 when addUserToGroup is called from nonowner', async function () {
+    const call = () => user1.addUserToGroup(groupID, centerAddress)
+    await checkError(call, 9)
+  })
+
+  it('should throw error code 7 when getShares is called with fake group', async function () {
+    let call = () => center.getShares(fakeID);
+    await checkError(call, 7)
+  })
+
   it('should throw error code 2 when addShare is called from fake user', async function () {
-    var call = () => fakeUser.addShare('uri', groupID, center.DURATION.INDEFINITE, center.ACCESS.WRITE)
+    const call = () => fakeUser.addShare('uri', groupID, center.DURATION.INDEFINITE, center.ACCESS.WRITE)
     await checkError(call, 2)
   })
 
   it('should throw error code 7 when addShare is called with fake group', async function () {
-    var call = () => center.addShare('uri', fakeID, center.DURATION.INDEFINITE, center.ACCESS.WRITE)
+    const call = () => center.addShare('uri', fakeID, center.DURATION.INDEFINITE, center.ACCESS.WRITE)
     await checkError(call, 7)
   })
 
   it('should throw error code 100 when addShare is called with really long URL', async function () {
-    var call = () => center.addShare('www.nucleusHealthReallyLongDeploymentUrl/reallyLongPathToRecordShare', groupID, 0, center.ACCESS.WRITE)
+    const call = () => center.addShare('www.nucleusHealthReallyLongDeploymentUrl/reallyLongPathToRecordShare', groupID, 0, center.ACCESS.WRITE)
     await checkError(call, 100)
   })
 
   it('should throw error code 2 when deleteShare is called from fake user', async function () {
-    var call = () => fakeUser.deleteShare(shareID)
+    const call = () => fakeUser.deleteShare(shareID)
     await checkError(call, 2)
   })
 
   it('should throw error code 6 when deleteShare is called on nonexistant share', async function () {
-    var call = () => center.deleteShare(fakeID)
+    const call = () => center.deleteShare(fakeID)
     await checkError(call, 6)
   })
 
   it('should throw error code 4 when deleteShare is called from user who doesn\'t own share', async function () {
-    var call = () => user2.deleteShare(1)
+    const call = () => user2.deleteShare(1)
     await checkError(call, 4)
   })
 })
@@ -117,12 +214,12 @@ contract('Test Circular Dependencies', function (accounts) {
   })
 
   it('should throw an error when user tries to add a group into itself', async function () {
-    var call = () => center.addGroupToGroup(groupMasterID, groupMasterID)
+    const call = () => center.addGroupToGroup(groupMasterID, groupMasterID)
     await checkError(call, 101)
   })
 
   it('should throw an error when user tries to add a group that would create a circular dependency', async function () {
-    var call = () => user.addGroupToGroup(groupGrandChildID, groupMasterID)
+    const call = () => user.addGroupToGroup(groupGrandChildID, groupMasterID)
     await checkError(call, 101)
   })
 })

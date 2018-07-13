@@ -20,12 +20,28 @@ function zip(key1, arr1, key2, arr2) {
   return arr1.map((element, index) => ({ [key1]: element, [key2]: arr2[index] }));
 }
 
-function isAddress(key) {
-  return typeof key === 'string' && key.length === 42;
-}
-
 function convertBigNumbers(arr) {
   return arr.map(num => num.toNumber());
 }
 
-module.exports = {  parseURI, makeURIs, zip, isAddress, convertBigNumbers };
+function getDuration(date) {
+  return (date - new Date()) / 1000;
+}
+
+function parseEvent(response) {
+  if(!response)
+    return;
+  for (const key in response.args) {
+    const arg = response.args[key];
+    if(typeof arg === 'object')
+      response.args[key] = arg.toNumber();
+    else if(!isAddress(arg))
+      response.args[key] = this.web3.toUtf8(arg);
+  }
+}
+
+function isAddress(key) {
+  return typeof key === 'string' && key.length === 42;
+}
+
+module.exports = {  parseURI, makeURIs, zip, parseEvent, convertBigNumbers, getDuration };
