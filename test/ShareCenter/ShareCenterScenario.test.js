@@ -19,6 +19,7 @@ contract('Test Doctor Patient Get All Shares', function (accounts) {
   })
 
   it('should share a record', async function () {
+    // Sharing method: create a group, add the user to the group, add the share to the group
     const groupID = await createGroup(patient)
     const shareID = await addShare(patient, 'PatientURI', groupID)
     await patient.addUserToGroup(groupID, doctorAddress)
@@ -40,9 +41,7 @@ contract('Test Banner Verdad Case', function (accounts) {
     await center.addSystem(accounts[0])
     await center.createUser(accounts[1])
     await center.createUser(accounts[2])
-  })
 
-  it('should create a share and groups', async function () {
     bannerGroupID = await createGroup(bannerDoctor)
     verdadGroupID = await createGroup(verdadDoctor)
     shareID = await addShare(bannerDoctor, 'BannerURI', bannerGroupID)
@@ -60,7 +59,7 @@ contract('Test Banner Verdad Case', function (accounts) {
     await bannerDoctor.removeGroupFromGroup(bannerGroupID, verdadGroupID)
     const shares = await verdadDoctor.getAllShares()
 
-    assert(!shares[bannerGroupID])
+    assert(!shares[bannerGroupID], 'Verdad still has access to the share after they were removed')
   })
 })
 
@@ -81,6 +80,7 @@ contract('Test multiple ShareCenter Instances', function (accounts) {
   })
 
   it('should test the second center', async function () {
+    // Testing to see if center2 throws up any errors
     await createGroup(center2)
   })
 })
@@ -98,6 +98,7 @@ contract('Test Get Shares with multiple shares', function (accounts) {
   })
 
   beforeEach('setup test case', async function () {
+    // Instantiate a new user every test case
     user = new ShareCenter(HTTP_PROVIDER, accounts[++accountIndex], {testingMode: true})
     await center.createUser(accounts[accountIndex])
     groupID = await createGroup(user)
@@ -123,6 +124,10 @@ contract('Test Get Shares with multiple shares', function (accounts) {
     checkIfSharesAreOwned(shares, shareIDs)
   })
 
+  /**
+   * Remove a some shares and check that the user can't access them
+   * but can still access the other shares
+   */
   it('should remove deleted shares', async function () {
     let shareIDs = await addShares(5)
     await Promise.all(shareIDs.slice(0, 2).map(shareID => user.deleteShare(shareID)))
@@ -156,13 +161,13 @@ contract('It should test the time limit of authorize claims', function (accounts
   })
 
   it('should give write privileges for only 1 second', async function () {
-    const shareID = await addShare(center, 'uri', groupID, 1)
+    const shareID = await addShare(center, 'uri', groupID, 1) //Set the claim to one second
 
     let shares = await user.getAllShares()
     checkIfShareIsOwned(shares, groupID, shareID)
-    await sleep(2000)
+    await sleep(2000) // Waiting for more than 1 second just to be absolutely sure
     shares = await user.getAllShares()
-    await checkError(() => checkIfShareIsOwned(shares, groupID, shareID))
+    await checkError(() => checkIfShareIsOwned(shares, groupID, shareID)) //Check if the user no longer has shares
   })
 })
 

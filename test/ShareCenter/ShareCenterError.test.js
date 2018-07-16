@@ -25,7 +25,7 @@ contract('ShareCenter Error Testing', function (accounts) {
     shareID = await addShare(center, 'uri', groupID)
   })
 
-  it('should throw error code 0 when addSystem is called from user that isn\'t the owner', async function () {
+  it('should throw error code 0 when addSystem is called from nonowner', async function () {
     const call = () => user1.addSystem(user1Address)
     await checkError(call, 0)
   })

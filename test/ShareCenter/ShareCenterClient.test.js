@@ -18,7 +18,7 @@ contract('Test Get Users', function (accounts) {
     await center.addSystem(accounts[0])
     await center.createUser(accounts[0])
     await center.createUser(accounts[1])
-    await user.whitelist(accounts[0])
+    await user.whitelist(accounts[0]) //Whitelist center to make so that addUserToGroup doesn't require an accept call
     const groupID = await createGroup(center)
     await center.addUserToGroup(groupID, accounts[1])
     const users = await center.getUsers(groupID)
@@ -40,9 +40,9 @@ contract('Test Create Share', function (accounts) {
     var groupID = await createGroup(center)
     var data = await center.addShare('nucleushealth.com/abc123', groupID, center.DURATION.INDEFINITE, center.ACCESS.WRITE)
     var shares = (await center.getAllShares())[groupID]
-    assert.equal(data.logs[0].event, 'ShareAdded', 'Incorrect event triggered')
-    assert.equal(shares[0].id, data.value.shareID, 'Share ID not correct')
-    assert.equal(shares[0].uri, 'nucleushealth.com/abc123', 'Share URI not correct')
+    assert(data.logs[0].event === 'ShareAdded', 'Incorrect event triggered')
+    assert(shares[0].id === data.value.shareID, 'Share ID not correct')
+    assert(shares[0].uri === 'nucleushealth.com/abc123', 'Share URI not correct')
   })
 })
 
@@ -60,7 +60,7 @@ contract('Test Delete Share', function (accounts) {
     var shareID = await addShare(center, 'nucleushealth.com/abc123', groupID)
     var data = await center.deleteShare(shareID)
     var shares = (await center.getAllShares())[groupID]
-    assert.equal(data.logs[0].event, 'ShareDeleted', 'Incorrect event triggered')
+    assert(data.logs[0].event === 'ShareDeleted', 'Incorrect event triggered')
     assert(!shares.includes(shareID), 'Share still active')
   })
 })
@@ -131,10 +131,12 @@ contract('Test Family Get All Shares', function (accounts) {
     grandfatherShareID = await addShare(grandfather, 'grandfatherURI', grandfatherGroupID)
     motherShareID = await addShare(mother, 'motherURI', motherGroupID)
     sonShareID = await addShare(son, 'sonURI', sonGroupID)
+    // Create a potential sharing scenario with duplication of relationships
     await grandfather.addGroupToGroup(grandfatherGroupID, motherGroupID)
     await grandfather.addGroupToGroup(grandfatherGroupID, sonGroupID)
     await mother.addGroupToGroup(motherGroupID, sonGroupID)
 
+    //Accepting all group invites
     await mother.acceptParentGroup(grandfatherGroupID, motherGroupID)
     await son.acceptParentGroup(grandfatherGroupID, sonGroupID)
     await son.acceptParentGroup(motherGroupID, sonGroupID)
@@ -147,12 +149,14 @@ contract('Test Family Get All Shares', function (accounts) {
 
   it('should get all shares for mother', async function () {
     var shares = await mother.getAllShares()
+    // Mother should get the parent group's shares along with her own
     checkIfShareIsOwned(shares, grandfatherGroupID, grandfatherShareID)
     checkIfShareIsOwned(shares, motherGroupID, motherShareID)
   })
 
   it('should get all shares for son', async function () {
     var shares = await son.getAllShares()
+    //Son should get the parent and grandparent group's shares along with his own
     checkIfShareIsOwned(shares, grandfatherGroupID, grandfatherShareID)
     checkIfShareIsOwned(shares, motherGroupID, motherShareID)
     checkIfShareIsOwned(shares, sonGroupID, sonShareID)

@@ -45,7 +45,21 @@ contract('Test Professional Share', function (accounts) {
     assert(verdadGroups.includes(groupID), "Verdad did not receive share");
   })
 
-  async function createProShare(sender, recipientAddress, orgGroupID, { uri, time, access }) {
+  /**
+   * Create a professional share.
+   * Gives access to both the specific user and the organization
+   * @async
+   * @param {ShareCenter} sender ShareCenter instance of the sender
+   * @param {string} recipientAddress blockchain address of the recipient
+   * @param {number} orgGroupID groupID of the organization
+   * @param {Object} shareParams
+   * @param {string} shareParams.uri
+   * @param {number} shareParams.time duration of the claim
+   * @param {number} shareParams.access access privleges of both the user and the organization
+   * @returns {number} the groupID where the share exists
+   */
+  async function createProShare (sender, recipientAddress, orgGroupID, shareParams) {
+    const {uri, time, access} = shareParams
     const groupID = await createGroup(sender);
     await sender.addUserToGroup(groupID, recipientAddress);
     await sender.addSubGroup(groupID, orgGroupID);
@@ -53,6 +67,15 @@ contract('Test Professional Share', function (accounts) {
     return groupID
   }
 
+  /**
+   * Accept a professional share.
+   * Called from the context of the recipient user, but also gives access to the recipient organization on call.
+   * @async
+   * @param {ShareCenter} user ShareCenter instance of the recipient user
+   * @param {ShareCenter} org ShareCenter instance of the recipient organization
+   * @param {number} groupID groupID of the share
+   * @param {number} orgGroupID organization groupID to give access to
+   */
   async function acceptProShare(user, org, groupID, orgGroupID) {
     return Promise.all([
       org.acceptSubgroup(groupID, orgGroupID),
@@ -99,13 +122,34 @@ contract('Test Organizational Share', function (accounts) {
     assert(verdadGroups.includes(groupID), "Verdad did not receive share");
   })
 
-  async function createOrgShare(sender, orgGroupID, { uri, time, access }) {
+  /**
+   * Create a organizational share.
+   * Gives access to the organization and all of it's users
+   * @async
+   * @param {ShareCenter} sender ShareCenter instance of the sender
+   * @param {number} orgGroupID groupID of the organization
+   * @param {Object} shareParams
+   * @param {string} shareParams.uri
+   * @param {number} shareParams.time duration of the claim
+   * @param {number} shareParams.access access privleges of both the user and the organization
+   * @returns {number} the groupID where the share exists
+   */
+  async function createOrgShare (sender, orgGroupID, shareParams) {
+    const {uri, time, access} = shareParams
     const groupID = await createGroup(sender);
     await sender.addSubGroup(groupID, orgGroupID);
     await addShare(sender, uri, groupID, time, access);
     return groupID
   }
 
+  /**
+   * Accept a professional share.
+   * Called from the context of the organization.
+   * @async
+   * @param {ShareCenter} org ShareCenter instance of the recipient organization
+   * @param {number} groupID groupID of the share
+   * @param {number} orgGroupID organization groupID to give access to
+   */
   async function acceptOrgShare(org, groupID, orgGroupID) {
     return org.acceptSubgroup(groupID, orgGroupID);
   }

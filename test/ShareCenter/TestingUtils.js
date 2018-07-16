@@ -28,7 +28,7 @@ function containsInvite(invites, invite) {
 
 function checkIfShareIsOwned (shares, groupID, shareID) {
   var shares = shares[groupID]
-  assert(contains(shares, shareID))
+  assert(contains(shares, shareID), `User does not have ${shareID} in shares under groupID ${groupID}`)
   return true
 }
 

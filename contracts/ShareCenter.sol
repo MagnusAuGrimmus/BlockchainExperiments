@@ -398,7 +398,6 @@ contract ShareCenter
     isActiveGroup(groupID)
     ownsGroup(msg.sender, groupID)
     isInGroup(addr, groupID)
-    isUser(addr)
     {
         groups[groupID].users.remove(addr);
     }

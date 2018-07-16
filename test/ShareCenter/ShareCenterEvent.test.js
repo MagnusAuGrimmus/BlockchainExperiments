@@ -6,7 +6,7 @@ contract('ShareCenter Event Test', function(accounts) {
 
   before('setup', async function() {
     center = initCenter(accounts[0]);
-    center.setEventListener('ShareAdded', console.log);
+    center._setEventListener('ShareAdded', console.log)
     await center.watchEvents();
     await center.addSystem(accounts[0]);
     await center.createUser(accounts[0]);
@@ -18,6 +18,6 @@ contract('ShareCenter Event Test', function(accounts) {
   })
 
   it('turn off event listener', async function() {
-    center.setEventListener('ShareAdded', () => {})
+    center._setEventListener('ShareAdded', () => {})
   })
 })
