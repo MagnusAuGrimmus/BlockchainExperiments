@@ -15,6 +15,7 @@ library Group
         IterableSet_Address.Data users;
         IterableSet_Integer.Data parentGroups;
         IterableSet_Integer.Data subGroups;
+        IterableSet_Integer.Data pendingShares;
         IterableSet_Integer.Data shares;
     }
 

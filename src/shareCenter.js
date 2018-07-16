@@ -227,7 +227,6 @@ class ShareCenter {
   /**
    * Retrieve the pending groupIDs of a user.
    * @async
-   * @param {String} addr Blockchain Address of the user
    * @returns {{value: Array}} Array of groupIDs
    *
    * @throws User must exist
@@ -239,6 +238,24 @@ class ShareCenter {
       const groupIDs = convertBigNumbers(result);
       return groupIDs;
     } throw new EthError(errorCode.IS_NOT_A_USER);
+  }
+
+  /**
+   * Retrieve the pending shareIDs of a group.
+   * @async
+   * @param {number} groupID
+   * @returns {{value: Array}} Array of shareIDs
+   *
+   * @throws User must exist
+   */
+  async getShareInvites (groupID) {
+    const instance = await this.getInstance()
+    const [found, result] = await instance.getShareInvites.call(groupID)
+    if (found) {
+      const shareIDs = convertBigNumbers(result)
+      return shareIDs
+    }
+    throw new EthError(errorCode.GROUP_NOT_ACTIVE)
   }
 
   /**
@@ -499,12 +516,25 @@ class ShareCenter {
   }
 
   /**
+   * Accept a pending share from a user not in the group
+   * @param {number} shareID
+   * @param {number} groupID
+   * @returns {{logs: Array}}
+   */
+  async acceptShare (shareID, groupID) {
+    const instance = await this.getInstance()
+    const result = await instance.acceptShare(shareID, groupID)
+    handleEthErrors(result)
+    return {logs: result.logs}
+  }
+
+  /**
    * Create a share for a group.
    * @param {String} uri Pointer to the share
    * @param {number} groupID groupID to which the share will be assigned
    * @param {number} time duration of share
    * @param {number} access Access level
-   * @returns {{value: {shareID: number}}} Share properties
+   * @returns {{value: {added: boolean, shareID: number}}} Share properties
    *
    * @throws uri must be <64 characters in length
    * @throws groupID must be registered
@@ -521,9 +551,10 @@ class ShareCenter {
     const result = await instance.addShare(host, path, groupID, time, access);
     handleEthErrors(result);
 
-    const log = result.logs.find(log => log.event === 'ShareAdded');
-    const shareID = log.args.id.toNumber();
-    return { value: { shareID }, logs: result.logs };
+    let log = result.logs.find(log => ['ShareAdded', 'SharePending'].includes(log.event)) // Check if the share was added or pending
+    const shareID = log.args.shareID.toNumber()
+    const added = log.event === 'ShareAdded'
+    return {value: {added, shareID}, logs: result.logs}
   }
 
   /**
