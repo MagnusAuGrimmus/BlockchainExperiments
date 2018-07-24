@@ -304,7 +304,7 @@ class ShareCenter {
     const instance = await this.getInstance();
     const [found, personalGroupID] = await instance.getPersonalGroupID.call(addr);
     if (found) {
-      return personalGroupID;
+      return personalGroupID.toNumber();
     } throw new EthError(errorCode.IS_NOT_A_USER);
   }
 

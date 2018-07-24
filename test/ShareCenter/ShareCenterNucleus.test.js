@@ -1,4 +1,4 @@
-const {initCenter, addShare, createGroup, containsInvite, checkIfShareIsOwned} = require('./TestingUtils')
+const {initCenter, addShare, createGroup, containsInvite, checkIfShareIsOwned, checkError } = require('./TestingUtils')
 
 contract('Test Professional Share', function (accounts) {
   var groupID, shareID
@@ -98,8 +98,11 @@ contract('Test Organizational Share', function (accounts) {
 
   it('should show up in the pending shares for the personal groupID', async function () {
     const groupID = await this.verdad.getPersonalGroupID()
-    const groupInvites = await this.verdad.getShareInvites(groupID)
+    const groupInvites = await this.verdad.getShareInvites(groupID);
+    const verdadShares = await this.verdad.getAllShares();
+
     assert(groupInvites.includes(shareID), 'Verdad did not receive share invite')
+    checkError(() => checkIfShareIsOwned(verdadShares, groupID, shareID));
   })
 
   it("should accept an org share", async function() {
@@ -137,7 +140,7 @@ contract('Test Organizational Share', function (accounts) {
    */
   async function acceptOrgShare (org, shareID) {
     const groupID = await org.getPersonalGroupID()
-    return org.acceptShare(groupID, shareID)
+    return org.acceptShare(shareID, groupID)
   }
 })
 
