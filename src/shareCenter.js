@@ -193,7 +193,8 @@ class ShareCenter {
     const instance = await this.getInstance();
     const result = await instance.createUser(addr);
     handleEthErrors(result);
-    return { logs: result.logs };
+    const personalGroupID = result.logs.find(log => log.event === 'GroupCreated').args.id.toNumber();
+    return { value: { personalGroupID }, logs: result.logs };
   }
 
   /**
