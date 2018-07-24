@@ -17,6 +17,10 @@ const EVENTS = [
   'GroupCreated',
   'ShareAdded',
   'ShareDeleted',
+  'UserPending',
+  'GroupPending',
+  'SubgroupPending',
+  'SharePending'
 ]
 
 /**
