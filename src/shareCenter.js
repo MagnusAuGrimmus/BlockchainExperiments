@@ -112,7 +112,7 @@ class ShareCenter {
       this._setEventListener(event, listeners[event])
     const instance = await this.getInstance();
     for(let event in this.eventListeners)
-      instance[event]({
+      instance[event]({}, {
         fromBlock,
         toBlock: 'latest'
       }).watch((err, response) => ShareCenter._listen(err, response, this.eventListeners[event]))
