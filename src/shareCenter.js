@@ -105,13 +105,17 @@ class ShareCenter {
    * Activate callback functions to blockchain events.
    * @async
    * @param {{string: function, ...}} listeners an object of callbacks with the event name as the key
+   * @param {Number} [fromBlock=0] The block from which to start listening to
    */
-  async watchEvents(listeners) {
+  async watchEvents (listeners, fromBlock = 0) {
     for(let event in listeners)
       this._setEventListener(event, listeners[event])
     const instance = await this.getInstance();
     for(let event in this.eventListeners)
-      instance[event]().watch((err, response) => ShareCenter._listen(err, response, this.eventListeners[event]))
+      instance[event]({
+        fromBlock,
+        toBlock: 'latest'
+      }).watch((err, response) => ShareCenter._listen(err, response, this.eventListeners[event]))
   }
 
   /**
@@ -240,8 +244,7 @@ class ShareCenter {
     const instance = await this.getInstance();
     const [found, result] = await instance.getUserInvites.call();
     if (found) {
-      const groupIDs = convertBigNumbers(result);
-      return groupIDs;
+      return convertBigNumbers(result)
     } throw new EthError(errorCode.IS_NOT_A_USER);
   }
 
@@ -257,8 +260,7 @@ class ShareCenter {
     const instance = await this.getInstance()
     const [found, result] = await instance.getShareInvites.call(groupID)
     if (found) {
-      const shareIDs = convertBigNumbers(result)
-      return shareIDs
+      return convertBigNumbers(result)
     }
     throw new EthError(errorCode.GROUP_NOT_ACTIVE)
   }
@@ -310,7 +312,6 @@ class ShareCenter {
 
   /**
    * Retrieve the groupIDs of a user.
-   * @param {String} addr Blockchain Address of the user.
    * @returns {{value: Array}} Array of groupIDs
    *
    * @throws User must exist
@@ -319,8 +320,7 @@ class ShareCenter {
     const instance = await this.getInstance();
     const [found, result] = await instance.getGroupIDs.call(this.sender);
     if (found) {
-      const groupIDs = convertBigNumbers(result);
-      return groupIDs;
+      return convertBigNumbers(result)
     } throw new EthError(errorCode.IS_NOT_A_USER);
   }
 
@@ -335,8 +335,7 @@ class ShareCenter {
     const instance = await this.getInstance();
     const [found, result] = await instance.getParentGroups.call(groupID);
     if (found) {
-      const parents = convertBigNumbers(result);
-      return parents;
+      return convertBigNumbers(result)
     } throw new EthError(errorCode.GROUP_NOT_ACTIVE);
   }
 
@@ -365,8 +364,7 @@ class ShareCenter {
     const instance = await this.getInstance();
     const [found, result] = await instance.getSubGroups.call(groupID);
     if (found) {
-      const subGroups = convertBigNumbers(result)
-      return subGroups;
+      return convertBigNumbers(result)
     }
     throw new EthError(errorCode.GROUP_NOT_ACTIVE);
   }
@@ -621,8 +619,7 @@ class ShareCenter {
    * @returns {Object} A dictionary with the groupID as key and shares as value
    */
   async _getAllShares(groupID, shares, groupsAdded = new Set()) {
-    const result = await this.getShares(groupID);
-    shares[groupID] = result;
+    shares[groupID] = await this.getShares(groupID)
     const parents = await this.getParentGroups(groupID);
     const getParentShares = async parentGroupID => {
       if (!groupsAdded.has(parentGroupID)) {
