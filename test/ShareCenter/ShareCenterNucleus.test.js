@@ -140,7 +140,7 @@ contract('Test Organizational Share', function (accounts) {
    */
   async function acceptOrgShare (org, shareID) {
     const groupID = await org.getPersonalGroupID()
-    return org.acceptShare(shareID, groupID)
+    return org.acceptShare(groupID, shareID)
   }
 })
 

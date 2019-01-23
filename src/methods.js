@@ -1,4 +1,7 @@
 const url = require('url');
+const Web3 = require('web3');
+
+const { toUtf8 } = new Web3();
 
 /**
  * Split a uri into its host and path
@@ -71,7 +74,7 @@ function parseEvent(response) {
     if(typeof arg === 'object')
       response.args[key] = arg.toNumber();
     else if(!isAddress(arg))
-      response.args[key] = this.web3.toUtf8(arg);
+      response.args[key] = toUtf8(arg);
   }
 }
 

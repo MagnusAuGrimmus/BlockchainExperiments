@@ -2,7 +2,7 @@ const contract = require('truffle-contract');
 const Web3 = require('web3');
 const ShareCenterArtifact = require('../build/contracts/ShareCenter');
 const { errorCode, EthError, EthNodeError, InputError, handleEthErrors, handleTimeError, handleURIError } = require('./errors');
-const {  parseURI, makeURIs, zip, parseEvent, convertBigNumbers, getDuration } = require('./methods');
+const { parseURI, makeURIs, zip, parseEvent, convertBigNumbers, getDuration } = require('./methods');
 
 const CONTRACT_ADDRESS = undefined; // Waiting for deployment of contract to ethnet
 const GAS_DEFAULT = 4712388 // Default cap on the amount of gas that can be spent on an ethereum call

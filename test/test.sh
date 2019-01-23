@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 rm -r build
 mkfifo pipe
 truffle develop <pipe &
