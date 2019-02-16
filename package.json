@@ -1,6 +1,6 @@
 {
   "name": "nucleushealth-sharing",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A mechanism to store pointers to medical records, manage access control, and control access claims on the Ethereum blockchain.",
   "keywords": [
     "medical",
@@ -36,6 +36,6 @@
   },
   "scripts": {
     "test": "./test/test.sh",
-    "build": "truffle compile"
+    "install": "truffle compile"
   }
 }
