@@ -1,0 +1,4289 @@
+{
+  "contractName": "Group",
+  "abi": [],
+  "bytecode": "0x604c602c600b82828239805160001a60731460008114601c57601e565bfe5b5030600052607381538281f30073000000000000000000000000000000000000000030146080604052600080fd00a165627a7a72305820fe8dba9a6ad781443312d023b7512e254a39faaba8c839aebe30938e1ea1fe840029",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fd00a165627a7a72305820fe8dba9a6ad781443312d023b7512e254a39faaba8c839aebe30938e1ea1fe840029",
+  "sourceMap": "99:1357:2:-;;132:2:-1;166:7;155:9;146:7;137:37;252:7;246:14;243:1;238:23;232:4;229:33;270:1;265:20;;;;222:63;;265:20;274:9;222:63;;298:9;295:1;288:20;328:4;319:7;311:22;352:7;343;336:24",
+  "deployedSourceMap": "99:1357:2:-;;;;;;;;",
+  "source": "pragma solidity ^0.4.13;\n\nimport \"./IterableSet_Address.sol\";\nimport \"./IterableSet_Integer.sol\";\n\nlibrary Group\n{\n    using IterableSet_Address for IterableSet_Address.Data;\n    using IterableSet_Integer for IterableSet_Integer.Data;\n\n    struct Data\n    {\n        uint id;\n        address owner;\n        IterableSet_Address.Data users;\n        IterableSet_Integer.Data parentGroups;\n        IterableSet_Integer.Data subGroups;\n        IterableSet_Integer.Data pendingShares;\n        IterableSet_Integer.Data shares;\n    }\n\n    function isActive(Data storage self) internal view returns (bool)\n    {\n        return self.id != 0;\n    }\n\n    function isInGroup(Data storage self, address addr) internal view returns (bool)\n    {\n        return self.owner == addr || self.users.contains(addr);\n    }\n\n    function getUsers(Data storage self) internal view returns (address[] users)\n    {\n        users = new address[](self.users.list.length + 1);\n        for(uint i = 0; i < users.length - 1; i++)\n            users[i] = self.users.list[i];\n        users[users.length - 1] = self.owner;\n        return users;\n    }\n\n    function addGroup(Data storage self, Data storage subGroup) internal\n    {\n        self.subGroups.add(subGroup.id);\n        subGroup.parentGroups.add(self.id);\n    }\n\n    function removeGroup(Data storage self, Data storage group) internal\n    {\n        self.subGroups.remove(group.id);\n        group.parentGroups.remove(self.id);\n    }\n}\n",
+  "sourcePath": "/Users/averma/Documents/Nucleus/Private/contracts/utils/Group.sol",
+  "ast": {
+    "absolutePath": "/Users/averma/Documents/Nucleus/Private/contracts/utils/Group.sol",
+    "exportedSymbols": {
+      "Group": [
+        2188
+      ]
+    },
+    "id": 2189,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 2020,
+        "literals": [
+          "solidity",
+          "^",
+          "0.4",
+          ".13"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:24:2"
+      },
+      {
+        "absolutePath": "/Users/averma/Documents/Nucleus/Private/contracts/utils/IterableSet_Address.sol",
+        "file": "./IterableSet_Address.sol",
+        "id": 2021,
+        "nodeType": "ImportDirective",
+        "scope": 2189,
+        "sourceUnit": 2380,
+        "src": "26:35:2",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/averma/Documents/Nucleus/Private/contracts/utils/IterableSet_Integer.sol",
+        "file": "./IterableSet_Integer.sol",
+        "id": 2022,
+        "nodeType": "ImportDirective",
+        "scope": 2189,
+        "sourceUnit": 2571,
+        "src": "62:35:2",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "library",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 2188,
+        "linearizedBaseContracts": [
+          2188
+        ],
+        "name": "Group",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "id": 2025,
+            "libraryName": {
+              "contractScope": null,
+              "id": 2023,
+              "name": "IterableSet_Address",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 2379,
+              "src": "125:19:2",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IterableSet_Address_$2379",
+                "typeString": "library IterableSet_Address"
+              }
+            },
+            "nodeType": "UsingForDirective",
+            "src": "119:55:2",
+            "typeName": {
+              "contractScope": null,
+              "id": 2024,
+              "name": "IterableSet_Address.Data",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 2200,
+              "src": "149:24:2",
+              "typeDescriptions": {
+                "typeIdentifier": "t_struct$_Data_$2200_storage_ptr",
+                "typeString": "struct IterableSet_Address.Data"
+              }
+            }
+          },
+          {
+            "id": 2028,
+            "libraryName": {
+              "contractScope": null,
+              "id": 2026,
+              "name": "IterableSet_Integer",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 2570,
+              "src": "185:19:2",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IterableSet_Integer_$2570",
+                "typeString": "library IterableSet_Integer"
+              }
+            },
+            "nodeType": "UsingForDirective",
+            "src": "179:55:2",
+            "typeName": {
+              "contractScope": null,
+              "id": 2027,
+              "name": "IterableSet_Integer.Data",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 2391,
+              "src": "209:24:2",
+              "typeDescriptions": {
+                "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                "typeString": "struct IterableSet_Integer.Data"
+              }
+            }
+          },
+          {
+            "canonicalName": "Group.Data",
+            "id": 2043,
+            "members": [
+              {
+                "constant": false,
+                "id": 2030,
+                "name": "id",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "266:7:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 2029,
+                  "name": "uint",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "266:4:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2032,
+                "name": "owner",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "283:13:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 2031,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "283:7:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2034,
+                "name": "users",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "306:30:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Data_$2200_storage_ptr",
+                  "typeString": "struct IterableSet_Address.Data"
+                },
+                "typeName": {
+                  "contractScope": null,
+                  "id": 2033,
+                  "name": "IterableSet_Address.Data",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 2200,
+                  "src": "306:24:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2200_storage_ptr",
+                    "typeString": "struct IterableSet_Address.Data"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2036,
+                "name": "parentGroups",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "346:37:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                  "typeString": "struct IterableSet_Integer.Data"
+                },
+                "typeName": {
+                  "contractScope": null,
+                  "id": 2035,
+                  "name": "IterableSet_Integer.Data",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 2391,
+                  "src": "346:24:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                    "typeString": "struct IterableSet_Integer.Data"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2038,
+                "name": "subGroups",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "393:34:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                  "typeString": "struct IterableSet_Integer.Data"
+                },
+                "typeName": {
+                  "contractScope": null,
+                  "id": 2037,
+                  "name": "IterableSet_Integer.Data",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 2391,
+                  "src": "393:24:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                    "typeString": "struct IterableSet_Integer.Data"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2040,
+                "name": "pendingShares",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "437:38:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                  "typeString": "struct IterableSet_Integer.Data"
+                },
+                "typeName": {
+                  "contractScope": null,
+                  "id": 2039,
+                  "name": "IterableSet_Integer.Data",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 2391,
+                  "src": "437:24:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                    "typeString": "struct IterableSet_Integer.Data"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2042,
+                "name": "shares",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "485:31:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                  "typeString": "struct IterableSet_Integer.Data"
+                },
+                "typeName": {
+                  "contractScope": null,
+                  "id": 2041,
+                  "name": "IterableSet_Integer.Data",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 2391,
+                  "src": "485:24:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                    "typeString": "struct IterableSet_Integer.Data"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "Data",
+            "nodeType": "StructDefinition",
+            "scope": 2188,
+            "src": "240:283:2",
+            "visibility": "public"
+          },
+          {
+            "body": {
+              "id": 2055,
+              "nodeType": "Block",
+              "src": "599:36:2",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 2053,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "argumentTypes": null,
+                      "expression": {
+                        "argumentTypes": null,
+                        "id": 2050,
+                        "name": "self",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 2045,
+                        "src": "616:4:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                          "typeString": "struct Group.Data storage pointer"
+                        }
+                      },
+                      "id": 2051,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "id",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2030,
+                      "src": "616:7:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "!=",
+                    "rightExpression": {
+                      "argumentTypes": null,
+                      "hexValue": "30",
+                      "id": 2052,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "number",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "627:1:2",
+                      "subdenomination": null,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_rational_0_by_1",
+                        "typeString": "int_const 0"
+                      },
+                      "value": "0"
+                    },
+                    "src": "616:12:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 2049,
+                  "id": 2054,
+                  "nodeType": "Return",
+                  "src": "609:19:2"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 2056,
+            "implemented": true,
+            "isConstructor": false,
+            "isDeclaredConst": true,
+            "modifiers": [],
+            "name": "isActive",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2046,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2045,
+                  "name": "self",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2056,
+                  "src": "547:17:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2044,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "547:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "546:19:2"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 2049,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2048,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2056,
+                  "src": "589:4:2",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 2047,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "589:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "588:6:2"
+            },
+            "scope": 2188,
+            "src": "529:106:2",
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 2076,
+              "nodeType": "Block",
+              "src": "726:71:2",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "commonType": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    },
+                    "id": 2074,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "argumentTypes": null,
+                      "commonType": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      },
+                      "id": 2068,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2065,
+                          "name": "self",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2058,
+                          "src": "743:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2066,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "owner",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2032,
+                        "src": "743:10:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "==",
+                      "rightExpression": {
+                        "argumentTypes": null,
+                        "id": 2067,
+                        "name": "addr",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 2060,
+                        "src": "757:4:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      "src": "743:18:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "||",
+                    "rightExpression": {
+                      "argumentTypes": null,
+                      "arguments": [
+                        {
+                          "argumentTypes": null,
+                          "id": 2072,
+                          "name": "addr",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2060,
+                          "src": "785:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": null,
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 2069,
+                            "name": "self",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 2058,
+                            "src": "765:4:2",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                              "typeString": "struct Group.Data storage pointer"
+                            }
+                          },
+                          "id": 2070,
+                          "isConstant": false,
+                          "isLValue": true,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "users",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 2034,
+                          "src": "765:10:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2200_storage",
+                            "typeString": "struct IterableSet_Address.Data storage ref"
+                          }
+                        },
+                        "id": 2071,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "contains",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2238,
+                        "src": "765:19:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_internal_view$_t_struct$_Data_$2200_storage_ptr_$_t_address_$returns$_t_bool_$bound_to$_t_struct$_Data_$2200_storage_ptr_$",
+                          "typeString": "function (struct IterableSet_Address.Data storage pointer,address) view returns (bool)"
+                        }
+                      },
+                      "id": 2073,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "765:25:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "src": "743:47:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 2064,
+                  "id": 2075,
+                  "nodeType": "Return",
+                  "src": "736:54:2"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 2077,
+            "implemented": true,
+            "isConstructor": false,
+            "isDeclaredConst": true,
+            "modifiers": [],
+            "name": "isInGroup",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2061,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2058,
+                  "name": "self",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2077,
+                  "src": "660:17:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2057,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "660:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2060,
+                  "name": "addr",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2077,
+                  "src": "679:12:2",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2059,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "679:7:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "659:33:2"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 2064,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2063,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2077,
+                  "src": "716:4:2",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 2062,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "716:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "715:6:2"
+            },
+            "scope": 2188,
+            "src": "641:156:2",
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 2134,
+              "nodeType": "Block",
+              "src": "884:228:2",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 2096,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 2085,
+                      "name": "users",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 2083,
+                      "src": "894:5:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                        "typeString": "address[] memory"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "arguments": [
+                        {
+                          "argumentTypes": null,
+                          "commonType": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          },
+                          "id": 2094,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "argumentTypes": null,
+                            "expression": {
+                              "argumentTypes": null,
+                              "expression": {
+                                "argumentTypes": null,
+                                "expression": {
+                                  "argumentTypes": null,
+                                  "id": 2089,
+                                  "name": "self",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 2079,
+                                  "src": "916:4:2",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                                    "typeString": "struct Group.Data storage pointer"
+                                  }
+                                },
+                                "id": 2090,
+                                "isConstant": false,
+                                "isLValue": true,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "memberName": "users",
+                                "nodeType": "MemberAccess",
+                                "referencedDeclaration": 2034,
+                                "src": "916:10:2",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_struct$_Data_$2200_storage",
+                                  "typeString": "struct IterableSet_Address.Data storage ref"
+                                }
+                              },
+                              "id": 2091,
+                              "isConstant": false,
+                              "isLValue": true,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "memberName": "list",
+                              "nodeType": "MemberAccess",
+                              "referencedDeclaration": 2199,
+                              "src": "916:15:2",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_array$_t_address_$dyn_storage",
+                                "typeString": "address[] storage ref"
+                              }
+                            },
+                            "id": 2092,
+                            "isConstant": false,
+                            "isLValue": true,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "memberName": "length",
+                            "nodeType": "MemberAccess",
+                            "referencedDeclaration": null,
+                            "src": "916:22:2",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": "+",
+                          "rightExpression": {
+                            "argumentTypes": null,
+                            "hexValue": "31",
+                            "id": 2093,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "kind": "number",
+                            "lValueRequested": false,
+                            "nodeType": "Literal",
+                            "src": "941:1:2",
+                            "subdenomination": null,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_rational_1_by_1",
+                              "typeString": "int_const 1"
+                            },
+                            "value": "1"
+                          },
+                          "src": "916:26:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        ],
+                        "id": 2088,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "lValueRequested": false,
+                        "nodeType": "NewExpression",
+                        "src": "902:13:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_objectcreation_pure$_t_uint256_$returns$_t_array$_t_address_$dyn_memory_$",
+                          "typeString": "function (uint256) pure returns (address[] memory)"
+                        },
+                        "typeName": {
+                          "baseType": {
+                            "id": 2086,
+                            "name": "address",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "906:7:2",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          },
+                          "id": 2087,
+                          "length": null,
+                          "nodeType": "ArrayTypeName",
+                          "src": "906:9:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+                            "typeString": "address[]"
+                          }
+                        }
+                      },
+                      "id": 2095,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "902:41:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_address_$dyn_memory",
+                        "typeString": "address[] memory"
+                      }
+                    },
+                    "src": "894:49:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                      "typeString": "address[] memory"
+                    }
+                  },
+                  "id": 2097,
+                  "nodeType": "ExpressionStatement",
+                  "src": "894:49:2"
+                },
+                {
+                  "body": {
+                    "expression": {
+                      "argumentTypes": null,
+                      "id": 2119,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftHandSide": {
+                        "argumentTypes": null,
+                        "baseExpression": {
+                          "argumentTypes": null,
+                          "id": 2111,
+                          "name": "users",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2083,
+                          "src": "1008:5:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                            "typeString": "address[] memory"
+                          }
+                        },
+                        "id": 2113,
+                        "indexExpression": {
+                          "argumentTypes": null,
+                          "id": 2112,
+                          "name": "i",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2099,
+                          "src": "1014:1:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": true,
+                        "nodeType": "IndexAccess",
+                        "src": "1008:8:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      "nodeType": "Assignment",
+                      "operator": "=",
+                      "rightHandSide": {
+                        "argumentTypes": null,
+                        "baseExpression": {
+                          "argumentTypes": null,
+                          "expression": {
+                            "argumentTypes": null,
+                            "expression": {
+                              "argumentTypes": null,
+                              "id": 2114,
+                              "name": "self",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 2079,
+                              "src": "1019:4:2",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                                "typeString": "struct Group.Data storage pointer"
+                              }
+                            },
+                            "id": 2115,
+                            "isConstant": false,
+                            "isLValue": true,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "memberName": "users",
+                            "nodeType": "MemberAccess",
+                            "referencedDeclaration": 2034,
+                            "src": "1019:10:2",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_struct$_Data_$2200_storage",
+                              "typeString": "struct IterableSet_Address.Data storage ref"
+                            }
+                          },
+                          "id": 2116,
+                          "isConstant": false,
+                          "isLValue": true,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "list",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 2199,
+                          "src": "1019:15:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_address_$dyn_storage",
+                            "typeString": "address[] storage ref"
+                          }
+                        },
+                        "id": 2118,
+                        "indexExpression": {
+                          "argumentTypes": null,
+                          "id": 2117,
+                          "name": "i",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2099,
+                          "src": "1035:1:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "nodeType": "IndexAccess",
+                        "src": "1019:18:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      "src": "1008:29:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "id": 2120,
+                    "nodeType": "ExpressionStatement",
+                    "src": "1008:29:2"
+                  },
+                  "condition": {
+                    "argumentTypes": null,
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 2107,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "argumentTypes": null,
+                      "id": 2102,
+                      "name": "i",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 2099,
+                      "src": "969:1:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "<",
+                    "rightExpression": {
+                      "argumentTypes": null,
+                      "commonType": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "id": 2106,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2103,
+                          "name": "users",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2083,
+                          "src": "973:5:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                            "typeString": "address[] memory"
+                          }
+                        },
+                        "id": 2104,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "length",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": null,
+                        "src": "973:12:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "-",
+                      "rightExpression": {
+                        "argumentTypes": null,
+                        "hexValue": "31",
+                        "id": 2105,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "988:1:2",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        "value": "1"
+                      },
+                      "src": "973:16:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "969:20:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 2121,
+                  "initializationExpression": {
+                    "assignments": [
+                      2099
+                    ],
+                    "declarations": [
+                      {
+                        "constant": false,
+                        "id": 2099,
+                        "name": "i",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 2135,
+                        "src": "957:6:2",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 2098,
+                          "name": "uint",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "957:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "id": 2101,
+                    "initialValue": {
+                      "argumentTypes": null,
+                      "hexValue": "30",
+                      "id": 2100,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "number",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "966:1:2",
+                      "subdenomination": null,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_rational_0_by_1",
+                        "typeString": "int_const 0"
+                      },
+                      "value": "0"
+                    },
+                    "nodeType": "VariableDeclarationStatement",
+                    "src": "957:10:2"
+                  },
+                  "loopExpression": {
+                    "expression": {
+                      "argumentTypes": null,
+                      "id": 2109,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "nodeType": "UnaryOperation",
+                      "operator": "++",
+                      "prefix": false,
+                      "src": "991:3:2",
+                      "subExpression": {
+                        "argumentTypes": null,
+                        "id": 2108,
+                        "name": "i",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 2099,
+                        "src": "991:1:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "id": 2110,
+                    "nodeType": "ExpressionStatement",
+                    "src": "991:3:2"
+                  },
+                  "nodeType": "ForStatement",
+                  "src": "953:84:2"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 2130,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "baseExpression": {
+                        "argumentTypes": null,
+                        "id": 2122,
+                        "name": "users",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 2083,
+                        "src": "1047:5:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                          "typeString": "address[] memory"
+                        }
+                      },
+                      "id": 2127,
+                      "indexExpression": {
+                        "argumentTypes": null,
+                        "commonType": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "id": 2126,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "argumentTypes": null,
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 2123,
+                            "name": "users",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 2083,
+                            "src": "1053:5:2",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                              "typeString": "address[] memory"
+                            }
+                          },
+                          "id": 2124,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "length",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": null,
+                          "src": "1053:12:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "-",
+                        "rightExpression": {
+                          "argumentTypes": null,
+                          "hexValue": "31",
+                          "id": 2125,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "number",
+                          "lValueRequested": false,
+                          "nodeType": "Literal",
+                          "src": "1068:1:2",
+                          "subdenomination": null,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_rational_1_by_1",
+                            "typeString": "int_const 1"
+                          },
+                          "value": "1"
+                        },
+                        "src": "1053:16:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "IndexAccess",
+                      "src": "1047:23:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "expression": {
+                        "argumentTypes": null,
+                        "id": 2128,
+                        "name": "self",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 2079,
+                        "src": "1073:4:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                          "typeString": "struct Group.Data storage pointer"
+                        }
+                      },
+                      "id": 2129,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "owner",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2032,
+                      "src": "1073:10:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "src": "1047:36:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "id": 2131,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1047:36:2"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 2132,
+                    "name": "users",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 2083,
+                    "src": "1100:5:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                      "typeString": "address[] memory"
+                    }
+                  },
+                  "functionReturnParameters": 2084,
+                  "id": 2133,
+                  "nodeType": "Return",
+                  "src": "1093:12:2"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 2135,
+            "implemented": true,
+            "isConstructor": false,
+            "isDeclaredConst": true,
+            "modifiers": [],
+            "name": "getUsers",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2080,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2079,
+                  "name": "self",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2135,
+                  "src": "821:17:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2078,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "821:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "820:19:2"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 2084,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2083,
+                  "name": "users",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2135,
+                  "src": "863:15:2",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                    "typeString": "address[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 2081,
+                      "name": "address",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "863:7:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "id": 2082,
+                    "length": null,
+                    "nodeType": "ArrayTypeName",
+                    "src": "863:9:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+                      "typeString": "address[]"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "862:17:2"
+            },
+            "scope": 2188,
+            "src": "803:309:2",
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 2160,
+              "nodeType": "Block",
+              "src": "1191:92:2",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2147,
+                          "name": "subGroup",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2139,
+                          "src": "1220:8:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2148,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "id",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2030,
+                        "src": "1220:11:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2142,
+                          "name": "self",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2137,
+                          "src": "1201:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2145,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "subGroups",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2038,
+                        "src": "1201:14:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2391_storage",
+                          "typeString": "struct IterableSet_Integer.Data storage ref"
+                        }
+                      },
+                      "id": 2146,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "add",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2462,
+                      "src": "1201:18:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Data_$2391_storage_ptr_$_t_uint256_$returns$_t_bool_$bound_to$_t_struct$_Data_$2391_storage_ptr_$",
+                        "typeString": "function (struct IterableSet_Integer.Data storage pointer,uint256) returns (bool)"
+                      }
+                    },
+                    "id": 2149,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1201:31:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 2150,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1201:31:2"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2156,
+                          "name": "self",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2137,
+                          "src": "1268:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2157,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "id",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2030,
+                        "src": "1268:7:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2151,
+                          "name": "subGroup",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2139,
+                          "src": "1242:8:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2154,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "parentGroups",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2036,
+                        "src": "1242:21:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2391_storage",
+                          "typeString": "struct IterableSet_Integer.Data storage ref"
+                        }
+                      },
+                      "id": 2155,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "add",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2462,
+                      "src": "1242:25:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Data_$2391_storage_ptr_$_t_uint256_$returns$_t_bool_$bound_to$_t_struct$_Data_$2391_storage_ptr_$",
+                        "typeString": "function (struct IterableSet_Integer.Data storage pointer,uint256) returns (bool)"
+                      }
+                    },
+                    "id": 2158,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1242:34:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 2159,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1242:34:2"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 2161,
+            "implemented": true,
+            "isConstructor": false,
+            "isDeclaredConst": false,
+            "modifiers": [],
+            "name": "addGroup",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2140,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2137,
+                  "name": "self",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2161,
+                  "src": "1136:17:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2136,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "1136:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2139,
+                  "name": "subGroup",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2161,
+                  "src": "1155:21:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2138,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "1155:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1135:42:2"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 2141,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1191:0:2"
+            },
+            "scope": 2188,
+            "src": "1118:165:2",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 2186,
+              "nodeType": "Block",
+              "src": "1362:92:2",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2173,
+                          "name": "group",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2165,
+                          "src": "1394:5:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2174,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "id",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2030,
+                        "src": "1394:8:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2168,
+                          "name": "self",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2163,
+                          "src": "1372:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2171,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "subGroups",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2038,
+                        "src": "1372:14:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2391_storage",
+                          "typeString": "struct IterableSet_Integer.Data storage ref"
+                        }
+                      },
+                      "id": 2172,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "remove",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2529,
+                      "src": "1372:21:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Data_$2391_storage_ptr_$_t_uint256_$returns$_t_bool_$bound_to$_t_struct$_Data_$2391_storage_ptr_$",
+                        "typeString": "function (struct IterableSet_Integer.Data storage pointer,uint256) returns (bool)"
+                      }
+                    },
+                    "id": 2175,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1372:31:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 2176,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1372:31:2"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2182,
+                          "name": "self",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2163,
+                          "src": "1439:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2183,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "id",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2030,
+                        "src": "1439:7:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2177,
+                          "name": "group",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2165,
+                          "src": "1413:5:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2180,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "parentGroups",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2036,
+                        "src": "1413:18:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2391_storage",
+                          "typeString": "struct IterableSet_Integer.Data storage ref"
+                        }
+                      },
+                      "id": 2181,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "remove",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2529,
+                      "src": "1413:25:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Data_$2391_storage_ptr_$_t_uint256_$returns$_t_bool_$bound_to$_t_struct$_Data_$2391_storage_ptr_$",
+                        "typeString": "function (struct IterableSet_Integer.Data storage pointer,uint256) returns (bool)"
+                      }
+                    },
+                    "id": 2184,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1413:34:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 2185,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1413:34:2"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 2187,
+            "implemented": true,
+            "isConstructor": false,
+            "isDeclaredConst": false,
+            "modifiers": [],
+            "name": "removeGroup",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2166,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2163,
+                  "name": "self",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2187,
+                  "src": "1310:17:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2162,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "1310:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2165,
+                  "name": "group",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2187,
+                  "src": "1329:18:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2164,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "1329:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1309:39:2"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 2167,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1362:0:2"
+            },
+            "scope": 2188,
+            "src": "1289:165:2",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "internal"
+          }
+        ],
+        "scope": 2189,
+        "src": "99:1357:2"
+      }
+    ],
+    "src": "0:1457:2"
+  },
+  "legacyAST": {
+    "absolutePath": "/Users/averma/Documents/Nucleus/Private/contracts/utils/Group.sol",
+    "exportedSymbols": {
+      "Group": [
+        2188
+      ]
+    },
+    "id": 2189,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 2020,
+        "literals": [
+          "solidity",
+          "^",
+          "0.4",
+          ".13"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:24:2"
+      },
+      {
+        "absolutePath": "/Users/averma/Documents/Nucleus/Private/contracts/utils/IterableSet_Address.sol",
+        "file": "./IterableSet_Address.sol",
+        "id": 2021,
+        "nodeType": "ImportDirective",
+        "scope": 2189,
+        "sourceUnit": 2380,
+        "src": "26:35:2",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/averma/Documents/Nucleus/Private/contracts/utils/IterableSet_Integer.sol",
+        "file": "./IterableSet_Integer.sol",
+        "id": 2022,
+        "nodeType": "ImportDirective",
+        "scope": 2189,
+        "sourceUnit": 2571,
+        "src": "62:35:2",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "library",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 2188,
+        "linearizedBaseContracts": [
+          2188
+        ],
+        "name": "Group",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "id": 2025,
+            "libraryName": {
+              "contractScope": null,
+              "id": 2023,
+              "name": "IterableSet_Address",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 2379,
+              "src": "125:19:2",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IterableSet_Address_$2379",
+                "typeString": "library IterableSet_Address"
+              }
+            },
+            "nodeType": "UsingForDirective",
+            "src": "119:55:2",
+            "typeName": {
+              "contractScope": null,
+              "id": 2024,
+              "name": "IterableSet_Address.Data",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 2200,
+              "src": "149:24:2",
+              "typeDescriptions": {
+                "typeIdentifier": "t_struct$_Data_$2200_storage_ptr",
+                "typeString": "struct IterableSet_Address.Data"
+              }
+            }
+          },
+          {
+            "id": 2028,
+            "libraryName": {
+              "contractScope": null,
+              "id": 2026,
+              "name": "IterableSet_Integer",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 2570,
+              "src": "185:19:2",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IterableSet_Integer_$2570",
+                "typeString": "library IterableSet_Integer"
+              }
+            },
+            "nodeType": "UsingForDirective",
+            "src": "179:55:2",
+            "typeName": {
+              "contractScope": null,
+              "id": 2027,
+              "name": "IterableSet_Integer.Data",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 2391,
+              "src": "209:24:2",
+              "typeDescriptions": {
+                "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                "typeString": "struct IterableSet_Integer.Data"
+              }
+            }
+          },
+          {
+            "canonicalName": "Group.Data",
+            "id": 2043,
+            "members": [
+              {
+                "constant": false,
+                "id": 2030,
+                "name": "id",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "266:7:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 2029,
+                  "name": "uint",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "266:4:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2032,
+                "name": "owner",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "283:13:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 2031,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "283:7:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2034,
+                "name": "users",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "306:30:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Data_$2200_storage_ptr",
+                  "typeString": "struct IterableSet_Address.Data"
+                },
+                "typeName": {
+                  "contractScope": null,
+                  "id": 2033,
+                  "name": "IterableSet_Address.Data",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 2200,
+                  "src": "306:24:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2200_storage_ptr",
+                    "typeString": "struct IterableSet_Address.Data"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2036,
+                "name": "parentGroups",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "346:37:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                  "typeString": "struct IterableSet_Integer.Data"
+                },
+                "typeName": {
+                  "contractScope": null,
+                  "id": 2035,
+                  "name": "IterableSet_Integer.Data",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 2391,
+                  "src": "346:24:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                    "typeString": "struct IterableSet_Integer.Data"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2038,
+                "name": "subGroups",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "393:34:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                  "typeString": "struct IterableSet_Integer.Data"
+                },
+                "typeName": {
+                  "contractScope": null,
+                  "id": 2037,
+                  "name": "IterableSet_Integer.Data",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 2391,
+                  "src": "393:24:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                    "typeString": "struct IterableSet_Integer.Data"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2040,
+                "name": "pendingShares",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "437:38:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                  "typeString": "struct IterableSet_Integer.Data"
+                },
+                "typeName": {
+                  "contractScope": null,
+                  "id": 2039,
+                  "name": "IterableSet_Integer.Data",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 2391,
+                  "src": "437:24:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                    "typeString": "struct IterableSet_Integer.Data"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 2042,
+                "name": "shares",
+                "nodeType": "VariableDeclaration",
+                "scope": 2043,
+                "src": "485:31:2",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                  "typeString": "struct IterableSet_Integer.Data"
+                },
+                "typeName": {
+                  "contractScope": null,
+                  "id": 2041,
+                  "name": "IterableSet_Integer.Data",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 2391,
+                  "src": "485:24:2",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2391_storage_ptr",
+                    "typeString": "struct IterableSet_Integer.Data"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "Data",
+            "nodeType": "StructDefinition",
+            "scope": 2188,
+            "src": "240:283:2",
+            "visibility": "public"
+          },
+          {
+            "body": {
+              "id": 2055,
+              "nodeType": "Block",
+              "src": "599:36:2",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 2053,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "argumentTypes": null,
+                      "expression": {
+                        "argumentTypes": null,
+                        "id": 2050,
+                        "name": "self",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 2045,
+                        "src": "616:4:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                          "typeString": "struct Group.Data storage pointer"
+                        }
+                      },
+                      "id": 2051,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "id",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2030,
+                      "src": "616:7:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "!=",
+                    "rightExpression": {
+                      "argumentTypes": null,
+                      "hexValue": "30",
+                      "id": 2052,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "number",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "627:1:2",
+                      "subdenomination": null,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_rational_0_by_1",
+                        "typeString": "int_const 0"
+                      },
+                      "value": "0"
+                    },
+                    "src": "616:12:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 2049,
+                  "id": 2054,
+                  "nodeType": "Return",
+                  "src": "609:19:2"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 2056,
+            "implemented": true,
+            "isConstructor": false,
+            "isDeclaredConst": true,
+            "modifiers": [],
+            "name": "isActive",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2046,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2045,
+                  "name": "self",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2056,
+                  "src": "547:17:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2044,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "547:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "546:19:2"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 2049,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2048,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2056,
+                  "src": "589:4:2",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 2047,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "589:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "588:6:2"
+            },
+            "scope": 2188,
+            "src": "529:106:2",
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 2076,
+              "nodeType": "Block",
+              "src": "726:71:2",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "commonType": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    },
+                    "id": 2074,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "argumentTypes": null,
+                      "commonType": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      },
+                      "id": 2068,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2065,
+                          "name": "self",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2058,
+                          "src": "743:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2066,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "owner",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2032,
+                        "src": "743:10:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "==",
+                      "rightExpression": {
+                        "argumentTypes": null,
+                        "id": 2067,
+                        "name": "addr",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 2060,
+                        "src": "757:4:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      "src": "743:18:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "||",
+                    "rightExpression": {
+                      "argumentTypes": null,
+                      "arguments": [
+                        {
+                          "argumentTypes": null,
+                          "id": 2072,
+                          "name": "addr",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2060,
+                          "src": "785:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": null,
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 2069,
+                            "name": "self",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 2058,
+                            "src": "765:4:2",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                              "typeString": "struct Group.Data storage pointer"
+                            }
+                          },
+                          "id": 2070,
+                          "isConstant": false,
+                          "isLValue": true,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "users",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 2034,
+                          "src": "765:10:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2200_storage",
+                            "typeString": "struct IterableSet_Address.Data storage ref"
+                          }
+                        },
+                        "id": 2071,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "contains",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2238,
+                        "src": "765:19:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_internal_view$_t_struct$_Data_$2200_storage_ptr_$_t_address_$returns$_t_bool_$bound_to$_t_struct$_Data_$2200_storage_ptr_$",
+                          "typeString": "function (struct IterableSet_Address.Data storage pointer,address) view returns (bool)"
+                        }
+                      },
+                      "id": 2073,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "765:25:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "src": "743:47:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 2064,
+                  "id": 2075,
+                  "nodeType": "Return",
+                  "src": "736:54:2"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 2077,
+            "implemented": true,
+            "isConstructor": false,
+            "isDeclaredConst": true,
+            "modifiers": [],
+            "name": "isInGroup",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2061,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2058,
+                  "name": "self",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2077,
+                  "src": "660:17:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2057,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "660:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2060,
+                  "name": "addr",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2077,
+                  "src": "679:12:2",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2059,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "679:7:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "659:33:2"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 2064,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2063,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2077,
+                  "src": "716:4:2",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 2062,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "716:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "715:6:2"
+            },
+            "scope": 2188,
+            "src": "641:156:2",
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 2134,
+              "nodeType": "Block",
+              "src": "884:228:2",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 2096,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 2085,
+                      "name": "users",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 2083,
+                      "src": "894:5:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                        "typeString": "address[] memory"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "arguments": [
+                        {
+                          "argumentTypes": null,
+                          "commonType": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          },
+                          "id": 2094,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "argumentTypes": null,
+                            "expression": {
+                              "argumentTypes": null,
+                              "expression": {
+                                "argumentTypes": null,
+                                "expression": {
+                                  "argumentTypes": null,
+                                  "id": 2089,
+                                  "name": "self",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 2079,
+                                  "src": "916:4:2",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                                    "typeString": "struct Group.Data storage pointer"
+                                  }
+                                },
+                                "id": 2090,
+                                "isConstant": false,
+                                "isLValue": true,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "memberName": "users",
+                                "nodeType": "MemberAccess",
+                                "referencedDeclaration": 2034,
+                                "src": "916:10:2",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_struct$_Data_$2200_storage",
+                                  "typeString": "struct IterableSet_Address.Data storage ref"
+                                }
+                              },
+                              "id": 2091,
+                              "isConstant": false,
+                              "isLValue": true,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "memberName": "list",
+                              "nodeType": "MemberAccess",
+                              "referencedDeclaration": 2199,
+                              "src": "916:15:2",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_array$_t_address_$dyn_storage",
+                                "typeString": "address[] storage ref"
+                              }
+                            },
+                            "id": 2092,
+                            "isConstant": false,
+                            "isLValue": true,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "memberName": "length",
+                            "nodeType": "MemberAccess",
+                            "referencedDeclaration": null,
+                            "src": "916:22:2",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": "+",
+                          "rightExpression": {
+                            "argumentTypes": null,
+                            "hexValue": "31",
+                            "id": 2093,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "kind": "number",
+                            "lValueRequested": false,
+                            "nodeType": "Literal",
+                            "src": "941:1:2",
+                            "subdenomination": null,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_rational_1_by_1",
+                              "typeString": "int_const 1"
+                            },
+                            "value": "1"
+                          },
+                          "src": "916:26:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        ],
+                        "id": 2088,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "lValueRequested": false,
+                        "nodeType": "NewExpression",
+                        "src": "902:13:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_objectcreation_pure$_t_uint256_$returns$_t_array$_t_address_$dyn_memory_$",
+                          "typeString": "function (uint256) pure returns (address[] memory)"
+                        },
+                        "typeName": {
+                          "baseType": {
+                            "id": 2086,
+                            "name": "address",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "906:7:2",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          },
+                          "id": 2087,
+                          "length": null,
+                          "nodeType": "ArrayTypeName",
+                          "src": "906:9:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+                            "typeString": "address[]"
+                          }
+                        }
+                      },
+                      "id": 2095,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "902:41:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_address_$dyn_memory",
+                        "typeString": "address[] memory"
+                      }
+                    },
+                    "src": "894:49:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                      "typeString": "address[] memory"
+                    }
+                  },
+                  "id": 2097,
+                  "nodeType": "ExpressionStatement",
+                  "src": "894:49:2"
+                },
+                {
+                  "body": {
+                    "expression": {
+                      "argumentTypes": null,
+                      "id": 2119,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftHandSide": {
+                        "argumentTypes": null,
+                        "baseExpression": {
+                          "argumentTypes": null,
+                          "id": 2111,
+                          "name": "users",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2083,
+                          "src": "1008:5:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                            "typeString": "address[] memory"
+                          }
+                        },
+                        "id": 2113,
+                        "indexExpression": {
+                          "argumentTypes": null,
+                          "id": 2112,
+                          "name": "i",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2099,
+                          "src": "1014:1:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": true,
+                        "nodeType": "IndexAccess",
+                        "src": "1008:8:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      "nodeType": "Assignment",
+                      "operator": "=",
+                      "rightHandSide": {
+                        "argumentTypes": null,
+                        "baseExpression": {
+                          "argumentTypes": null,
+                          "expression": {
+                            "argumentTypes": null,
+                            "expression": {
+                              "argumentTypes": null,
+                              "id": 2114,
+                              "name": "self",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 2079,
+                              "src": "1019:4:2",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                                "typeString": "struct Group.Data storage pointer"
+                              }
+                            },
+                            "id": 2115,
+                            "isConstant": false,
+                            "isLValue": true,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "memberName": "users",
+                            "nodeType": "MemberAccess",
+                            "referencedDeclaration": 2034,
+                            "src": "1019:10:2",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_struct$_Data_$2200_storage",
+                              "typeString": "struct IterableSet_Address.Data storage ref"
+                            }
+                          },
+                          "id": 2116,
+                          "isConstant": false,
+                          "isLValue": true,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "list",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 2199,
+                          "src": "1019:15:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_address_$dyn_storage",
+                            "typeString": "address[] storage ref"
+                          }
+                        },
+                        "id": 2118,
+                        "indexExpression": {
+                          "argumentTypes": null,
+                          "id": 2117,
+                          "name": "i",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2099,
+                          "src": "1035:1:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "nodeType": "IndexAccess",
+                        "src": "1019:18:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      "src": "1008:29:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "id": 2120,
+                    "nodeType": "ExpressionStatement",
+                    "src": "1008:29:2"
+                  },
+                  "condition": {
+                    "argumentTypes": null,
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 2107,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "argumentTypes": null,
+                      "id": 2102,
+                      "name": "i",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 2099,
+                      "src": "969:1:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "<",
+                    "rightExpression": {
+                      "argumentTypes": null,
+                      "commonType": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "id": 2106,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2103,
+                          "name": "users",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2083,
+                          "src": "973:5:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                            "typeString": "address[] memory"
+                          }
+                        },
+                        "id": 2104,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "length",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": null,
+                        "src": "973:12:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "-",
+                      "rightExpression": {
+                        "argumentTypes": null,
+                        "hexValue": "31",
+                        "id": 2105,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "988:1:2",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        "value": "1"
+                      },
+                      "src": "973:16:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "969:20:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 2121,
+                  "initializationExpression": {
+                    "assignments": [
+                      2099
+                    ],
+                    "declarations": [
+                      {
+                        "constant": false,
+                        "id": 2099,
+                        "name": "i",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 2135,
+                        "src": "957:6:2",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 2098,
+                          "name": "uint",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "957:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "id": 2101,
+                    "initialValue": {
+                      "argumentTypes": null,
+                      "hexValue": "30",
+                      "id": 2100,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "number",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "966:1:2",
+                      "subdenomination": null,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_rational_0_by_1",
+                        "typeString": "int_const 0"
+                      },
+                      "value": "0"
+                    },
+                    "nodeType": "VariableDeclarationStatement",
+                    "src": "957:10:2"
+                  },
+                  "loopExpression": {
+                    "expression": {
+                      "argumentTypes": null,
+                      "id": 2109,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "nodeType": "UnaryOperation",
+                      "operator": "++",
+                      "prefix": false,
+                      "src": "991:3:2",
+                      "subExpression": {
+                        "argumentTypes": null,
+                        "id": 2108,
+                        "name": "i",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 2099,
+                        "src": "991:1:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "id": 2110,
+                    "nodeType": "ExpressionStatement",
+                    "src": "991:3:2"
+                  },
+                  "nodeType": "ForStatement",
+                  "src": "953:84:2"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 2130,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "baseExpression": {
+                        "argumentTypes": null,
+                        "id": 2122,
+                        "name": "users",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 2083,
+                        "src": "1047:5:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                          "typeString": "address[] memory"
+                        }
+                      },
+                      "id": 2127,
+                      "indexExpression": {
+                        "argumentTypes": null,
+                        "commonType": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "id": 2126,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "argumentTypes": null,
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 2123,
+                            "name": "users",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 2083,
+                            "src": "1053:5:2",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                              "typeString": "address[] memory"
+                            }
+                          },
+                          "id": 2124,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "length",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": null,
+                          "src": "1053:12:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "-",
+                        "rightExpression": {
+                          "argumentTypes": null,
+                          "hexValue": "31",
+                          "id": 2125,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "number",
+                          "lValueRequested": false,
+                          "nodeType": "Literal",
+                          "src": "1068:1:2",
+                          "subdenomination": null,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_rational_1_by_1",
+                            "typeString": "int_const 1"
+                          },
+                          "value": "1"
+                        },
+                        "src": "1053:16:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "IndexAccess",
+                      "src": "1047:23:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "expression": {
+                        "argumentTypes": null,
+                        "id": 2128,
+                        "name": "self",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 2079,
+                        "src": "1073:4:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                          "typeString": "struct Group.Data storage pointer"
+                        }
+                      },
+                      "id": 2129,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "owner",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2032,
+                      "src": "1073:10:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "src": "1047:36:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "id": 2131,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1047:36:2"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 2132,
+                    "name": "users",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 2083,
+                    "src": "1100:5:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                      "typeString": "address[] memory"
+                    }
+                  },
+                  "functionReturnParameters": 2084,
+                  "id": 2133,
+                  "nodeType": "Return",
+                  "src": "1093:12:2"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 2135,
+            "implemented": true,
+            "isConstructor": false,
+            "isDeclaredConst": true,
+            "modifiers": [],
+            "name": "getUsers",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2080,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2079,
+                  "name": "self",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2135,
+                  "src": "821:17:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2078,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "821:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "820:19:2"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 2084,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2083,
+                  "name": "users",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2135,
+                  "src": "863:15:2",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+                    "typeString": "address[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 2081,
+                      "name": "address",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "863:7:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "id": 2082,
+                    "length": null,
+                    "nodeType": "ArrayTypeName",
+                    "src": "863:9:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+                      "typeString": "address[]"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "862:17:2"
+            },
+            "scope": 2188,
+            "src": "803:309:2",
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 2160,
+              "nodeType": "Block",
+              "src": "1191:92:2",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2147,
+                          "name": "subGroup",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2139,
+                          "src": "1220:8:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2148,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "id",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2030,
+                        "src": "1220:11:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2142,
+                          "name": "self",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2137,
+                          "src": "1201:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2145,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "subGroups",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2038,
+                        "src": "1201:14:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2391_storage",
+                          "typeString": "struct IterableSet_Integer.Data storage ref"
+                        }
+                      },
+                      "id": 2146,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "add",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2462,
+                      "src": "1201:18:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Data_$2391_storage_ptr_$_t_uint256_$returns$_t_bool_$bound_to$_t_struct$_Data_$2391_storage_ptr_$",
+                        "typeString": "function (struct IterableSet_Integer.Data storage pointer,uint256) returns (bool)"
+                      }
+                    },
+                    "id": 2149,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1201:31:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 2150,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1201:31:2"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2156,
+                          "name": "self",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2137,
+                          "src": "1268:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2157,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "id",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2030,
+                        "src": "1268:7:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2151,
+                          "name": "subGroup",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2139,
+                          "src": "1242:8:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2154,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "parentGroups",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2036,
+                        "src": "1242:21:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2391_storage",
+                          "typeString": "struct IterableSet_Integer.Data storage ref"
+                        }
+                      },
+                      "id": 2155,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "add",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2462,
+                      "src": "1242:25:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Data_$2391_storage_ptr_$_t_uint256_$returns$_t_bool_$bound_to$_t_struct$_Data_$2391_storage_ptr_$",
+                        "typeString": "function (struct IterableSet_Integer.Data storage pointer,uint256) returns (bool)"
+                      }
+                    },
+                    "id": 2158,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1242:34:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 2159,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1242:34:2"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 2161,
+            "implemented": true,
+            "isConstructor": false,
+            "isDeclaredConst": false,
+            "modifiers": [],
+            "name": "addGroup",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2140,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2137,
+                  "name": "self",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2161,
+                  "src": "1136:17:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2136,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "1136:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2139,
+                  "name": "subGroup",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2161,
+                  "src": "1155:21:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2138,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "1155:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1135:42:2"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 2141,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1191:0:2"
+            },
+            "scope": 2188,
+            "src": "1118:165:2",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 2186,
+              "nodeType": "Block",
+              "src": "1362:92:2",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2173,
+                          "name": "group",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2165,
+                          "src": "1394:5:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2174,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "id",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2030,
+                        "src": "1394:8:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2168,
+                          "name": "self",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2163,
+                          "src": "1372:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2171,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "subGroups",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2038,
+                        "src": "1372:14:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2391_storage",
+                          "typeString": "struct IterableSet_Integer.Data storage ref"
+                        }
+                      },
+                      "id": 2172,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "remove",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2529,
+                      "src": "1372:21:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Data_$2391_storage_ptr_$_t_uint256_$returns$_t_bool_$bound_to$_t_struct$_Data_$2391_storage_ptr_$",
+                        "typeString": "function (struct IterableSet_Integer.Data storage pointer,uint256) returns (bool)"
+                      }
+                    },
+                    "id": 2175,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1372:31:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 2176,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1372:31:2"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2182,
+                          "name": "self",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2163,
+                          "src": "1439:4:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2183,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "id",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2030,
+                        "src": "1439:7:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 2177,
+                          "name": "group",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 2165,
+                          "src": "1413:5:2",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                            "typeString": "struct Group.Data storage pointer"
+                          }
+                        },
+                        "id": 2180,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "parentGroups",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 2036,
+                        "src": "1413:18:2",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Data_$2391_storage",
+                          "typeString": "struct IterableSet_Integer.Data storage ref"
+                        }
+                      },
+                      "id": 2181,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "remove",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 2529,
+                      "src": "1413:25:2",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Data_$2391_storage_ptr_$_t_uint256_$returns$_t_bool_$bound_to$_t_struct$_Data_$2391_storage_ptr_$",
+                        "typeString": "function (struct IterableSet_Integer.Data storage pointer,uint256) returns (bool)"
+                      }
+                    },
+                    "id": 2184,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1413:34:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 2185,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1413:34:2"
+                }
+              ]
+            },
+            "documentation": null,
+            "id": 2187,
+            "implemented": true,
+            "isConstructor": false,
+            "isDeclaredConst": false,
+            "modifiers": [],
+            "name": "removeGroup",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2166,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2163,
+                  "name": "self",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2187,
+                  "src": "1310:17:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2162,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "1310:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2165,
+                  "name": "group",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2187,
+                  "src": "1329:18:2",
+                  "stateVariable": false,
+                  "storageLocation": "storage",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                    "typeString": "struct Group.Data"
+                  },
+                  "typeName": {
+                    "contractScope": null,
+                    "id": 2164,
+                    "name": "Data",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 2043,
+                    "src": "1329:4:2",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Data_$2043_storage_ptr",
+                      "typeString": "struct Group.Data"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1309:39:2"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 2167,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1362:0:2"
+            },
+            "scope": 2188,
+            "src": "1289:165:2",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "internal"
+          }
+        ],
+        "scope": 2189,
+        "src": "99:1357:2"
+      }
+    ],
+    "src": "0:1457:2"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.4.24+commit.e67f0147.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "2.0.0",
+  "updatedAt": "2019-02-16T15:39:34.354Z"
+}

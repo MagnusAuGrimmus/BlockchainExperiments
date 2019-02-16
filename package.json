@@ -1,6 +1,6 @@
 {
   "name": "nucleushealth-sharing",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A mechanism to store pointers to medical records, manage access control, and control access claims on the Ethereum blockchain.",
   "keywords": [
     "medical",
