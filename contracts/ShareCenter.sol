@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.5.0;
 import "./utils/IterableSet_Integer.sol";
 import "./utils/IterableSet_Address.sol";
 import "./utils/IterableSet_Pair.sol";
@@ -56,7 +56,7 @@ contract ShareCenter
     }
 
     address owner;
-    mapping(address => IterableSet_Address.Data) authorizedSystems;
+    mapping(address => bool) authorizedSystems;
     mapping(address => User) users;
     mapping(uint => Group.Data) groups;
     mapping(uint => RecordShare) shares;
@@ -135,7 +135,7 @@ contract ShareCenter
 
     modifier isRegisteredSystem()
     {
-        if(!authorizedSystems[msg.sender].active)
+        if (!authorizedSystems[msg.sender])
             emit Error(uint(ErrorCode.IS_NOT_A_REGISTERED_SYSTEM));
         else
             _;
@@ -202,7 +202,7 @@ contract ShareCenter
         owner = msg.sender;
     }
 
-    function canRead(address addr, uint shareID) public view
+    function canRead(address addr, uint shareID) public
     returns (bool)
     {
         (, uint[] memory groupIDs) = getGroupIDs(addr);
@@ -237,15 +237,15 @@ contract ShareCenter
     function isAddedSystem(address system) public view
     returns (bool)
     {
-        return authorizedSystems[system].active;
+        return authorizedSystems[system];
     }
 
     function addSystem(address system) public
     isOwner
     {
-        if(!authorizedSystems[system].active)
+        if (!authorizedSystems[system])
         {
-            authorizedSystems[system].active = true;
+            authorizedSystems[system] = true;
             emit SystemAdded(system, msg.sender);
         }
     }
@@ -259,7 +259,7 @@ contract ShareCenter
 
     function getUsers(uint groupID) public
     isActiveGroup(groupID)
-    returns (bool, address[])
+    returns (bool, address[] memory)
     {
         return (true, groups[groupID].getUsers());
     }
@@ -289,53 +289,53 @@ contract ShareCenter
         users[msg.sender].blacklist.add(addr);
     }
 
-    function getUserInvites() public view
+    function getUserInvites() public
     isUser(msg.sender)
-    returns (bool, uint[])
+    returns (bool, uint[] memory)
     {
         return (true, users[msg.sender].pendingUsers.list);
     }
 
-    function getShareInvites(uint groupID) public view
+    function getShareInvites(uint groupID) public
     isActiveGroup(groupID)
-    returns (bool, uint[])
+    returns (bool, uint[] memory)
     {
         return (true, groups[groupID].pendingShares.list);
     }
 
-    function getGroupInvites() public view
+    function getGroupInvites() public
     isUser(msg.sender)
-    returns (bool found, uint[] groupIDs, uint[] parentGroupIDs)
+    returns (bool found, uint[] memory groupIDs, uint[] memory parentGroupIDs)
     {
         (groupIDs, parentGroupIDs) = users[msg.sender].pendingGroups.iterator();
         found = true;
     }
 
-    function getSubgroupInvites() public view
+    function getSubgroupInvites() public
     isUser(msg.sender)
-    returns (bool found, uint[] groupIDs, uint[] subgroupIDs)
+    returns (bool found, uint[] memory groupIDs, uint[] memory subgroupIDs)
     {
         (groupIDs, subgroupIDs) = users[msg.sender].pendingSubgroups.iterator();
         found = true;
     }
 
-    function getGroupIDs(address addr) public view
+    function getGroupIDs(address addr) public
     isUser(addr)
-    returns (bool, uint[])
+    returns (bool, uint[] memory)
     {
         return (true, users[msg.sender].groups.iterator());
     }
 
     function getParentGroups(uint groupID) public
     isActiveGroup(groupID)
-    returns (bool, uint[])
+    returns (bool, uint[] memory)
     {
         return (true, groups[groupID].parentGroups.iterator());
     }
 
     function getSubGroups(uint groupID) public
     isActiveGroup(groupID)
-    returns (bool, uint[])
+    returns (bool, uint[] memory)
     {
         return (true, groups[groupID].subGroups.iterator());
     }
@@ -431,11 +431,11 @@ contract ShareCenter
         groups[groupID].users.remove(addr);
     }
 
-    function getShare(uint shareID) public view
+    function getShare(uint shareID) public
     shareExists(shareID)
     returns (bool found, address owner, uint groupID, bytes32 host, bytes32 path, uint time, uint access)
     {
-        RecordShare share = shares[shareID];
+        RecordShare memory share = shares[shareID];
         owner = share.owner;
         groupID = share.groupID;
         host = share.host;
@@ -445,9 +445,9 @@ contract ShareCenter
         found = true;
     }
 
-    function getShares(uint groupID) public view
+    function getShares(uint groupID) public
     isActiveGroup(groupID)
-    returns (bool found, uint index, uint[] shareIDs, bytes32[] hosts, bytes32[] paths)
+    returns (bool found, uint index, uint[] memory shareIDs, bytes32[] memory hosts, bytes32[] memory paths)
     {
         uint[] memory tempShares = groups[groupID].shares.list;
         shareIDs = new uint[](tempShares.length);

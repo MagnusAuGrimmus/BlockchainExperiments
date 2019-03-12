@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.5.0;
 import "../../contracts/utils/Group.sol";
 import "truffle/Assert.sol";
 
@@ -8,15 +8,16 @@ contract GroupTest
     using IterableSet_Integer for IterableSet_Integer.Data;
     using IterableSet_Address for IterableSet_Address.Data;
     Group.Data group;
+    Group.Data group1;
 
     function beforeEach() public
     {
         delete group;
+        delete group1;
     }
 
     function testAddGroup() public
     {
-        Group.Data group1;
         group1.id = 10;
         group.addGroup(group1);
         uint[] memory subGroups = group.subGroups.iterator();

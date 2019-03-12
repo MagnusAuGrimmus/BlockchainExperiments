@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.5.0;
 
 library IterableSet_Integer
 {
@@ -39,7 +39,7 @@ library IterableSet_Integer
         return true;
     }
 
-    function iterator(Data storage self) internal view returns (uint[] list)
+    function iterator(Data storage self) internal view returns (uint[] memory list)
     {
         list = new uint[](self.list.length);
         for(uint i = 0; i < list.length; i++)

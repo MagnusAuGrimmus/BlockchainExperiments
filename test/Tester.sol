@@ -1,8 +1,8 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.5.0;
 
 contract Tester
 {
-    function equal(uint[] a, uint[] b) public pure returns (bool)
+    function equal(uint[] memory a, uint[] memory b) public pure returns (bool)
     {
         if(a.length != b.length)
             return false;
@@ -14,7 +14,7 @@ contract Tester
         return true;
     }
 
-    function equal(uint[] a, uint[] b, uint length) public pure returns (bool)
+    function equal(uint[] memory a, uint[] memory b, uint length) public pure returns (bool)
     {
         for(uint i = 0; i < length; i++)
         {
@@ -24,7 +24,7 @@ contract Tester
         return true;
     }
 
-    function equal(address[] a, address[] b) public pure returns (bool)
+    function equal(address[] memory a, address[] memory b) public pure returns (bool)
     {
         if(a.length != b.length)
             return false;
@@ -36,7 +36,7 @@ contract Tester
         return true;
     }
 
-    function equal(bytes32[] a, bytes32[] b) public pure returns (bool)
+    function equal(bytes32[] memory a, bytes32[] memory b) public pure returns (bool)
     {
         if(a.length != b.length)
             return false;
@@ -48,7 +48,7 @@ contract Tester
         return true;
     }
 
-    function equal(bytes32[] a, bytes32[] b, uint length) public pure returns (bool)
+    function equal(bytes32[] memory a, bytes32[] memory b, uint length) public pure returns (bool)
     {
         for(uint i = 0; i < length; i++)
         {
@@ -58,7 +58,7 @@ contract Tester
         return true;
     }
 
-    function equal(bool[] a, bool[] b) public pure returns (bool)
+    function equal(bool[] memory a, bool[] memory b) public pure returns (bool)
     {
         if(a.length != b.length)
             return false;

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.5.0;
 
 library IterableSet_Address
 {
@@ -39,7 +39,7 @@ library IterableSet_Address
         return true;
     }
 
-    function iterator(Data storage self) internal view returns (address[] list)
+    function iterator(Data storage self) internal view returns (address[] memory list)
     {
         list = new address[](self.list.length);
         for(uint i = 0; i < list.length; i++)

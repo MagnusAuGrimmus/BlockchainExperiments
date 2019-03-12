@@ -22,8 +22,8 @@ contract('Test Get Users', function (accounts) {
     const groupID = await createGroup(center)
     await center.addUserToGroup(groupID, accounts[1])
     const users = await center.getUsers(groupID)
-    assert(users.includes(accounts[0]), 'user1 not in group')
-    assert(users.includes(accounts[1]), 'user2 not in group')
+    assert(users.includes(accounts[0].toLowerCase()), 'user1 not in group')
+    assert(users.includes(accounts[1].toLowerCase()), 'user2 not in group')
   })
 })
 

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity ^0.5.0;
 
 import "./IterableSet_Address.sol";
 import "./IterableSet_Integer.sol";
@@ -29,7 +29,7 @@ library Group
         return self.owner == addr || self.users.contains(addr);
     }
 
-    function getUsers(Data storage self) internal view returns (address[] users)
+    function getUsers(Data storage self) internal view returns (address[] memory users)
     {
         users = new address[](self.users.list.length + 1);
         for(uint i = 0; i < users.length - 1; i++)

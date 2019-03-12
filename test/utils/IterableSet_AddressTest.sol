@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.5.0;
 
 import "./../Tester.sol";
 import "../../contracts/utils/IterableSet_Address.sol";
@@ -14,9 +14,9 @@ contract IterableSet_AddressTest is Tester
 
     function beforeAll() public
     {
-        data.push(0x1);
-        data.push(0x2);
-        data.push(0x3);
+        data.push(address(0x1));
+        data.push(address(0x2));
+        data.push(address(0x3));
     }
 
     function testInit() public

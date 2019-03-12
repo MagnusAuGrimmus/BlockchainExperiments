@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.5.0;
 
 library IterableSet_Pair
 {
@@ -46,7 +46,7 @@ library IterableSet_Pair
         return true;
     }
 
-    function iterator(Data storage self) internal view returns (uint[] list1, uint[] list2)
+    function iterator(Data storage self) internal view returns (uint[] memory list1, uint[] memory list2)
     {
         list1 = new uint[](self.list1.length);
         list2 = new uint[](self.list1.length);
