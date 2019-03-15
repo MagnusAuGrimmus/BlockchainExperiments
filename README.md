@@ -30,7 +30,8 @@ const ShareCenter = require('nucleushealth-sharing');
 ```
 npm test
 ```
-
+Make sure to reset your ganache deployment in between test runs. Otherwise, the tests will not
+run with a clean slate and will most likely fail.
 
 ## Deployment
 

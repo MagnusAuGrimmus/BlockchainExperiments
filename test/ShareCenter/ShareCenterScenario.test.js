@@ -23,7 +23,6 @@ contract('Test Doctor Patient Get All Shares', function (accounts) {
     const groupID = await createGroup(patient)
     const shareID = await addShare(patient, 'PatientURI', groupID)
     await patient.addUserToGroup(groupID, doctorAddress)
-    await doctor.acceptParentGroup(groupID)
     const shares = await doctor.getAllShares();
 
     checkIfShareIsOwned(shares, groupID, shareID)
@@ -49,7 +48,6 @@ contract('Test Banner Verdad Case', function (accounts) {
 
   it('should give Verdad group access to share', async function () {
     await bannerDoctor.addGroupToGroup(bannerGroupID, verdadGroupID);
-    await verdadDoctor.acceptParentGroup(bannerGroupID, verdadGroupID);
     const shares = await verdadDoctor.getAllShares();
 
     checkIfShareIsOwned(shares, bannerGroupID, shareID)
@@ -110,7 +108,7 @@ contract('Test Get Shares with multiple shares', function (accounts) {
    * @returns {Array} the shareIDs of all the shares added
    */
   async function addShares (numShares) {
-    let shares = [...Array(numShares)].map(() => addShare(user, URI, groupID))
+    let shares = [...Array(numShares)].map(() => addShare(user, URI, groupID)) // TODO: get rid of spread syntax maybe?
     return await Promise.all(shares)
   }
 
@@ -157,7 +155,6 @@ contract('It should test the time limit of authorize claims', function (accounts
     await center.createUser(userAddress)
     groupID = await createGroup(center)
     await center.addUserToGroup(groupID, userAddress)
-    await user.acceptParentGroup(groupID)
   })
 
   it('should give write privileges for only 1 second', async function () {
@@ -180,5 +177,29 @@ contract('It should test interactions with 2 systems', function (accounts) {
     const system2 = initCenter(accounts[2])
     await system1.createUser(accounts[3])
     await system2.createUser(accounts[4])
+  })
+})
+
+contract('It should not give an attacker access to all shares', accounts => {
+  let center, attacker,
+    groupID, shareID
+  before(async () => {
+    const centerAddress = accounts[0]
+    const attackerAddress = accounts[2]
+
+    center = initCenter(centerAddress)
+    await center.addSystem(centerAddress)
+    await center.createUser(centerAddress)
+    await center.createUser(attackerAddress)
+    attacker = initCenter(attackerAddress)
+    groupID = await center.getPersonalGroupID()
+    shareID = await addShare(center, 'uri', groupID)
+  })
+
+  it('should not allow a user to access shares that have not been shared to them by joining the group structure', async () => {
+    await attacker.addSubGroup(await attacker.getPersonalGroupID(), groupID)
+
+    const shares = await attacker.getAllShares()
+    await checkError(() => checkIfShareIsOwned(shares, groupID, shareID))
   })
 })

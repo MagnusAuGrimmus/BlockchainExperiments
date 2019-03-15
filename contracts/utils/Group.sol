@@ -13,8 +13,8 @@ library Group
         uint id;
         address owner;
         IterableSet_Address.Data users;
-        IterableSet_Integer.Data parentGroups;
-        IterableSet_Integer.Data subGroups;
+        IterableSet_Integer.Data parentGroups; // Owner groups
+        IterableSet_Integer.Data subGroups; // Share groups
         IterableSet_Integer.Data pendingShares;
         IterableSet_Integer.Data shares;
     }

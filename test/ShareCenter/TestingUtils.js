@@ -1,4 +1,3 @@
-const equal = require('deep-equal');
 const ShareCenter = require('../../src/shareCenter')
 const {HTTP_PROVIDER} = require('../config.json')
 
@@ -22,13 +21,8 @@ function contains (shares, shareID) {
   return shares.some(share => share.id === shareID);
 }
 
-function containsInvite(invites, invite) {
-  return invites.some(item => equal(item, invite));
-}
-
 function checkIfShareIsOwned (shares, groupID, shareID) {
-  var shares = shares[groupID]
-  assert(contains(shares, shareID), `User does not have ${shareID} in shares under groupID ${groupID}`)
+  assert(contains(shares[groupID], shareID), `User does not have ${shareID} in shares under groupID ${groupID}`)
   return true
 }
 
@@ -54,7 +48,6 @@ module.exports = {
   initCenter,
   addShare,
   contains,
-  containsInvite,
   createGroup,
   checkIfShareIsOwned,
   checkError,

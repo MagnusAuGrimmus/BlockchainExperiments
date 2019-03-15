@@ -21,7 +21,6 @@ contract('ShareCenter Error Testing', function (accounts) {
     emptyGroupID = await createGroup(user2)
     fakeID = 123456789
     await center.addUserToGroup(groupID, user1Address)
-    await user1.acceptParentGroup(groupID);
     shareID = await addShare(center, 'uri', groupID)
   })
 
@@ -49,16 +48,6 @@ contract('ShareCenter Error Testing', function (accounts) {
     const call = () => center.createUser(centerAddress)
     await checkError(call, 1)
   })
-
-  it('should throw error code 2 when whitelist is called on fake user', async function () {
-    const call = () => center.whitelist(fakeUserAddress)
-    await checkError(call, 2)
-  })
-  
-  it('should throw error code 2 when whitelist is called from fake user', async function () {
-    const call = () => fakeUser.whitelist(user1Address)
-    await checkError(call, 2)
-  })
   
   it('should throw error code 2 when blacklist is called on fake user', async function () {
     const call = () => center.blacklist(fakeUserAddress)
@@ -67,21 +56,6 @@ contract('ShareCenter Error Testing', function (accounts) {
   
   it('should throw error code 2 when blacklist is called from fake user', async function () {
     const call = () => fakeUser.blacklist(user1Address)
-    await checkError(call, 2)
-  })
-
-  it('should throw error code 2 when getUserInvites is called from fake user', async function () {
-    const call = () => fakeUser.getUserInvites()
-    await checkError(call, 2)
-  })
-
-  it('should throw error code 2 when getGroupInvites is called from fake user', async function () {
-    const call = () => fakeUser.getGroupInvites()
-    await checkError(call, 2)
-  })
-
-  it('should throw error code 2 when getSubgroupInvites is called from fake user', async function () {
-    const call = () => fakeUser.getSubgroupInvites()
     await checkError(call, 2)
   })
 
@@ -132,18 +106,6 @@ contract('ShareCenter Error Testing', function (accounts) {
   it('should throw error code 9 when removeGroupFromGroup is called from nonowner', async function () {
     const call = () => user1.removeGroupFromGroup(groupID, emptyGroupID)
     await checkError(call, 9)
-  })
-  
-  it('should throw error code 11 when acceptParentGroup is called on nonpending group', async function() {
-    let call = () => center.acceptParentGroup(fakeID);
-    await checkError(call, 11)
-    call = () => center.acceptParentGroup(groupID, emptyGroupID);
-    await checkError(call, 12);
-  })
-
-  it('should throw error code 11 when acceptSubGroup is called on nonpending subgroup', async function() {
-    let call = () => center.acceptSubgroup(groupID, emptyGroupID);
-    await checkError(call, 13)
   })
 
   it('should throw error code 7 when addUserToGroup is called with fake group', async function () {
@@ -210,7 +172,6 @@ contract('Test Circular Dependencies', function (accounts) {
 
     await center.addGroupToGroup(groupMasterID, groupChildID)
     await user.addGroupToGroup(groupChildID, groupGrandChildID)
-    await user.acceptParentGroup(groupMasterID, groupChildID);
   })
 
   it('should throw an error when user tries to add a group into itself', async function () {

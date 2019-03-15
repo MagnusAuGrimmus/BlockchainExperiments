@@ -1,4 +1,4 @@
-const {initCenter, addShare, createGroup, containsInvite, checkIfShareIsOwned, checkError } = require('./TestingUtils')
+const {initCenter, addShare, createGroup, checkIfShareIsOwned} = require('./TestingUtils')
 
 contract('Test Professional Share', function (accounts) {
   var groupID, shareID
@@ -22,16 +22,7 @@ contract('Test Professional Share', function (accounts) {
     shareID = data.shareID
   })
 
-  it('should show the share in user and org pending', async function () {
-    const userInvites = await this.verdadUser1.getUserInvites();
-    const groupInvites = await this.verdad.getSubgroupInvites();
-    const targetGroupInvite = { groupID: this.verdadCardiologists, subgroupID: groupID };
-    assert(userInvites.includes(groupID), "Verdad User #1 did not receive group invite");
-    assert(containsInvite(groupInvites, targetGroupInvite), "Verdad did not receive group invite");
-  })
-
-  it("should accept a pro share", async function() {
-    await acceptProShare(this.verdadUser1, this.verdad, groupID, this.verdadCardiologists);
+  it('should create a pro share', async function () {
     const userShares = await this.verdadUser1.getAllShares()
     const verdadGroups = await this.verdad.getSubGroups(this.verdadCardiologists);
     checkIfShareIsOwned(userShares, groupID, shareID)
@@ -48,7 +39,7 @@ contract('Test Professional Share', function (accounts) {
    * @param {Object} shareParams
    * @param {string} shareParams.uri
    * @param {number} shareParams.time duration of the claim
-   * @param {number} shareParams.access access privleges of both the user and the organization
+   * @param {number} shareParams.access access privileges of both the user and the organization
    * @returns {number} the groupID where the share exists
    */
   async function createProShare (sender, recipientAddress, orgGroupID, shareParams) {
@@ -58,22 +49,6 @@ contract('Test Professional Share', function (accounts) {
     await sender.addSubGroup(groupID, orgGroupID);
     const shareID = await addShare(sender, uri, groupID, time, access)
     return {groupID, shareID}
-  }
-
-  /**
-   * Accept a professional share.
-   * Called from the context of the recipient user, but also gives access to the recipient organization on call.
-   * @async
-   * @param {ShareCenter} user ShareCenter instance of the recipient user
-   * @param {ShareCenter} org ShareCenter instance of the recipient organization
-   * @param {number} groupID groupID of the share
-   * @param {number} orgGroupID organization groupID to give access to
-   */
-  async function acceptProShare(user, org, groupID, orgGroupID) {
-    return Promise.all([
-      org.acceptSubgroup(groupID, orgGroupID),
-      user.acceptParentGroup(groupID)
-    ]);
   }
 })
 
@@ -96,18 +71,7 @@ contract('Test Organizational Share', function (accounts) {
       shareParams);
   })
 
-  it('should show up in the pending shares for the personal groupID', async function () {
-    const groupID = await this.verdad.getPersonalGroupID()
-    const groupInvites = await this.verdad.getShareInvites(groupID);
-    const verdadShares = await this.verdad.getAllShares();
-
-    assert(groupInvites.includes(shareID), 'Verdad did not receive share invite')
-    checkError(() => checkIfShareIsOwned(verdadShares, groupID, shareID));
-  })
-
-  it("should accept an org share", async function() {
-    await acceptOrgShare(this.verdad, shareID)
-
+  it('should create an org share', async function () {
     const verdadShares = await this.verdad.getAllShares()
     const groupID = await this.verdad.getPersonalGroupID()
     assert(checkIfShareIsOwned(verdadShares, groupID, shareID), 'Verdad did not receive share')
@@ -129,18 +93,6 @@ contract('Test Organizational Share', function (accounts) {
     const {uri, time, access} = shareParams
     const groupID = await sender.getPersonalGroupID(orgAddress)
     return addShare(sender, uri, groupID, time, access)
-  }
-
-  /**
-   * Accept an organizational share.
-   * Called from the context of the organization.
-   * @async
-   * @param {ShareCenter} org ShareCenter instance of the recipient organization
-   * @param {number} shareID
-   */
-  async function acceptOrgShare (org, shareID) {
-    const groupID = await org.getPersonalGroupID()
-    return org.acceptShare(groupID, shareID)
   }
 })
 
@@ -175,7 +127,4 @@ async function initScenario(self, accounts) {
   await self.banner.addUserToGroup(self.bannerRadiologists,self. bannerUser1Address);
   await self.banner.addUserToGroup(self.bannerRadiologists, self.bannerUser2Address);
   await self.verdad.addUserToGroup(self.verdadCardiologists, self.verdadUser1Address);
-  await self.bannerUser1.acceptParentGroup(self.bannerRadiologists);
-  await self.bannerUser2.acceptParentGroup(self.bannerRadiologists);
-  await self.verdadUser1.acceptParentGroup(self.verdadCardiologists);
 }

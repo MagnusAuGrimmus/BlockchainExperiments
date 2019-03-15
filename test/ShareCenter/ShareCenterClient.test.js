@@ -18,7 +18,6 @@ contract('Test Get Users', function (accounts) {
     await center.addSystem(accounts[0])
     await center.createUser(accounts[0])
     await center.createUser(accounts[1])
-    await user.whitelist(accounts[0]) //Whitelist center to make so that addUserToGroup doesn't require an accept call
     const groupID = await createGroup(center)
     await center.addUserToGroup(groupID, accounts[1])
     const users = await center.getUsers(groupID)
@@ -91,19 +90,12 @@ contract('Test Blacklist', function (accounts) {
     await badUser.addUserToGroup(groupID, centerAddress);
 
     assert(!(await checkIfGroupWasAdded(center)), 'Group ID was added from blacklisted source');
-
-    const pendingGroupIDs = await center.getUserInvites();
-    assert(!pendingGroupIDs.includes(groupID), 'Group ID was added to pending from blacklisted source');
   })
 
   it('should prevent badUser from adding center (by groupID) to group', async function() {
     await badUser.addGroupToGroup(groupID, subgroupID);
 
     assert(!(await checkIfGroupWasAdded(center)), 'Group ID was added from blacklisted source');
-
-    const pendingGroupIDs = await center.getGroupInvites();
-    console.log(pendingGroupIDs);
-    assert(!pendingGroupIDs.includes({ groupID, subgroupID }), 'Group ID was added to pending from blacklisted source');
   })
 })
 
@@ -135,11 +127,6 @@ contract('Test Family Get All Shares', function (accounts) {
     await grandfather.addGroupToGroup(grandfatherGroupID, motherGroupID)
     await grandfather.addGroupToGroup(grandfatherGroupID, sonGroupID)
     await mother.addGroupToGroup(motherGroupID, sonGroupID)
-
-    //Accepting all group invites
-    await mother.acceptParentGroup(grandfatherGroupID, motherGroupID)
-    await son.acceptParentGroup(grandfatherGroupID, sonGroupID)
-    await son.acceptParentGroup(motherGroupID, sonGroupID)
   }
 
   it('should get all shares for grandfather', async function () {

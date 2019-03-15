@@ -16,11 +16,7 @@ const EVENTS = [
   'GroupRemoved',
   'GroupCreated',
   'ShareAdded',
-  'ShareDeleted',
-  'UserPending',
-  'GroupPending',
-  'SubgroupPending',
-  'SharePending'
+  'ShareDeleted'
 ]
 
 /**
@@ -202,22 +198,6 @@ class ShareCenter {
   }
 
   /**
-   * Adds a blockchain user to the caller's whitelist.
-   * This allows the user to add shares without the caller having to accept them.
-   * @async
-   * @param addr
-   * @returns {{logs: Array}}
-   *
-   * @throws User must exist
-   */
-  async whitelist(addr) {
-    const instance = await this.getInstance();
-    const result = await instance.whitelist(addr);
-    handleEthErrors(result);
-    return { logs: result.logs };
-  }
-
-  /**
    * Adds a blockchain user to the caller's blacklist.
    * This prevents the user from sharing with the caller.
    * @async
@@ -231,68 +211,6 @@ class ShareCenter {
     const result = await instance.blacklist(addr);
     handleEthErrors(result);
     return { logs: result.logs };
-  }
-
-  /**
-   * Retrieve the pending groupIDs of a user.
-   * @async
-   * @returns {{value: Array}} Array of groupIDs
-   *
-   * @throws User must exist
-   */
-  async getUserInvites() {
-    const instance = await this.getInstance();
-    const [found, result] = await instance.getUserInvites.call();
-    if (found) {
-      return convertBigNumbers(result)
-    } throw new EthError(errorCode.IS_NOT_A_USER);
-  }
-
-  /**
-   * Retrieve the pending shareIDs of a group.
-   * @async
-   * @param {number} groupID
-   * @returns {{value: Array}} Array of shareIDs
-   *
-   * @throws User must exist
-   */
-  async getShareInvites (groupID) {
-    const instance = await this.getInstance()
-    const [found, result] = await instance.getShareInvites.call(groupID)
-    if (found) {
-      return convertBigNumbers(result)
-    }
-    throw new EthError(errorCode.GROUP_NOT_ACTIVE)
-  }
-
-  /**
-   * Get the caller's group invitations.
-   * Used primarily in peer to peer sharing.
-   * @returns {[{groupID: number, parentGroupID, number}]} An Array of pending group invitations
-   *
-   * @throws User must exist
-   */
-  async getGroupInvites() {
-    const instance = await this.getInstance();
-    const [found, groupIDs, parentGroupIDs] = await instance.getGroupInvites.call();
-    if (found) {
-      return zip('groupID', convertBigNumbers(groupIDs), 'parentGroupID', convertBigNumbers(parentGroupIDs));
-    } throw new EthError(errorCode.IS_NOT_A_USER);
-  }
-
-  /**
-   * Get the caller's subgroup invitations.
-   * Used primarily in organizational sharing.
-   * @returns {[{groupID: number, subgroupID, number}]} An Array of pending group invitations
-   *
-   * @throws User must exist
-   */
-  async getSubgroupInvites() {
-    const instance = await this.getInstance();
-    const [found, groupIDs, subgroupIDs] = await instance.getSubgroupInvites.call();
-    if (found) {
-      return zip('groupID', convertBigNumbers(groupIDs), 'subgroupID', convertBigNumbers(subgroupIDs));
-    } throw new EthError(errorCode.IS_NOT_A_USER);
   }
 
   /**
@@ -430,28 +348,6 @@ class ShareCenter {
   }
 
   /**
-   * Accept a parent group.
-   * Used to gain access of shares that were shared to you through addGroupToGroup.
-   * Meant for peer to peer sharing.
-   *
-   * @param parentGroupID
-   * @param groupID
-   * @returns {{logs: Array}}
-   *
-   * @throws group invite must exist
-   */
-  async acceptParentGroup(parentGroupID, groupID) {
-    const instance = await this.getInstance();
-    let result;
-    if(groupID)
-      result = await instance.acceptParentGroupAsGroup(parentGroupID, groupID)
-    else
-      result = await instance.acceptParentGroupAsUser(parentGroupID);
-    handleEthErrors(result)
-    return {logs: result.logs}
-  }
-
-  /**
    * Add a user to a group.
    * @param {number} groupID
    * @param {String} addr Blockchain Address of the user to add
@@ -466,22 +362,6 @@ class ShareCenter {
     const result = await instance.addUserToGroup(groupID, addr);
     handleEthErrors(result);
     return { logs: result.logs };
-  }
-
-  /**
-   * Accept a subgroup.
-   * Meant for organizational sharing.
-   * @param subgroupID
-   * @param groupID
-   * @returns {{logs: Array}}
-   *
-   * @throws group invite must exist
-   */
-  async acceptSubgroup (subgroupID, groupID) {
-    const instance = await this.getInstance();
-    const result = await instance.acceptSubgroup(subgroupID, groupID)
-    handleEthErrors(result);
-    return {logs: result.logs}
   }
 
   /**
@@ -519,19 +399,6 @@ class ShareCenter {
   }
 
   /**
-   * Accept a pending share from a user not in the group
-   * @param {number} shareID
-   * @param {number} groupID
-   * @returns {{logs: Array}}
-   */
-  async acceptShare (shareID, groupID) {
-    const instance = await this.getInstance()
-    const result = await instance.acceptShare(shareID, groupID)
-    handleEthErrors(result)
-    return {logs: result.logs}
-  }
-
-  /**
    * Create a share for a group.
    * @param {String} uri Pointer to the share
    * @param {number} groupID groupID to which the share will be assigned
@@ -554,10 +421,9 @@ class ShareCenter {
     const result = await instance.addShare(host, path, groupID, time, access);
     handleEthErrors(result);
 
-    let log = result.logs.find(log => ['ShareAdded', 'SharePending'].includes(log.event)) // Check if the share was added or pending
+    let log = result.logs.find(log => ['ShareAdded'].includes(log.event)) // Check if the share was added
     const shareID = log.args.shareID.toNumber()
-    const added = log.event === 'ShareAdded'
-    return {value: {added, shareID}, logs: result.logs}
+    return {value: {shareID}, logs: result.logs}
   }
 
   /**

@@ -11,9 +11,6 @@ const errorCode = {
 	NOT_IN_GROUP: 8,
 	NOT_OWNER_OF_GROUP: 9,
 	IN_GROUP: 10,
-	IS_NOT_PENDING_USER: 11,
-	IS_NOT_PENDING_GROUP: 12,
-	IS_NOT_PENDING_SUBGROUP: 13,
 
 	// ShareCenter.js module specific errors
 	INVALID_URI: 100,
@@ -41,9 +38,6 @@ const errorMessages = {
 	[errorCode.NOT_IN_GROUP]: 'User is not in group',
 	[errorCode.NOT_OWNER_OF_GROUP]: 'User is not owner of group',
 	[errorCode.IN_GROUP]: 'User or Group is already in group',
-	[errorCode.IS_NOT_PENDING_USER]: 'User is not pending',
-	[errorCode.IS_NOT_PENDING_GROUP]: 'Group is not pending',
-	[errorCode.IS_NOT_PENDING_SUBGROUP]: 'Subgroup is not pending',
 
 	// ShareCenter.js module specific errors
 	[errorCode.INVALID_URI]: 'Invalid length URI',
