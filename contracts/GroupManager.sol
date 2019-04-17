@@ -1,13 +1,24 @@
 pragma solidity ^0.5.0;
 
-import "./utils/Group.sol";
 import "./UserManager.sol";
+import "./utils/IterableSet_Address.sol";
+import "./utils/IterableSet_Integer.sol";
 
 contract GroupManager is UserManager
 {
-    using Group for Group.Data;
     using IterableSet_Integer for IterableSet_Integer.Data;
     using IterableSet_Address for IterableSet_Address.Data;
+
+    struct Group
+    {
+        uint id;
+        address owner;
+        IterableSet_Address.Data writers;
+        IterableSet_Integer.Data blacklistedGroups;
+        IterableSet_Address.Data blacklistedUsers;
+        IterableSet_Integer.Data shareGroups; // groups that have given you access to their shares
+        IterableSet_Integer.Data shares;
+    }
 
     struct JoinRequest {
         address sender;
@@ -16,7 +27,7 @@ contract GroupManager is UserManager
     }
 
     mapping(uint => JoinRequest) joinRequests;
-    mapping(uint => Group.Data) groups;
+    mapping(uint => Group) groups;
 
     uint joinRequestCounter = 0;
     uint groupCounter = 0;
@@ -25,10 +36,11 @@ contract GroupManager is UserManager
     event ShareGroupRemoved(uint groupID, uint shareGroupID, address sender);
     event GroupCreated(uint id, address sender);
     event JoinGroupRequest(uint id, uint groupID, uint shareGroupID, address sender);
+    event InviteRequest(uint id, uint groupID, uint shareGroupID, address sender);
 
     modifier isActiveGroup(uint id)
     {
-        if (groups[id].id == 0)
+        if (!_isActiveGroup(id))
             emit Error(uint(ErrorCode.GROUP_NOT_ACTIVE));
         else
             _;
@@ -39,7 +51,7 @@ contract GroupManager is UserManager
         bool found = false;
         for (uint i = 0; i < ids.length; i++)
         {
-            if (groups[ids[i]].id == 0)
+            if (!_isActiveGroup(ids[i]))
                 emit Error(uint(ErrorCode.GROUP_NOT_ACTIVE));
             found = true;
             break;
@@ -81,21 +93,27 @@ contract GroupManager is UserManager
             _;
     }
 
+    function _isActiveGroup(uint groupID) internal view
+    returns (bool)
+    {
+        return groups[groupID].id != 0;
+    }
+
     function getShareGroups(uint groupID) public view
     returns (bool, uint[] memory)
     {
-        return (groups[groupID].id != 0, groups[groupID].shareGroups.iterator());
+        return (_isActiveGroup(groupID), groups[groupID].shareGroups.iterator());
     }
 
     function getGroupIDs(uint groupID) public view
     returns (bool, uint[] memory)
     {
-        (bool found, uint[] memory groups) = getShareGroups(groupID);
+        (bool found, uint[] memory shareGroups) = getShareGroups(groupID);
         if (!found)
-            return (found, groups);
-        uint[] memory result = new uint[](groups.length + 1);
+            return (found, shareGroups);
+        uint[] memory result = new uint[](shareGroups.length + 1);
         for (uint i = 0; i < result.length - 1; i++)
-            result[i] = groups[i];
+            result[i] = shareGroups[i];
         result[result.length - 1] = groupID;
         return (true, result);
     }
@@ -136,12 +154,35 @@ contract GroupManager is UserManager
     function acceptJoinRequest(uint id) public
     {
         // CODE REVIEW: Add permissions
-        addShareGroup(joinRequests[id].groupID, joinRequests[id].shareGroupID);
+        _addShareGroup(joinRequests[id].groupID, joinRequests[id].shareGroupID, msg.sender);
         delete joinRequests[id];
+    }
+
+    function createInviteRequest(uint groupID, uint shareGroupID) public
+    {
+        // CODE REVIEW: Add modifier for blacklist here
+        // CODE REVIEW: Is the naming convention bad? Join Request vs Join Group Request?
+        joinRequests[++joinRequestCounter] = JoinRequest(msg.sender, groupID, shareGroupID);
+        emit JoinGroupRequest(joinRequestCounter, groupID, shareGroupID, msg.sender);
+    }
+
+    function acceptInviteRequest(uint id) public
+    {
+        // CODE REVIEW: Add permissions
+        _addShareGroup(joinRequests[id].shareGroupID, joinRequests[id].groupID, msg.sender);
+        delete joinRequests[id];
+    }
+
+    function addWriter(uint groupID, address addr) public
+    ownsGroup(msg.sender, groupID)
+    isInGroup(addr, groupID)
+    {
+        groups[groupID].writers.add(addr);
     }
 
     function addShareGroup(uint groupID, uint shareGroupID) public
     ownsGroup(msg.sender, groupID)
+    ownsGroup(msg.sender, shareGroupID)
     isNotBlacklisted(shareGroupID, groupID, msg.sender)
     {
         _addShareGroup(groupID, shareGroupID, msg.sender);
@@ -169,7 +210,7 @@ contract GroupManager is UserManager
     function _initGroup(address addr) internal
     returns (uint)
     {
-        Group.Data storage group = groups[groupCounter + 1];
+        Group storage group = groups[groupCounter + 1];
         group.id = ++groupCounter;
         groups[group.id] = group;
         group.owner = addr;

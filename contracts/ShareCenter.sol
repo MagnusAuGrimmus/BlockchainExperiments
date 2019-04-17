@@ -14,54 +14,32 @@ contract ShareCenter is GroupManager
     struct RecordShare {
         address owner;
         uint id;
-        uint[] groupIDs;
+        IterableSet_Integer.Data groupIDs;
         bytes32 host;
         bytes32 path;
         Claim.Data claim;
     }
 
-    struct ShareRequest {
+    struct ShareRequestData {
         address sender;
-        address receiver;
-        uint newGroups;
-        uint[] parentGroups;
-        uint[] subGroups;
-        bool[] isNewParentGroup;
-        bool[] isNewSubGroup;
-        uint shareGroupID;
-        bool isNewShareGroup;
-        bytes32 host;
-        bytes32 path;
-        uint time;
-        uint access;
+        uint[] shareGroupIDs;
+        bool[] accepted;
+        uint shareID;
         // Add gas to the thing
     }
 
     address owner;
     mapping(address => bool) authorizedSystems;
     mapping(uint => RecordShare) shares;
-    mapping(uint => ShareRequest) shareRequests;
+    mapping(uint => ShareRequestData) shareRequests;
 
     uint shareCounter = 0;
     uint shareRequestCounter = 0;
 
     event SystemAdded(address addr, address sender);
-    event ShareAdded(uint shareID, uint[] groupIDs, bytes32 host, bytes32 path, uint time, uint access, address sender);
+    event ShareAdded(uint shareID, uint groupID, bytes32 host, bytes32 path, uint time, uint access, address sender);
     event ShareDeleted(uint id, address sender);
-    //    event ShareRequest(uint id,
-    //                        address receiver,
-    //                        uint newGroups,
-    //                        uint[] parentGroups,
-    //                        uint[] subGroups,
-    //                        bool[] isNewParentGroup,
-    //                        bool[] isNewSubGroup,
-    //                        uint shareGroupID,
-    //                        bool isNewShareGroup,
-    //                        bytes32 host,
-    //                        bytes32 path,
-    //                        uint time,
-    //                        uint access,
-    //                        address sender);
+    event ShareRequest(uint id, uint[] shareGroupIDs, bytes32 host, bytes32 path, uint time, uint access, address sender);
 
     modifier isOwner()
     {
@@ -103,6 +81,23 @@ contract ShareCenter is GroupManager
             _;
     }
 
+    modifier canWriteToGroups(uint[] memory groupIDs)
+    {
+        bool found = false;
+        for (uint i = 0; i < groupIDs.length; i++)
+        {
+            Group storage group = groups[groupIDs[i]];
+            if (group.owner != msg.sender && !group.writers.contains(msg.sender))
+            {
+                emit Error(uint(ErrorCode.NOT_OWNER_OF_GROUP));
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            _;
+    }
+
     constructor() public
     {
         owner = msg.sender;
@@ -127,7 +122,7 @@ contract ShareCenter is GroupManager
     function canWrite(address addr, uint shareID) public view
     returns (bool)
     {
-        Group.Data memory user = groups[users[addr].personalGroupID];
+        Group memory user = groups[users[addr].personalGroupID];
         for (uint i = 0; i < user.shareGroups.list.length; i++)
             if (canWrite(user.shareGroups.list[i], shareID))
                 return true;
@@ -159,11 +154,11 @@ contract ShareCenter is GroupManager
     }
 
     function getShare(uint shareID) public view
-    returns (bool found, address owner, uint[] memory groupIDs, bytes32 host, bytes32 path, uint time, uint access)
+    returns (bool found, address shareOwner, uint[] memory groupIDs, bytes32 host, bytes32 path, uint time, uint access)
     {
         RecordShare memory share = shares[shareID];
-        owner = share.owner;
-        groupIDs = share.groupIDs;
+        shareOwner = share.owner;
+        groupIDs = share.groupIDs.list;
         host = share.host;
         path = share.path;
         time = share.claim.time;
@@ -213,49 +208,54 @@ contract ShareCenter is GroupManager
         users[addr].personalGroupID = _initGroup(addr);
     }
 
-    //    function createShareRequest(uint[] groupIDs, // 0 means make a new group
-    //                                uint[] memory shareGroups,
-    //                                bytes32 host,
-    //                                bytes32 path,
-    //                                uint time,
-    //                                uint access) public
-    //    {
-    //        for(uint i = 0; i < shareGroups.length; i++)
-    //        {
-    //            if(groups[shareGroups[i]].id == 0) // Check is group is active
-    //                emit Error(ErrorCode.INVALID_SHARE_REQUEST);
-    //        }
-    //        if(groupID == 0)
-    //            groupID = createGroup();
-    //        if(groups[groupID].owner == msg.sender)
-    //            _addShare(host, path, groupIDs, time, access, sender);
-    //        shareRequests[++shareRequestCounter] = ShareRequest(msg.sender, groupIDs, shareGroups, isNewGroup, host, path, time, access);
-    //        emit ShareRequest(shareRequestCounter, groupIDs, shareGroups, isNewGroup, host, path, time, access, msg.sender);
-    //    }
-
-    //    function acceptShareRequest(uint requestID) public // For the current sender, accepts the share into all the groups they own
-    //    {
-    //        // CODE REVIEW: Add modifier to check if receiver has a group in the shareGroups list
-    //        ShareRequest memory request = shareRequests[requestID];
-    //        address sender = request.sender;
-    //        uint groupID = request.groupID; // CODE REVIEW: Change naming convention
-    //
-    //        for(uint i = 0; i < request.shareGroups.length; i++)
-    //        {
-    //            uint shareGroupID = request.shareGroups[i];
-    //            if(groups[shareGroupID].owner == msg.sender)
-    //                _addShareGroup(groupID, shareGroupID, sender);
-    //        }
-    //        if(groups[request.groupID].owner == msg.sender)
-    //            _addShare(host, path, request.groupID, time, access, sender);
-    //        // CODE REVIEW: How to deal with the garbage cleanup? When to delete struct
-    //    }
-
-
-    function addShare(bytes32 host, bytes32 path, uint[] memory groupIDs, uint time, uint access) public
-    isUser(msg.sender)
+    function createShareRequest(uint[] memory groupIDs, bytes32 host, bytes32 path, uint time, uint access) public
     {
-        _addShare(host, path, groupIDs, time, access, msg.sender);
+        for (uint i = 0; i < groupIDs.length; i++)
+        {
+            if (!_isActiveGroup(groupIDs[i]))
+                emit Error(uint(ErrorCode.INVALID_SHARE_REQUEST));
+        }
+        uint shareID = _createShare(host, path, time, access, msg.sender);
+        bool[] memory accepted = new bool[](groupIDs.length);
+        shareRequests[++shareRequestCounter] = ShareRequestData(msg.sender, groupIDs, accepted, shareID);
+        emit ShareRequest(shareRequestCounter, groupIDs, host, path, time, access, msg.sender);
+    }
+
+    function acceptShareRequest(uint requestID) public // For the current sender, accepts the share into all the groups they own
+    {
+        ShareRequestData memory request = shareRequests[requestID];
+
+        for (uint i = 0; i < request.shareGroupIDs.length; i++)
+        {
+            uint shareGroupID = request.shareGroupIDs[i];
+            if (groups[shareGroupID].owner == msg.sender)
+            {
+                groups[shareGroupID].shares.add(request.shareID);
+                shareRequests[requestID].accepted[i] = true;
+            }
+        }
+        _cleanupShareRequest(requestID);
+    }
+
+
+    function createShare(bytes32 host, bytes32 path, uint[] memory groupIDs, uint time, uint access) public
+    isUser(msg.sender)
+    canWriteToGroups(groupIDs)
+    {
+        uint shareID = _createShare(host, path, time, access, msg.sender);
+        addShare(shareID, groupIDs);
+    }
+
+    function addShare(uint shareID, uint[] memory groupIDs) public
+    ownShare(shareID)
+    canWriteToGroups(groupIDs)
+    {
+        RecordShare memory share = shares[shareID];
+        for (uint i = 0; i < groupIDs.length; i++)
+        {
+            groups[groupIDs[i]].shares.add(shareID);
+            emit ShareAdded(shareID, groupIDs[i], share.host, share.path, share.claim.time, uint(share.claim.access), msg.sender);
+        }
     }
 
     function deleteShare(uint shareID) public
@@ -263,29 +263,34 @@ contract ShareCenter is GroupManager
     shareExists(shareID)
     ownShare(shareID)
     {
-        for (uint i = 0; i < shares[shareID].groupIDs.length; i++)
-            groups[shares[shareID].groupIDs[i]].shares.remove(shareID);
+        uint[] memory groupIDs = shares[shareID].groupIDs.list;
+        for (uint i = 0; i < groupIDs.length; i++)
+            groups[groupIDs[i]].shares.remove(shareID);
         delete shares[shareID];
         emit ShareDeleted(shareID, msg.sender);
     }
 
-    function _addShare(bytes32 host, bytes32 path, uint[] memory groupIDs, uint time, uint access, address sender) internal
-    areActiveGroups(groupIDs)
-        //    isNotBlacklistedUser(groupID, msg.sender)
-        // CODE REVIEW: Revise security
-        // CODE REVIEW: Undo private part
+    function _createShare(bytes32 host, bytes32 path, uint time, uint access, address sender) internal
+    returns (uint shareID)
     {
-        uint shareID = ++shareCounter;
-        shares[shareID].owner = msg.sender;
+        shareID = ++shareCounter;
+        shares[shareID].owner = sender;
         shares[shareID].id = shareID;
-        shares[shareID].groupIDs = groupIDs;
         shares[shareID].host = host;
         shares[shareID].path = path;
         if (time > 0)
             shares[shareID].claim.time = now + time;
         shares[shareID].claim.access = Claim.getType(access);
-        for (uint i = 0; i < groupIDs.length; i++)
-            groups[groupIDs[i]].shares.add(shareID);
-        emit ShareAdded(shareID, groupIDs, host, path, time, access, sender);
+    }
+
+    function _cleanupShareRequest(uint requestID) internal
+    returns (bool)
+    {
+        bool[] memory accepted = shareRequests[requestID].accepted;
+        for (uint i = 0; i < accepted.length; i++)
+            if (!accepted[i])
+                return false;
+        delete shareRequests[requestID];
+        return true;
     }
 }
