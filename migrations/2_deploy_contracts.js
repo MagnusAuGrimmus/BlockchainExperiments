@@ -1,4 +1,4 @@
-var ShareCenter = artifacts.require("ShareCenter");
+let ShareCenter = artifacts.require('ShareCenter');
 
 module.exports = async function(deployer)
 {
