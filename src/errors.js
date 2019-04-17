@@ -1,5 +1,5 @@
-const errorCode = {
-	// Ethereum Errors passed through from ShareCenter.sol contract
+const errorCode = { // TODO: Get eth errors from abi itself
+  // Ethereum Errors passed through from ShareCenter.sol contract
 	IS_NOT_OWNER: 0,
 	USER_ALREADY_EXISTS: 1,
 	IS_NOT_A_USER: 2,
@@ -23,7 +23,7 @@ const errorCode = {
 	CONNECTION_ERROR: 201,
 	PROVIDER_NOT_SET: 202,
 	CONNECTION_TIMEOUT: 203
-}
+};
 
 const errorMessages = {
 	// Ethereum Errors passed through from ShareCenter.sol contract
@@ -54,22 +54,21 @@ const errorMessages = {
 		'Invalid Provider. Check the http provider used to initialize object',
 	[errorCode.CONNECTION_TIMEOUT]:
 		'Connection timeout. Check to see if your node is running'
-
-}
+};
 
 const nodeErrorKeywords = {
 	'Invalid JSON RPC response': errorCode.INVALID_JSON_RESPONSE,
 	'CONNECTION ERROR': errorCode.CONNECTION_ERROR,
 	'Provider not set': errorCode.PROVIDER_NOT_SET,
 	'CONNECTION TIMEOUT': errorCode.CONNECTION_ERROR,
-}
+};
 
 class IDError extends Error {
 	constructor (id, logs) {
-		super()
-		this.message = IDError.getMessage(id)
-		this.id = id
-		this.logs = logs
+    super();
+    this.message = IDError.getMessage(id);
+    this.id = id;
+    this.logs = logs;
 		Error.captureStackTrace(this, IDError)
 	}
 
@@ -85,8 +84,8 @@ class InputError extends IDError {}
 class EthNodeError extends Error {
 	constructor (message) {
 		super();
-		this.id = EthNodeError.getID(message)
-		this.message = EthNodeError.getMessage(this.id) || message
+    this.id = EthNodeError.getID(message);
+    this.message = EthNodeError.getMessage(this.id) || message;
 		Error.captureStackTrace(this, EthNodeError)
 	}
 
@@ -100,10 +99,10 @@ class EthNodeError extends Error {
 }
 
 function handleEthErrors (result) {
-	const errorLog = Array.from(result.logs).find(log => log.event === 'Error')
+  const errorLog = Array.from(result.logs).find(log => log.event === 'Error');
 
 	if (errorLog) {
-		const id = errorLog.args.id.toNumber()
+    const id = errorLog.args.id.toNumber();
 		throw new EthError(id, result.logs)
 	}
 }
@@ -130,4 +129,4 @@ module.exports = {
 	handleTimeError,
 	handleURIError,
 	errorCode
-}
+};

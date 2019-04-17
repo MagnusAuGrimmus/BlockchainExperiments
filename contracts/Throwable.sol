@@ -14,7 +14,8 @@ contract Throwable {
         NOT_OWNER_OF_GROUP, // 9
         IN_GROUP, // 10
         BLACKLISTED, // 11
-        INVALID_SHARE_REQUEST // 12
+        INVALID_SHARE_REQUEST, // 12
+        IS_NOT_WRITER // 13
     }
 
     event Error(uint id);

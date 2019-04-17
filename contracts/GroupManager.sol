@@ -13,6 +13,7 @@ contract GroupManager is UserManager
     {
         uint id;
         address owner;
+        bool isPersonal;
         IterableSet_Address.Data writers;
         IterableSet_Integer.Data blacklistedGroups;
         IterableSet_Address.Data blacklistedUsers;
@@ -20,16 +21,16 @@ contract GroupManager is UserManager
         IterableSet_Integer.Data shares;
     }
 
-    struct JoinRequest {
+    struct Request {
         address sender;
         uint groupID;
         uint shareGroupID;
     }
 
-    mapping(uint => JoinRequest) joinRequests;
+    mapping(uint => Request) requests;
     mapping(uint => Group) groups;
 
-    uint joinRequestCounter = 0;
+    uint requestCounter = 0;
     uint groupCounter = 0;
 
     event ShareGroupAdded(uint groupID, uint shareGroupID, address sender);
@@ -84,11 +85,29 @@ contract GroupManager is UserManager
             _;
     }
 
-    modifier isNotBlacklisted(uint groupID, uint senderGroupID, address senderAddr)
+    modifier isNotBlacklisted(uint groupID, uint shareGroupID)
     {
-        if (groups[groupID].blacklistedGroups.contains(senderGroupID) ||
-            groups[groupID].blacklistedUsers.contains(senderAddr))
+        address groupOwner = groups[shareGroupID].owner;
+        if (groups[groupID].blacklistedGroups.contains(shareGroupID) ||
+            groups[groupID].blacklistedUsers.contains(groupOwner))
             emit Error(uint(ErrorCode.BLACKLISTED));
+        else
+            _;
+    }
+
+    modifier canAcceptRequest(uint requestID)
+    {
+        if (groups[requests[requestID].shareGroupID].owner != msg.sender)
+            emit Error(uint(ErrorCode.NOT_OWNER_OF_GROUP));
+        else
+            _;
+    }
+
+    modifier isWriter(address addr, uint groupID)
+    {
+        Group storage group = groups[groupID];
+        if (group.owner != addr && !group.writers.contains(addr))
+            emit Error(uint(ErrorCode.IS_NOT_WRITER));
         else
             _;
     }
@@ -140,37 +159,34 @@ contract GroupManager is UserManager
     isUser(msg.sender)
     returns (uint)
     {
-        return _initGroup(msg.sender);
+        return _initGroup(msg.sender, false);
     }
 
-    function createJoinRequest(uint groupID, uint shareGroupID) public
+    function createJoinRequest(uint groupID, uint parentGroupID) public
+    ownsGroup(msg.sender, groupID)
+    isNotBlacklisted(parentGroupID, groupID)
     {
-        // CODE REVIEW: Add modifier for blacklist here
-        // CODE REVIEW: Is the naming convention bad? Join Request vs Join Group Request?
-        joinRequests[++joinRequestCounter] = JoinRequest(msg.sender, groupID, shareGroupID);
-        emit JoinGroupRequest(joinRequestCounter, groupID, shareGroupID, msg.sender);
-    }
-
-    function acceptJoinRequest(uint id) public
-    {
-        // CODE REVIEW: Add permissions
-        _addShareGroup(joinRequests[id].groupID, joinRequests[id].shareGroupID, msg.sender);
-        delete joinRequests[id];
+        requests[++requestCounter] = Request(msg.sender, parentGroupID, groupID);
+        emit JoinGroupRequest(requestCounter, parentGroupID, groupID, msg.sender);
     }
 
     function createInviteRequest(uint groupID, uint shareGroupID) public
+    ownsGroup(msg.sender, groupID)
+    isNotBlacklisted(groupID, shareGroupID)
     {
-        // CODE REVIEW: Add modifier for blacklist here
-        // CODE REVIEW: Is the naming convention bad? Join Request vs Join Group Request?
-        joinRequests[++joinRequestCounter] = JoinRequest(msg.sender, groupID, shareGroupID);
-        emit JoinGroupRequest(joinRequestCounter, groupID, shareGroupID, msg.sender);
+        requests[++requestCounter] = Request(msg.sender, groupID, shareGroupID);
+        emit InviteRequest(requestCounter, groupID, shareGroupID, msg.sender);
     }
 
-    function acceptInviteRequest(uint id) public
+
+    function acceptRequest(uint requestID) public
+    canAcceptRequest(requestID)
     {
-        // CODE REVIEW: Add permissions
-        _addShareGroup(joinRequests[id].shareGroupID, joinRequests[id].groupID, msg.sender);
-        delete joinRequests[id];
+        Request memory request = requests[requestID];
+        uint groupID = request.groupID;
+        uint shareGroupID = request.shareGroupID;
+        _addShareGroup(groupID, shareGroupID, msg.sender);
+        delete requests[requestID];
     }
 
     function addWriter(uint groupID, address addr) public
@@ -181,37 +197,26 @@ contract GroupManager is UserManager
     }
 
     function addShareGroup(uint groupID, uint shareGroupID) public
-    ownsGroup(msg.sender, groupID)
-    ownsGroup(msg.sender, shareGroupID)
-    isNotBlacklisted(shareGroupID, groupID, msg.sender)
+    isWriter(msg.sender, groupID)
+    isWriter(msg.sender, shareGroupID)
     {
         _addShareGroup(groupID, shareGroupID, msg.sender);
     }
 
     function removeShareGroup(uint groupID, uint shareGroupID) public
-    isActiveGroup(groupID)
-    isActiveGroup(shareGroupID)
-    ownsGroup(msg.sender, groupID)
+    isWriter(msg.sender, groupID)
+    isWriter(msg.sender, shareGroupID)
     {
         groups[shareGroupID].shareGroups.remove(groupID);
         emit ShareGroupRemoved(groupID, shareGroupID, msg.sender);
     }
 
-    function addUserToGroup(uint groupID, address addr) public
-    {
-        addShareGroup(groupID, users[addr].personalGroupID);
-    }
-
-    function removeUserFromGroup(uint groupID, address addr) public // CODE REVIEW: Ask about error codes? Should I ask isUser if ownsGroup will take care of it
-    {
-        removeShareGroup(groupID, users[addr].personalGroupID);
-    }
-
-    function _initGroup(address addr) internal
+    function _initGroup(address addr, bool isPersonal) internal
     returns (uint)
     {
         Group storage group = groups[groupCounter + 1];
         group.id = ++groupCounter;
+        group.isPersonal = isPersonal;
         groups[group.id] = group;
         group.owner = addr;
         groups[users[addr].personalGroupID].shareGroups.add(group.id);

@@ -4,9 +4,6 @@ import "./utils/IterableSet_Address.sol";
 import "./utils/Claim.sol";
 import "./GroupManager.sol";
 
-//TODO: Give gas back on blacklist
-//TODO: Add blacklist error code
-
 contract ShareCenter is GroupManager
 {
     using Claim for Claim.Data;
@@ -25,7 +22,6 @@ contract ShareCenter is GroupManager
         uint[] shareGroupIDs;
         bool[] accepted;
         uint shareID;
-        // Add gas to the thing
     }
 
     address owner;
@@ -205,7 +201,7 @@ contract ShareCenter is GroupManager
         users[addr].active = true;
         users[addr].system = msg.sender;
         emit UserCreated(addr, msg.sender);
-        users[addr].personalGroupID = _initGroup(addr);
+        users[addr].personalGroupID = _initGroup(addr, true);
     }
 
     function createShareRequest(uint[] memory groupIDs, bytes32 host, bytes32 path, uint time, uint access) public
