@@ -1,120 +1,72 @@
 pragma solidity ^0.5.0;
 import "./utils/IterableSet_Integer.sol";
 import "./utils/IterableSet_Address.sol";
-import "./utils/Group.sol";
 import "./utils/Claim.sol";
+import "./GroupManager.sol";
 
 //TODO: Give gas back on blacklist
 //TODO: Add blacklist error code
 
-contract ShareCenter
+contract ShareCenter is GroupManager
 {
-    enum ErrorCode {
-        IS_NOT_OWNER, // 0
-        USER_ALREADY_EXISTS, // 1
-        IS_NOT_A_USER, // 2
-        IS_NOT_A_REGISTERED_SYSTEM, // 3
-        DOES_NOT_OWN_SHARE, // 4
-        DOES_NOT_HAVE_SHARE, // 5
-        SHARE_DOES_NOT_EXIST, // 6
-        GROUP_NOT_ACTIVE, // 7
-        NOT_IN_GROUP, // 8
-        NOT_OWNER_OF_GROUP, // 9
-        IN_GROUP // 10
-    }
-
-    using IterableSet_Integer for IterableSet_Integer.Data;
-    using IterableSet_Address for IterableSet_Address.Data;
-    using Group for Group.Data;
     using Claim for Claim.Data;
 
     struct RecordShare {
         address owner;
         uint id;
-        uint groupID;
+        uint[] groupIDs;
         bytes32 host;
         bytes32 path;
         Claim.Data claim;
     }
 
-    struct User {
-        bool active;
-        address system;
-        uint personalGroupID;
-        IterableSet_Integer.Data groups;
-        IterableSet_Address.Data blacklist;
+    struct ShareRequest {
+        address sender;
+        address receiver;
+        uint newGroups;
+        uint[] parentGroups;
+        uint[] subGroups;
+        bool[] isNewParentGroup;
+        bool[] isNewSubGroup;
+        uint shareGroupID;
+        bool isNewShareGroup;
+        bytes32 host;
+        bytes32 path;
+        uint time;
+        uint access;
+        // Add gas to the thing
     }
 
     address owner;
     mapping(address => bool) authorizedSystems;
-    mapping(address => User) users;
-    mapping(uint => Group.Data) groups;
     mapping(uint => RecordShare) shares;
+    mapping(uint => ShareRequest) shareRequests;
+
     uint shareCounter = 0;
-    uint groupCounter = 0;
+    uint shareRequestCounter = 0;
 
     event SystemAdded(address addr, address sender);
-    event UserCreated(address addr, address sender);
-    event UserAdded(address addr, uint groupID, address sender);
-    event GroupAdded(uint groupID, uint subgroupID, address sender);
-    event GroupRemoved(uint groupID, uint subgroupID, address sender);
-    event GroupCreated(uint id, address sender);
-    event ShareAdded(uint shareID, uint groupID, bytes32 host, bytes32 path, uint time, uint access, address sender);
+    event ShareAdded(uint shareID, uint[] groupIDs, bytes32 host, bytes32 path, uint time, uint access, address sender);
     event ShareDeleted(uint id, address sender);
-    event Error(uint id);
+    //    event ShareRequest(uint id,
+    //                        address receiver,
+    //                        uint newGroups,
+    //                        uint[] parentGroups,
+    //                        uint[] subGroups,
+    //                        bool[] isNewParentGroup,
+    //                        bool[] isNewSubGroup,
+    //                        uint shareGroupID,
+    //                        bool isNewShareGroup,
+    //                        bytes32 host,
+    //                        bytes32 path,
+    //                        uint time,
+    //                        uint access,
+    //                        address sender);
 
     modifier isOwner()
     {
         if(msg.sender != owner)
             emit Error(uint(ErrorCode.IS_NOT_OWNER));
-        else
-            _;
-    }
-
-    modifier isUser(address addr)
-    {
-        if(!users[addr].active)
-            emit Error(uint(ErrorCode.IS_NOT_A_USER));
-        else
-            _;
-    }
-
-    modifier isActiveGroup(uint id)
-    {
-        if(groups[id].id == 0)
-            emit Error(uint(ErrorCode.GROUP_NOT_ACTIVE));
-        else
-            _;
-    }
-
-    modifier ownsGroup(address addr, uint id)
-    {
-        if(groups[id].owner != addr)
-            emit Error(uint(ErrorCode.NOT_OWNER_OF_GROUP));
-        else
-            _;
-    }
-
-    modifier isInGroup(address addr, uint id)
-    {
-        if(!groups[id].isInGroup(addr))
-            emit Error(uint(ErrorCode.NOT_IN_GROUP));
-        else
-            _;
-    }
-
-    modifier notInGroup(address addr, uint id)
-    {
-        if(groups[id].isInGroup(addr))
-            emit Error(uint(ErrorCode.IN_GROUP));
-        else
-            _;
-    }
-
-    modifier isNotUser(address addr)
-    {
-        if(users[addr].active)
-            emit Error(uint(ErrorCode.USER_ALREADY_EXISTS));
         else
             _;
     }
@@ -156,7 +108,7 @@ contract ShareCenter
         owner = msg.sender;
     }
 
-    function canRead(address addr, uint shareID) public
+    function canRead(address addr, uint shareID) public view
     returns (bool)
     {
         (, uint[] memory groupIDs) = getGroupIDs(addr);
@@ -175,9 +127,9 @@ contract ShareCenter
     function canWrite(address addr, uint shareID) public view
     returns (bool)
     {
-        User memory user = users[addr];
-        for(uint i = 0; i < user.groups.list.length; i++)
-            if(canWrite(user.groups.list[i], shareID))
+        Group.Data memory user = groups[users[addr].personalGroupID];
+        for (uint i = 0; i < user.shareGroups.list.length; i++)
+            if (canWrite(user.shareGroups.list[i], shareID))
                 return true;
         return false;
     }
@@ -194,143 +146,32 @@ contract ShareCenter
         return authorizedSystems[system];
     }
 
-    function addSystem(address system) public
-    isOwner
-    {
-        if (!authorizedSystems[system])
-        {
-            authorizedSystems[system] = true;
-            emit SystemAdded(system, msg.sender);
-        }
-    }
-
-    function getPersonalGroupID(address addr) public
-    isUser(addr)
+    function getPersonalGroupID(address addr) public view
     returns (bool, uint)
     {
-        return (true, users[addr].personalGroupID);
+        return (users[addr].active, users[addr].personalGroupID);
     }
 
-    function getUsers(uint groupID) public
-    isActiveGroup(groupID)
-    returns (bool, address[] memory)
-    {
-        return (true, groups[groupID].getUsers());
-    }
-
-    function createUser(address addr) public
-    isRegisteredSystem
-    isNotUser(addr)
-    {
-        users[addr].active = true;
-        users[addr].system = msg.sender;
-        emit UserCreated(addr, msg.sender);
-        users[addr].personalGroupID = _initGroup(addr);
-    }
-
-    function blacklist(address addr) public
-    isUser(msg.sender)
-    isUser(addr)
-    {
-        users[msg.sender].blacklist.add(addr);
-    }
-
-    function getGroupIDs(address addr) public
-    isUser(addr)
+    function getGroupIDs(address addr) public view
     returns (bool, uint[] memory)
     {
-        return (true, users[msg.sender].groups.iterator());
+        return getGroupIDs(users[addr].personalGroupID);
     }
 
-    function getParentGroups(uint groupID) public
-    isActiveGroup(groupID)
-    returns (bool, uint[] memory)
-    {
-        return (true, groups[groupID].parentGroups.iterator());
-    }
-
-    function getSubGroups(uint groupID) public
-    isActiveGroup(groupID)
-    returns (bool, uint[] memory)
-    {
-        return (true, groups[groupID].subGroups.iterator());
-    }
-
-    function createGroup() public
-    isUser(msg.sender)
-    returns (uint)
-    {
-        _initGroup(msg.sender);
-    }
-
-    function addSubGroup(uint groupID, uint parentGroupID) public
-    isUser(msg.sender)
-    isActiveGroup(groupID)
-    isActiveGroup(parentGroupID)
-    ownsGroup(msg.sender, groupID)
-    {
-        address addr = groups[parentGroupID].owner;
-        if (!users[addr].blacklist.contains(msg.sender))
-            _addGroupToGroup(parentGroupID, groupID);
-    }
-
-    function addGroupToGroup(uint groupID, uint subgroupID) public
-    isUser(msg.sender)
-    isActiveGroup(groupID)
-    isActiveGroup(subgroupID)
-    ownsGroup(msg.sender, groupID)
-    {
-        address addr = groups[subgroupID].owner;
-        if (!users[addr].blacklist.contains(msg.sender))
-            _addGroupToGroup(groupID, subgroupID);
-    }
-
-    function removeGroupFromGroup(uint groupID, uint subgroupID) public
-    isActiveGroup(groupID)
-    isActiveGroup(subgroupID)
-    ownsGroup(msg.sender, groupID)
-    {
-        groups[groupID].removeGroup(groups[subgroupID]);
-        emit GroupRemoved(groupID, subgroupID, msg.sender);
-    }
-
-    function addUserToGroup(uint groupID, address addr) public
-    isActiveGroup(groupID)
-    isUser(addr)
-    ownsGroup(msg.sender, groupID)
-    {
-        if (!users[addr].blacklist.contains(msg.sender))
-        {
-            users[addr].groups.add(groupID);
-            groups[groupID].users.add(addr);
-            emit UserAdded(addr, groupID, msg.sender);
-        }
-    }
-
-    function removeUserFromGroup(uint groupID, address addr) public
-    isActiveGroup(groupID)
-    ownsGroup(msg.sender, groupID)
-    isInGroup(addr, groupID)
-    {
-        groups[groupID].users.remove(addr);
-    }
-
-    function getShare(uint shareID) public
-    shareExists(shareID)
-    returns (bool found, address owner, uint groupID, bytes32 host, bytes32 path, uint time, uint access)
+    function getShare(uint shareID) public view
+    returns (bool found, address owner, uint[] memory groupIDs, bytes32 host, bytes32 path, uint time, uint access)
     {
         RecordShare memory share = shares[shareID];
         owner = share.owner;
-        groupID = share.groupID;
+        groupIDs = share.groupIDs;
         host = share.host;
         path = share.path;
         time = share.claim.time;
         access = uint(share.claim.access);
-        found = true;
+        found = share.id != 0;
     }
 
-    function getShares(uint groupID) public
-    isActiveGroup(groupID)
+    function getShares(uint groupID) public view
     returns (bool found, uint index, uint[] memory shareIDs, bytes32[] memory hosts, bytes32[] memory paths)
     {
         uint[] memory tempShares = groups[groupID].shares.list;
@@ -349,26 +190,72 @@ contract ShareCenter
                 index++;
             }
         }
-        found = true;
+        found = groups[groupID].id != 0;
     }
 
-
-    function addShare(bytes32 host, bytes32 path, uint groupID, uint time, uint access) public
-    isUser(msg.sender)
-    isActiveGroup(groupID)
+    function addSystem(address system) public
+    isOwner
     {
-        uint shareID = ++shareCounter;
-        shares[shareID].owner = msg.sender;
-        shares[shareID].id = shareID;
-        shares[shareID].groupID = groupID;
-        shares[shareID].host = host;
-        shares[shareID].path = path;
-        if(time > 0)
-            shares[shareID].claim.time = now + time;
-        shares[shareID].claim.access = Claim.getType(access);
+        if (!authorizedSystems[system])
+        {
+            authorizedSystems[system] = true;
+            emit SystemAdded(system, msg.sender);
+        }
+    }
 
-        groups[groupID].shares.add(shareID);
-        emit ShareAdded(shareID, groupID, host, path, time, access, msg.sender);
+    function createUser(address addr) public
+    isRegisteredSystem
+    isNotUser(addr)
+    {
+        users[addr].active = true;
+        users[addr].system = msg.sender;
+        emit UserCreated(addr, msg.sender);
+        users[addr].personalGroupID = _initGroup(addr);
+    }
+
+    //    function createShareRequest(uint[] groupIDs, // 0 means make a new group
+    //                                uint[] memory shareGroups,
+    //                                bytes32 host,
+    //                                bytes32 path,
+    //                                uint time,
+    //                                uint access) public
+    //    {
+    //        for(uint i = 0; i < shareGroups.length; i++)
+    //        {
+    //            if(groups[shareGroups[i]].id == 0) // Check is group is active
+    //                emit Error(ErrorCode.INVALID_SHARE_REQUEST);
+    //        }
+    //        if(groupID == 0)
+    //            groupID = createGroup();
+    //        if(groups[groupID].owner == msg.sender)
+    //            _addShare(host, path, groupIDs, time, access, sender);
+    //        shareRequests[++shareRequestCounter] = ShareRequest(msg.sender, groupIDs, shareGroups, isNewGroup, host, path, time, access);
+    //        emit ShareRequest(shareRequestCounter, groupIDs, shareGroups, isNewGroup, host, path, time, access, msg.sender);
+    //    }
+
+    //    function acceptShareRequest(uint requestID) public // For the current sender, accepts the share into all the groups they own
+    //    {
+    //        // CODE REVIEW: Add modifier to check if receiver has a group in the shareGroups list
+    //        ShareRequest memory request = shareRequests[requestID];
+    //        address sender = request.sender;
+    //        uint groupID = request.groupID; // CODE REVIEW: Change naming convention
+    //
+    //        for(uint i = 0; i < request.shareGroups.length; i++)
+    //        {
+    //            uint shareGroupID = request.shareGroups[i];
+    //            if(groups[shareGroupID].owner == msg.sender)
+    //                _addShareGroup(groupID, shareGroupID, sender);
+    //        }
+    //        if(groups[request.groupID].owner == msg.sender)
+    //            _addShare(host, path, request.groupID, time, access, sender);
+    //        // CODE REVIEW: How to deal with the garbage cleanup? When to delete struct
+    //    }
+
+
+    function addShare(bytes32 host, bytes32 path, uint[] memory groupIDs, uint time, uint access) public
+    isUser(msg.sender)
+    {
+        _addShare(host, path, groupIDs, time, access, msg.sender);
     }
 
     function deleteShare(uint shareID) public
@@ -376,26 +263,29 @@ contract ShareCenter
     shareExists(shareID)
     ownShare(shareID)
     {
-        groups[shares[shareID].groupID].shares.remove(shareID);
+        for (uint i = 0; i < shares[shareID].groupIDs.length; i++)
+            groups[shares[shareID].groupIDs[i]].shares.remove(shareID);
         delete shares[shareID];
         emit ShareDeleted(shareID, msg.sender);
     }
 
-    function _initGroup(address addr) internal
-    returns (uint)
+    function _addShare(bytes32 host, bytes32 path, uint[] memory groupIDs, uint time, uint access, address sender) internal
+    areActiveGroups(groupIDs)
+        //    isNotBlacklistedUser(groupID, msg.sender)
+        // CODE REVIEW: Revise security
+        // CODE REVIEW: Undo private part
     {
-        Group.Data storage group = groups[groupCounter + 1];
-        group.id = ++groupCounter;
-        groups[group.id] = group;
-        group.owner = addr;
-        users[addr].groups.add(group.id);
-        emit GroupCreated(group.id, addr);
-        return group.id;
-    }
-
-    function _addGroupToGroup(uint groupID, uint subgroupID) internal
-    {
-        groups[groupID].addGroup(groups[subgroupID]);
-        emit GroupAdded(groupID, subgroupID, msg.sender);
+        uint shareID = ++shareCounter;
+        shares[shareID].owner = msg.sender;
+        shares[shareID].id = shareID;
+        shares[shareID].groupIDs = groupIDs;
+        shares[shareID].host = host;
+        shares[shareID].path = path;
+        if (time > 0)
+            shares[shareID].claim.time = now + time;
+        shares[shareID].claim.access = Claim.getType(access);
+        for (uint i = 0; i < groupIDs.length; i++)
+            groups[groupIDs[i]].shares.add(shareID);
+        emit ShareAdded(shareID, groupIDs, host, path, time, access, sender);
     }
 }
