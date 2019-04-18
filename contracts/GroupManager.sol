@@ -112,12 +112,6 @@ contract GroupManager is UserManager
             _;
     }
 
-    function _isActiveGroup(uint groupID) internal view
-    returns (bool)
-    {
-        return groups[groupID].id != 0;
-    }
-
     function getShareGroups(uint groupID) public view
     returns (bool, uint[] memory)
     {
@@ -230,5 +224,11 @@ contract GroupManager is UserManager
     {
         groups[shareGroupID].shareGroups.add(groupID);
         emit ShareGroupAdded(groupID, shareGroupID, sender);
+    }
+
+    function _isActiveGroup(uint groupID) internal view
+    returns (bool)
+    {
+        return groups[groupID].id != 0;
     }
 }

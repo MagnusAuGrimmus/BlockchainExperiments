@@ -1,8 +1,8 @@
-var ShareCenter = artifacts.require("ShareCenter");
+let ShareCenter = artifacts.require('ShareCenter');
 const { initCenter, addShare, createGroup, sleep } = require('./TestingUtils');
 
 contract('ShareCenter Event Test', function(accounts) {
-  var groupID, center;
+  let groupID, center;
 
   before('setup', async function() {
     center = initCenter(accounts[0]);
@@ -12,14 +12,14 @@ contract('ShareCenter Event Test', function(accounts) {
     await center.addSystem(accounts[0]);
     await center.createUser(accounts[0]);
     groupID = await createGroup(center);
-  })
+  });
 
   it("should log the ether costs of all mutator methods", async function() {
     await addShare(center, "uri/path", groupID);
-    await sleep(1000)
-  })
+    await sleep(1000);
+  });
 
   it('turn off event listener', async function() {
     center._setEventListener('ShareAdded', () => {})
   })
-})
+});

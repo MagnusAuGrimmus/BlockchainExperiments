@@ -11,6 +11,9 @@ const errorCode = { // TODO: Get eth errors from abi itself
 	NOT_IN_GROUP: 8,
 	NOT_OWNER_OF_GROUP: 9,
 	IN_GROUP: 10,
+	BLACKLISTED: 11,
+	INVALID_SHARE_REQUEST: 12,
+	IS_NOT_WRITER: 13,
 
 	// ShareCenter.js module specific errors
 	INVALID_URI: 100,
@@ -38,6 +41,9 @@ const errorMessages = {
 	[errorCode.NOT_IN_GROUP]: 'User is not in group',
 	[errorCode.NOT_OWNER_OF_GROUP]: 'User is not owner of group',
 	[errorCode.IN_GROUP]: 'User or Group is already in group',
+	[errorCode.BLACKLISTED]: 'Sender is blacklisted',
+	[errorCode.INVALID_SHARE_REQUEST]: 'The Share Request is invalid',
+	[errorCode.IS_NOT_WRITER]: 'Sender does not have write privileges with the group',
 
 	// ShareCenter.js module specific errors
 	[errorCode.INVALID_URI]: 'Invalid length URI',
@@ -54,6 +60,7 @@ const errorMessages = {
 		'Invalid Provider. Check the http provider used to initialize object',
 	[errorCode.CONNECTION_TIMEOUT]:
 		'Connection timeout. Check to see if your node is running'
+
 };
 
 const nodeErrorKeywords = {
@@ -65,10 +72,10 @@ const nodeErrorKeywords = {
 
 class IDError extends Error {
 	constructor (id, logs) {
-    super();
-    this.message = IDError.getMessage(id);
-    this.id = id;
-    this.logs = logs;
+		super();
+		this.message = IDError.getMessage(id);
+		this.id = id;
+		this.logs = logs;
 		Error.captureStackTrace(this, IDError)
 	}
 
@@ -84,8 +91,8 @@ class InputError extends IDError {}
 class EthNodeError extends Error {
 	constructor (message) {
 		super();
-    this.id = EthNodeError.getID(message);
-    this.message = EthNodeError.getMessage(this.id) || message;
+		this.id = EthNodeError.getID(message);
+		this.message = EthNodeError.getMessage(this.id) || message;
 		Error.captureStackTrace(this, EthNodeError)
 	}
 
@@ -99,10 +106,10 @@ class EthNodeError extends Error {
 }
 
 function handleEthErrors (result) {
-  const errorLog = Array.from(result.logs).find(log => log.event === 'Error');
+	const errorLog = Array.from(result.logs).find(log => log.event === 'Error');
 
 	if (errorLog) {
-    const id = errorLog.args.id.toNumber();
+		const id = errorLog.args.id.toNumber();
 		throw new EthError(id, result.logs)
 	}
 }

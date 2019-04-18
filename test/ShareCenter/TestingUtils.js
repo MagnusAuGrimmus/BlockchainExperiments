@@ -1,5 +1,5 @@
-const ShareCenter = require('../../src/shareCenter')
-const {HTTP_PROVIDER} = require('../config.json')
+const ShareCenter = require('../../src/shareCenter');
+const { HTTP_PROVIDER } = require('../config.json');
 
 function initCenter (account) {
   if(account)
@@ -7,13 +7,13 @@ function initCenter (account) {
   return ShareCenter;
 }
 
-async function addShare (center, uri, groupID, time = 0, access = ShareCenter.ACCESS.WRITE) {
-  var data = await center.addShare(uri, groupID, time, access)
+async function createShare (center, uri, groupIDs, time = 0, access = ShareCenter.ACCESS.WRITE) {
+  let data = await center.createShare(uri, groupIDs, time, access);
   return data.value.shareID
 }
 
 async function createGroup (center) {
-  var data = await center.createGroup()
+  let data = await center.createGroup();
   return data.value.groupID
 }
 
@@ -22,20 +22,22 @@ function contains (shares, shareID) {
 }
 
 function checkIfShareIsOwned (shares, groupID, shareID) {
-  assert(contains(shares[groupID], shareID), `User does not have ${shareID} in shares under groupID ${groupID}`)
+  assert(typeof shares === 'object', 'Shares is not an object');
+  assert(Object.keys(shares).includes(groupID.toString()), `Share does not have any shares from groupID ${groupID}`);
+  assert(contains(shares[groupID], shareID), `User does not have ${shareID} in shares under groupID ${groupID}`);
   return true
 }
 
 async function checkError (call, expectedErrorCode = null) {
-  var success = false
+  let success = false;
   try {
-    var data = await call()
-    console.log(data)
+    let data = await call();
+    console.log(data);
     success = true
   }
   catch (err) {
     if (expectedErrorCode !== null)
-      assert(err.id === expectedErrorCode, 'Incorrect Error Code')
+      assert(err.id === expectedErrorCode, `Error Code ${err.id} != Expected Error Code ${expectedErrorCode}`);
   }
   assert(!success, 'Did not throw an Error')
 }
@@ -46,10 +48,10 @@ function sleep (ms) {
 
 module.exports = {
   initCenter,
-  addShare,
+  createShare,
   contains,
   createGroup,
   checkIfShareIsOwned,
   checkError,
   sleep
-}
+};

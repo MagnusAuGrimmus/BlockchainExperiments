@@ -1,33 +1,33 @@
-const {initCenter, addShare, createGroup, checkIfShareIsOwned} = require('./TestingUtils')
+const { initCenter, addShare, createGroup, checkIfShareIsOwned } = require('./TestingUtils');
 
 contract('Test Professional Share', function (accounts) {
-  var groupID, shareID
+  let groupID, shareID;
   before('setup', async function() {
     await initScenario(this, accounts);
-  })
+  });
 
   beforeEach('create a pro share', async function () {
     const shareParams = {
       uri: 'bannerURI',
       time: 0,
       access: initCenter().ACCESS.WRITE
-    }
+    };
 
     const data = await createProShare(
       this.bannerUser1,
       this.verdadUser1Address,
       this.verdadCardiologists,
       shareParams);
-    groupID = data.groupID
+    groupID = data.groupID;
     shareID = data.shareID
-  })
+  });
 
   it('should create a pro share', async function () {
-    const userShares = await this.verdadUser1.getAllShares()
-    const verdadGroups = await this.verdad.getSubGroups(this.verdadCardiologists);
-    checkIfShareIsOwned(userShares, groupID, shareID)
+    const userShares = await this.verdadUser1.getAllShares();
+    const verdadGroups = await this.verdad.getShareGroups(this.verdadCardiologists); // TODO: test with getAllShares instead
+    checkIfShareIsOwned(userShares, groupID, shareID);
     assert(verdadGroups.includes(groupID), 'Verdad did not get access to group')
-  })
+  });
 
   /**
    * Create a professional share.
@@ -43,39 +43,39 @@ contract('Test Professional Share', function (accounts) {
    * @returns {number} the groupID where the share exists
    */
   async function createProShare (sender, recipientAddress, orgGroupID, shareParams) {
-    const {uri, time, access} = shareParams
+    const { uri, time, access } = shareParams;
     const groupID = await createGroup(sender);
     await sender.addUserToGroup(groupID, recipientAddress);
-    await sender.addSubGroup(groupID, orgGroupID);
-    const shareID = await addShare(sender, uri, groupID, time, access)
+    await sender.addShareGroup(groupID, orgGroupID);
+    const shareID = await addShare(sender, uri, groupID, time, access);
     return {groupID, shareID}
   }
-})
+});
 
 contract('Test Organizational Share', function (accounts) {
-  var shareID
+  let shareID;
   before('setup', async function() {
     await initScenario(this, accounts);
-  })
+  });
 
   beforeEach('create an org share', async function () {
     const shareParams = {
       uri: 'bannerURI',
       time: 0,
       access: initCenter().ACCESS.WRITE
-    }
+    };
 
     shareID = await createOrgShare(
       this.bannerUser1,
       this.verdadAddress,
       shareParams);
-  })
+  });
 
   it('should create an org share', async function () {
-    const verdadShares = await this.verdad.getAllShares()
-    const groupID = await this.verdad.getPersonalGroupID()
+    const verdadShares = await this.verdad.getAllShares();
+    const groupID = await this.verdad.getPersonalGroupID();
     assert(checkIfShareIsOwned(verdadShares, groupID, shareID), 'Verdad did not receive share')
-  })
+  });
 
   /**
    * Create an organizational share.
@@ -90,24 +90,24 @@ contract('Test Organizational Share', function (accounts) {
    * @returns {number} the shareID of the new share
    */
   async function createOrgShare (sender, orgAddress, shareParams) {
-    const {uri, time, access} = shareParams
-    const groupID = await sender.getPersonalGroupID(orgAddress)
+    const { uri, time, access } = shareParams;
+    const groupID = await sender.getPersonalGroupID(orgAddress);
     return addShare(sender, uri, groupID, time, access)
   }
-})
+});
 
 
 async function initScenario(self, accounts) {
-  self.bannerAddress = accounts[1]
-  self.verdadAddress = accounts[2]
+  self.bannerAddress = accounts[1];
+  self.verdadAddress = accounts[2];
   self.bannerUser1Address = accounts[3];
   self.bannerUser2Address = accounts[4];
   self.verdadUser1Address = accounts[5];
 
   //Loading ShareCenter Instances
   self.center = initCenter(accounts[0]);
-  self.banner = initCenter(self.bannerAddress)
-  self.verdad = initCenter(self.verdadAddress)
+  self.banner = initCenter(self.bannerAddress);
+  self.verdad = initCenter(self.verdadAddress);
   self.bannerUser1 = initCenter(self.bannerUser1Address);
   self.bannerUser2 = initCenter(self.bannerUser2Address);
   self.verdadUser1 = initCenter(self.verdadUser1Address);
@@ -115,8 +115,8 @@ async function initScenario(self, accounts) {
   await self.center.addSystem(accounts[0]);
   await self.center.addSystem(accounts[1]);
   await self.center.addSystem(accounts[2]);
-  await self.center.createUser(accounts[1])
-  await self.center.createUser(accounts[2])
+  await self.center.createUser(accounts[1]);
+  await self.center.createUser(accounts[2]);
   // Creating blockchain users
   await self.banner.createUser(self.bannerUser1Address);
   await self.banner.createUser(self.bannerUser2Address);

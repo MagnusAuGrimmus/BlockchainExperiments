@@ -55,7 +55,7 @@ contract ShareCenter is GroupManager
 
     modifier ownShare(uint id)
     {
-        if(!canWrite(msg.sender, id))
+        if (shares[id].owner != msg.sender)
             emit Error(uint(ErrorCode.DOES_NOT_OWN_SHARE));
         else
             _;
@@ -226,7 +226,7 @@ contract ShareCenter is GroupManager
             uint shareGroupID = request.shareGroupIDs[i];
             if (groups[shareGroupID].owner == msg.sender)
             {
-                groups[shareGroupID].shares.add(request.shareID);
+                _addShare(shareGroupID, request.shareID);
                 shareRequests[requestID].accepted[i] = true;
             }
         }
@@ -236,7 +236,6 @@ contract ShareCenter is GroupManager
 
     function createShare(bytes32 host, bytes32 path, uint[] memory groupIDs, uint time, uint access) public
     isUser(msg.sender)
-    canWriteToGroups(groupIDs)
     {
         uint shareID = _createShare(host, path, time, access, msg.sender);
         addShare(shareID, groupIDs);
@@ -246,12 +245,8 @@ contract ShareCenter is GroupManager
     ownShare(shareID)
     canWriteToGroups(groupIDs)
     {
-        RecordShare memory share = shares[shareID];
         for (uint i = 0; i < groupIDs.length; i++)
-        {
-            groups[groupIDs[i]].shares.add(shareID);
-            emit ShareAdded(shareID, groupIDs[i], share.host, share.path, share.claim.time, uint(share.claim.access), msg.sender);
-        }
+            _addShare(groupIDs[i], shareID);
     }
 
     function deleteShare(uint shareID) public
@@ -277,6 +272,13 @@ contract ShareCenter is GroupManager
         if (time > 0)
             shares[shareID].claim.time = now + time;
         shares[shareID].claim.access = Claim.getType(access);
+    }
+
+    function _addShare(uint groupID, uint shareID) internal
+    {
+        RecordShare memory share = shares[shareID];
+        groups[groupID].shares.add(shareID);
+        emit ShareAdded(shareID, groupID, share.host, share.path, share.claim.time, uint(share.claim.access), msg.sender);
     }
 
     function _cleanupShareRequest(uint requestID) internal
