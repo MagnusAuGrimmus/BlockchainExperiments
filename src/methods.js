@@ -53,6 +53,17 @@ function convertBigNumbers(arr) {
 }
 
 /**
+ * Packages the groupIDs into an array if the user only passed one groupID
+ * @param groupIDs
+ * @returns Array
+ */
+function formatGroupIDs (groupIDs) {
+  if (groupIDs.constructor !== Array)
+    return [groupIDs];
+  return groupIDs;
+}
+
+/**
  * Gets the number of seconds between the date specified and the current time
  * @param date
  * @returns {number} the number of seconds
@@ -89,4 +100,4 @@ function isAddress(key) {
   return typeof key === 'string' && key.length === 42;
 }
 
-module.exports = {  parseURI, makeURIs, zip, parseEvent, convertBigNumbers, getDuration };
+module.exports = { parseURI, makeURIs, zip, parseEvent, formatGroupIDs, convertBigNumbers, getDuration };

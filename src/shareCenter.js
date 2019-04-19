@@ -2,7 +2,7 @@ const contract = require('truffle-contract');
 const Web3 = require('web3');
 const ShareCenterArtifact = require('../build/contracts/ShareCenter');
 const { errorCode, EthError, EthNodeError, InputError, handleEthErrors, handleTimeError, handleURIError, handleGroupIDFormatError } = require('./errors');
-const { parseURI, makeURIs, zip, parseEvent, convertBigNumbers, getDuration } = require('./methods');
+const { parseURI, makeURIs, zip, parseEvent, formatGroupIDs, convertBigNumbers, getDuration } = require('./methods');
 
 const CONTRACT_ADDRESS = undefined; // Waiting for deployment of contract to ethnet
 const GAS_DEFAULT = 4712388; // Default cap on the amount of gas that can be spent on an ethereum call
@@ -426,7 +426,16 @@ class ShareCenter {
     return this._transact(call);
   }
 
+  /**
+   *
+   * @param groupIDs
+   * @param uri
+   * @param time
+   * @param access
+   * @returns {Promise<{value: {requestID: number | *}, logs: (Array|*)}>}
+   */
   async createShareRequest (groupIDs, uri, time, access) {
+    groupIDs = formatGroupIDs(groupIDs);
     const { host, path } = parseURI(uri);
     handleURIError(host, path);
     if (time instanceof Date)
@@ -466,7 +475,7 @@ class ShareCenter {
    * @throws caller must be a registered user
    */
   async createShare (uri, groupIDs, time, access = 2) {
-    handleGroupIDFormatError(groupIDs);
+    groupIDs = formatGroupIDs(groupIDs);
     const { host, path } = parseURI(uri);
     handleURIError(host, path);
     if (time instanceof Date)
