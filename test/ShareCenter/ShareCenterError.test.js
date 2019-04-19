@@ -1,4 +1,4 @@
-const { initCenter, addShare, createGroup, checkError } = require('./TestingUtils');
+const { initCenter, createShare, createGroup, checkError, addUserToGroup } = require('./TestingUtils');
 const { errorCode } = require('../../src/errors');
 
 
@@ -23,8 +23,8 @@ contract('ShareCenter Error Testing', function (accounts) {
     groupID = await createGroup(center);
     emptyGroupID = await createGroup(user2);
     fakeID = 123456789;
-    await center.addUserToGroup(groupID, user1Address);
-    shareID = await addShare(center, 'uri', groupID)
+    await addUserToGroup(center, groupID, user1);
+    shareID = await createShare(center, 'uri', [groupID])
   });
 
   describe('Add System', () => {
@@ -87,10 +87,10 @@ contract('ShareCenter Error Testing', function (accounts) {
   });
 
   describe('Add Share Group', () => {
-    // it('should throw error code 2 when addShareGroup is called from fake user', async function () {
-    //   const call = () => fakeUser.addShareGroup(groupID, emptyGroupID);
-    //   await checkError(call, errorCode.IS_NOT_A_USER)
-    // }); TODO: Ask about redundancy
+    it('should throw error code 2 when addShareGroup is called from fake user', async function () {
+      const call = () => fakeUser.addShareGroup(groupID, emptyGroupID);
+      await checkError(call, errorCode.IS_NOT_A_USER)
+    });
 
     it('should throw error code 7 when addShareGroup is called with fake group', async function () {
       let call = () => center.addShareGroup(groupID, fakeID);
@@ -99,9 +99,9 @@ contract('ShareCenter Error Testing', function (accounts) {
       await checkError(call, errorCode.GROUP_NOT_ACTIVE);
     });
 
-    it('should throw error code 9 when addShareGroup is called from nonowner', async function () {
+    it('should throw error code 9 when addShareGroup is called from nonwriter', async function () {
       const call = () => user1.addShareGroup(groupID, emptyGroupID);
-      await checkError(call, errorCode.NOT_OWNER_OF_GROUP);
+      await checkError(call, errorCode.IS_NOT_WRITER);
     });
   });
 
@@ -119,18 +119,6 @@ contract('ShareCenter Error Testing', function (accounts) {
     });
   });
 
-  describe('Add User to Group', () => {
-    it('should throw error code 7 when addUserToGroup is called with fake group', async function () {
-      let call = () => center.addUserToGroup(fakeID, user1Address);
-      await checkError(call, errorCode.GROUP_NOT_ACTIVE);
-    });
-
-    it('should throw error code 9 when addUserToGroup is called from nonowner', async function () {
-      const call = () => user1.addUserToGroup(groupID, centerAddress);
-      await checkError(call, errorCode.NOT_OWNER_OF_GROUP);
-    });
-  });
-
   describe('Get Shares', () => {
     it('should throw error code 7 when getShares is called with fake group', async function () {
       let call = () => center.getShares(fakeID);
@@ -139,18 +127,18 @@ contract('ShareCenter Error Testing', function (accounts) {
   });
 
   describe('Add Share', () => {
-    it('should throw error code 2 when addShare is called from fake user', async function () {
-      const call = () => fakeUser.addShare('uri', groupID, center.DURATION.INDEFINITE, center.ACCESS.WRITE);
+    it('should throw error code 2 when createShare is called from fake user', async function () {
+      const call = () => fakeUser.createShare('uri', [groupID], center.DURATION.INDEFINITE, center.ACCESS.WRITE);
       await checkError(call, errorCode.IS_NOT_A_USER);
     });
 
-    it('should throw error code 7 when addShare is called with fake group', async function () {
-      const call = () => center.addShare('uri', fakeID, center.DURATION.INDEFINITE, center.ACCESS.WRITE);
+    it('should throw error code 7 when createShare is called with fake group', async function () {
+      const call = () => center.createShare('uri', [fakeID], center.DURATION.INDEFINITE, center.ACCESS.WRITE);
       await checkError(call, errorCode.GROUP_NOT_ACTIVE);
     });
 
-    it('should throw error code 100 when addShare is called with really long URL', async function () {
-      const call = () => center.addShare('www.nucleusHealthReallyLongDeploymentUrl/reallyLongPathToRecordShare', groupID, 0, center.ACCESS.WRITE);
+    it('should throw error code 100 when createShare is called with really long URL', async function () {
+      const call = () => center.createShare('www.nucleusHealthReallyLongDeploymentUrl/reallyLongPathToRecordShare', [groupID], 0, center.ACCESS.WRITE);
       await checkError(call, errorCode.INVALID_URI);
     });
   });
@@ -189,8 +177,10 @@ contract('Test Circular Dependencies With Share Groups', function (accounts) {
     groupChildID = await createGroup(user);
     groupGrandChildID = await createGroup(user);
 
-    await center.addShareGroup(groupMasterID, groupChildID);
-    await user.addShareGroup(groupChildID, groupGrandChildID);
+    const requestID1 = (await center.createInviteRequest(groupMasterID, groupChildID)).value.requestID;
+    const requestID2 = (await user.createInviteRequest(groupChildID, groupGrandChildID)).value.requestID;
+    await user.acceptRequest(requestID1);
+    await user.acceptRequest(requestID2);
   });
 
   it('should throw an error when user tries to add a group into itself', async function () {
@@ -217,25 +207,33 @@ contract('Test Blacklist', function (accounts) { // TODO: Check this
     await center.addSystem(centerAddress);
     await center.createUser(centerAddress);
     await center.createUser(badUserAddress);
-
-    badGroupID = await createGroup(badUser);
-    groupID = await createGroup(center);
-    8;
   });
 
-  it('should prevent badGroup from adding center to group', async function () {
-    await center.blacklistGroup(groupID, badGroupID); // Permissive: Block a group, can be a personal Group ID CODE REVIEW: Create a wrapper for a permissive blacklist user
+  describe('Group', () => {
+    beforeEach(async () => {
+      groupID = await createGroup(center);
+      badGroupID = await createGroup(badUser);
+    });
 
-    const call = () => badUser.addShareGroup(badGroupID, groupID);
-    await checkError(call, errorCode.BLACKLISTED);
+    it('should prevent badGroup from adding center to group', async function () {
+      await center.blacklistGroup(groupID, badGroupID); // Permissive: Block a group, can be a personal Group ID CODE REVIEW: Create a wrapper for a permissive blacklist user
+
+      const call = () => badUser.createInviteRequest(badGroupID, groupID);
+      await checkError(call, errorCode.BLACKLISTED);
+    });
+
+    it('should prevent badUser from adding center to group', async function () {
+      await center.blacklistUser(groupID, badUserAddress); // Restrictive: if you blacklist a user, then you also blacklist every group the user is in
+
+      const call = () => badUser.createInviteRequest(badGroupID, groupID);
+      await checkError(call, errorCode.BLACKLISTED);
+    });
   });
 
-  it('should prevent badUser from adding center to group', async function () {
-    await center.blacklistUser(groupID, badUserAddress); // Restrictive: if you blacklist a user, then you also blacklist every group the user is in
-
-    const call = () => badUser.addUserToGroup(badGroupID, centerAddress); // restrictive or permissive? Is it necessary? All join operations are only valid if you own the group, so restrictive isn't needed
-    await checkError(call, errorCode.BLACKLISTED);
-  });
-
-  //CODE REVIEW: Blacklisted user adding a share
+  describe('Share', () => {
+    it('should prevent badUser from making a share request', async function () {
+      const call = () => badUser.createShareRequest([groupID], 'uri', 0, 2);
+      await checkError(call, errorCode.BLACKLISTED);
+    })
+  })
 });

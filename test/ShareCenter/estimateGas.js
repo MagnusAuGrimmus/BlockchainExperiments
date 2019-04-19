@@ -1,4 +1,4 @@
-const { initCenter, addShare, createGroup } = require('./TestingUtils');
+const { initCenter, createShare, createGroup } = require('./TestingUtils');
 
 contract('Estimate Gas Prices', function(accounts) {
   let instance, groupID, web3, shareID;
@@ -11,13 +11,13 @@ contract('Estimate Gas Prices', function(accounts) {
         for(let i = 0; i < 5; i++)
             await instance.createUser(accounts[i]);
         groupID = await createGroup(center);
-        shareID = await addShare(center, "uri", groupID);
+      shareID = await createShare(center, "uri", [groupID]);
     });
 
     it("should log the ether costs of all mutator methods", async function() {
         console.log("Create User: ", await estimateGas(instance.createUser, [accounts[9]]));
         console.log("Create Group", await estimateGas(instance.createGroup, []));
-        console.log("Create Share: ", await estimateGas(instance.addShare, ['hub2.nucleus.io', '/statShare/r7oPSzh8bwbWTAa9P', groupID, 0, 2]));
+      console.log("Create Share: ", await estimateGas(instance.createShare, ['hub2.nucleus.io', '/statShare/r7oPSzh8bwbWTAa9P', [groupID], 0, 2]));
         console.log("Delete Share: ", await estimateGas(instance.deleteShare, [shareID]));
     });
 

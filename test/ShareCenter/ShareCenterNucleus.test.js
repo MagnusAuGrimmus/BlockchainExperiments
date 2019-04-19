@@ -1,7 +1,7 @@
-const { initCenter, addShare, createGroup, checkIfShareIsOwned } = require('./TestingUtils');
+const { initCenter, addUserToGroup, createGroup, checkIfShareIsOwned } = require('./TestingUtils');
 
 contract('Test Professional Share', function (accounts) {
-  let groupID, shareID;
+  let requestID;
   before('setup', async function() {
     await initScenario(this, accounts);
   });
@@ -13,20 +13,21 @@ contract('Test Professional Share', function (accounts) {
       access: initCenter().ACCESS.WRITE
     };
 
-    const data = await createProShare(
+    requestID = await createProShare(
       this.bannerUser1,
       this.verdadUser1Address,
       this.verdadCardiologists,
       shareParams);
-    groupID = data.groupID;
-    shareID = data.shareID
   });
 
-  it('should create a pro share', async function () {
+  it('should accept a pro share', async function () {
+    const [orgShareID, userShareID] = await acceptProShare(this.verdad, this.verdadUser1, requestID);
+    assert(orgShareID === userShareID);
+
     const userShares = await this.verdadUser1.getAllShares();
-    const verdadGroups = await this.verdad.getShareGroups(this.verdadCardiologists); // TODO: test with getAllShares instead
-    checkIfShareIsOwned(userShares, groupID, shareID);
-    assert(verdadGroups.includes(groupID), 'Verdad did not get access to group')
+    const verdadShares = await this.verdad.getAllShares();
+    checkIfShareIsOwned(userShares, await this.verdadUser1.getPersonalGroupID(), userShareID);
+    checkIfShareIsOwned(verdadShares, this.verdadCardiologists, orgShareID);
   });
 
   /**
@@ -44,16 +45,22 @@ contract('Test Professional Share', function (accounts) {
    */
   async function createProShare (sender, recipientAddress, orgGroupID, shareParams) {
     const { uri, time, access } = shareParams;
-    const groupID = await createGroup(sender);
-    await sender.addUserToGroup(groupID, recipientAddress);
-    await sender.addShareGroup(groupID, orgGroupID);
-    const shareID = await addShare(sender, uri, groupID, time, access);
-    return {groupID, shareID}
+    const userPersonalGroupID = await sender.getPersonalGroupID(recipientAddress);
+    const groupIDs = [userPersonalGroupID, orgGroupID];
+    return sender.createShareRequest(groupIDs, uri, time, access)
+      .then(({ value }) => value.requestID);
+  }
+
+  async function acceptProShare(org, user, requestID) {
+    return Promise.all([org, user].map(center => {
+      return center.acceptShareRequest(requestID)
+        .then(({ value }) => value.shareIDs[0]);
+    }))
   }
 });
 
 contract('Test Organizational Share', function (accounts) {
-  let shareID;
+  let requestID;
   before('setup', async function() {
     await initScenario(this, accounts);
   });
@@ -65,13 +72,15 @@ contract('Test Organizational Share', function (accounts) {
       access: initCenter().ACCESS.WRITE
     };
 
-    shareID = await createOrgShare(
+    requestID = await createOrgShare(
       this.bannerUser1,
       this.verdadAddress,
       shareParams);
   });
 
   it('should create an org share', async function () {
+    const shareID = await acceptOrgShare(this.verdad, requestID);
+
     const verdadShares = await this.verdad.getAllShares();
     const groupID = await this.verdad.getPersonalGroupID();
     assert(checkIfShareIsOwned(verdadShares, groupID, shareID), 'Verdad did not receive share')
@@ -92,7 +101,13 @@ contract('Test Organizational Share', function (accounts) {
   async function createOrgShare (sender, orgAddress, shareParams) {
     const { uri, time, access } = shareParams;
     const groupID = await sender.getPersonalGroupID(orgAddress);
-    return addShare(sender, uri, groupID, time, access)
+    return sender.createShareRequest([groupID], uri, time, access)
+      .then(({ value }) => value.requestID);
+  }
+
+  function acceptOrgShare(org, requestID) {
+    return org.acceptShareRequest(requestID)
+      .then(({ value }) => value.shareIDs[0]);
   }
 });
 
@@ -124,7 +139,7 @@ async function initScenario(self, accounts) {
   // Creating groups and group connections
   self.bannerRadiologists = await createGroup(self.banner);
   self.verdadCardiologists = await createGroup(self.verdad);
-  await self.banner.addUserToGroup(self.bannerRadiologists,self. bannerUser1Address);
-  await self.banner.addUserToGroup(self.bannerRadiologists, self.bannerUser2Address);
-  await self.verdad.addUserToGroup(self.verdadCardiologists, self.verdadUser1Address);
+  await addUserToGroup(self.banner, self.bannerRadiologists, self.bannerUser1);
+  await addUserToGroup(self.banner, self.bannerRadiologists, self.bannerUser2);
+  await addUserToGroup(self.verdad, self.verdadCardiologists, self.verdadUser1);
 }

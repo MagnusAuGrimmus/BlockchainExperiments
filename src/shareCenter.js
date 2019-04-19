@@ -1,7 +1,7 @@
 const contract = require('truffle-contract');
 const Web3 = require('web3');
 const ShareCenterArtifact = require('../build/contracts/ShareCenter');
-const { errorCode, EthError, EthNodeError, InputError, handleEthErrors, handleTimeError, handleURIError } = require('./errors');
+const { errorCode, EthError, EthNodeError, InputError, handleEthErrors, handleTimeError, handleURIError, handleGroupIDFormatError } = require('./errors');
 const { parseURI, makeURIs, zip, parseEvent, convertBigNumbers, getDuration } = require('./methods');
 
 const CONTRACT_ADDRESS = undefined; // Waiting for deployment of contract to ethnet
@@ -297,14 +297,20 @@ class ShareCenter {
     return { value: { groupID }, logs: result.logs };
   }
 
-  createJoinRequest (groupID, parentGroupID) {
-    const call = instance => instance.createJoinRequest(groupID, parentGroupID);
-    return this._transact(call);
+  async createJoinRequest(groupID, parentGroupID) {
+    const instance = await this.getInstance();
+    const result = await instance.createJoinRequest(groupID, parentGroupID);
+    handleEthErrors(result);
+    const requestID = result.logs.find(log => log.event === 'JoinGroupRequest').args.id.toNumber();
+    return { value: { requestID }, logs: result.logs };
   }
 
-  createInviteRequest (groupID, shareGroupID) {
-    const call = instance => instance.createInviteRequest(groupID, shareGroupID);
-    return this._transact(call);
+  async createInviteRequest(groupID, shareGroupID) {
+    const instance = await this.getInstance();
+    const result = await instance.createInviteRequest(groupID, shareGroupID);
+    handleEthErrors(result);
+    const requestID = result.logs.find(log => log.event === 'InviteRequest').args.id.toNumber();
+    return { value: { requestID }, logs: result.logs };
   }
 
   acceptRequest (requestID) {
@@ -404,7 +410,8 @@ class ShareCenter {
     const result = await instance.acceptShareRequest(requestID);
     handleEthErrors(result);
 
-    let shareIDs = result.logs.filter(log => log.event === 'ShareAdded')
+    let shareIDs = result.logs
+      .filter(log => log.event === 'ShareAdded')
       .map(log => log.args.shareID.toNumber()); // Check if the share was added
     return { value: { shareIDs }, logs: result.logs };
   }
@@ -422,6 +429,7 @@ class ShareCenter {
    * @throws caller must be a registered user
    */
   async createShare (uri, groupIDs, time, access = 2) {
+    handleGroupIDFormatError(groupIDs);
     const { host, path } = parseURI(uri);
     handleURIError(host, path);
     if (time instanceof Date)
@@ -438,6 +446,7 @@ class ShareCenter {
   }
 
   async addShare (shareID, groupIDs) {
+    handleGroupIDFormatError(groupIDs);
     const call = instance => instance.addShare(shareID, groupIDs);
     return this._transact(call);
   }

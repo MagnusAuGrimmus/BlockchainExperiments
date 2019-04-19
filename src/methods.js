@@ -71,8 +71,10 @@ function parseEvent(response) {
     return;
   for (const key in response.args) {
     const arg = response.args[key];
-    if(typeof arg === 'object')
-      response.args[key] = arg.toNumber();
+    if (typeof arg === 'object') {
+      if (arg.constructor !== Array)
+        response.args[key] = arg.toNumber();
+    }
     else if(!isAddress(arg))
       response.args[key] = toUtf8(arg);
   }

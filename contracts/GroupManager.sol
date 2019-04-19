@@ -21,10 +21,16 @@ contract GroupManager is UserManager
         IterableSet_Integer.Data shares;
     }
 
+    enum RequestType {
+        JoinGroup,
+        Invite
+    }
+
     struct Request {
         address sender;
         uint groupID;
         uint shareGroupID;
+        RequestType requestType;
     }
 
     mapping(uint => Request) requests;
@@ -87,17 +93,30 @@ contract GroupManager is UserManager
 
     modifier isNotBlacklisted(uint groupID, uint shareGroupID)
     {
-        address groupOwner = groups[shareGroupID].owner;
-        if (groups[groupID].blacklistedGroups.contains(shareGroupID) ||
-            groups[groupID].blacklistedUsers.contains(groupOwner))
+        if (isBlacklisted(groupID, shareGroupID))
             emit Error(uint(ErrorCode.BLACKLISTED));
         else
             _;
     }
 
+    modifier areNotBlacklisted(uint[] memory shareGroupIDs)
+    {
+        bool error = false;
+        for (uint i = 0; i < shareGroupIDs.length; i++)
+            if (groups[shareGroupIDs[i]].blacklistedUsers.contains(msg.sender))
+            {
+                emit Error(uint(ErrorCode.BLACKLISTED));
+                error = true;
+            }
+        if (!error)
+            _;
+    }
+
     modifier canAcceptRequest(uint requestID)
     {
-        if (groups[requests[requestID].shareGroupID].owner != msg.sender)
+        Request memory request = requests[requestID];
+        uint groupID = request.requestType == RequestType.Invite ? request.shareGroupID : request.groupID;
+        if (groups[groupID].owner != msg.sender)
             emit Error(uint(ErrorCode.NOT_OWNER_OF_GROUP));
         else
             _;
@@ -110,6 +129,15 @@ contract GroupManager is UserManager
             emit Error(uint(ErrorCode.IS_NOT_WRITER));
         else
             _;
+    }
+
+    function isBlacklisted(uint groupID, uint shareGroupID) public view
+    returns (bool)
+    {
+        address groupOwner = groups[groupID].owner;
+        Group storage shareGroup = groups[shareGroupID];
+        return shareGroup.blacklistedGroups.contains(groupID)
+        || shareGroup.blacklistedUsers.contains(groupOwner);
     }
 
     function getShareGroups(uint groupID) public view
@@ -160,7 +188,7 @@ contract GroupManager is UserManager
     ownsGroup(msg.sender, groupID)
     isNotBlacklisted(parentGroupID, groupID)
     {
-        requests[++requestCounter] = Request(msg.sender, parentGroupID, groupID);
+        requests[++requestCounter] = Request(msg.sender, parentGroupID, groupID, RequestType.JoinGroup);
         emit JoinGroupRequest(requestCounter, parentGroupID, groupID, msg.sender);
     }
 
@@ -168,7 +196,7 @@ contract GroupManager is UserManager
     ownsGroup(msg.sender, groupID)
     isNotBlacklisted(groupID, shareGroupID)
     {
-        requests[++requestCounter] = Request(msg.sender, groupID, shareGroupID);
+        requests[++requestCounter] = Request(msg.sender, groupID, shareGroupID, RequestType.Invite);
         emit InviteRequest(requestCounter, groupID, shareGroupID, msg.sender);
     }
 
@@ -191,6 +219,9 @@ contract GroupManager is UserManager
     }
 
     function addShareGroup(uint groupID, uint shareGroupID) public
+    isUser(msg.sender)
+    isActiveGroup(groupID)
+    isActiveGroup(shareGroupID)
     isWriter(msg.sender, groupID)
     isWriter(msg.sender, shareGroupID)
     {
@@ -198,11 +229,13 @@ contract GroupManager is UserManager
     }
 
     function removeShareGroup(uint groupID, uint shareGroupID) public
-    isWriter(msg.sender, groupID)
-    isWriter(msg.sender, shareGroupID)
+    isUser(msg.sender)
+    isActiveGroup(groupID)
+    isActiveGroup(shareGroupID)
+    ownsGroup(msg.sender, groupID)
     {
-        groups[shareGroupID].shareGroups.remove(groupID);
-        emit ShareGroupRemoved(groupID, shareGroupID, msg.sender);
+        if (groups[shareGroupID].shareGroups.remove(groupID))
+            emit ShareGroupRemoved(groupID, shareGroupID, msg.sender);
     }
 
     function _initGroup(address addr, bool isPersonal) internal

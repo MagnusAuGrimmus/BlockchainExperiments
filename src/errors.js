@@ -20,6 +20,7 @@ const errorCode = { // TODO: Get eth errors from abi itself
 	CIRCULAR_DEPENDENCY: 101,
 	NEGATIVE_TIME: 102,
 	INVALID_EVENT_NAME: 103,
+  INVALID_GROUPID_FORMAT: 104,
 
 	// Node errors passed through from web3/truffle packages
 	INVALID_JSON_RESPONSE: 200,
@@ -50,6 +51,7 @@ const errorMessages = {
 	[errorCode.CIRCULAR_DEPENDENCY]: 'Circular Dependency: Cannot add Group',
 	[errorCode.NEGATIVE_TIME]: 'Time must be nonnegative',
 	[errorCode.INVALID_EVENT_NAME]: 'Event does not exist',
+  [errorCode.INVALID_GROUPID_FORMAT]: 'Group IDs must be passed through as an array',
 
 	// Node errors passed through from web3/truffle packages
 	[errorCode.INVALID_JSON_RESPONSE]:
@@ -124,6 +126,11 @@ function handleURIError (host, path) {
 		throw new InputError(errorCode.INVALID_URI)
 }
 
+function handleGroupIDFormatError(groupIDs) {
+  if (groupIDs.constructor !== Array)
+    throw new InputError(errorCode.INVALID_GROUPID_FORMAT);
+}
+
 function isValidURI (host, path) {
 	return host.length <= 32 && path.length <= 32
 }
@@ -135,5 +142,6 @@ module.exports = {
 	handleEthErrors,
 	handleTimeError,
 	handleURIError,
+  handleGroupIDFormatError,
 	errorCode
 };

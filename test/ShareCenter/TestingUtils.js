@@ -17,6 +17,11 @@ async function createGroup (center) {
   return data.value.groupID
 }
 
+async function addUserToGroup(center, groupID, user) {
+  const { requestID } = (await center.createInviteRequest(groupID, await user.getPersonalGroupID())).value;
+  return user.acceptRequest(requestID);
+}
+
 function contains (shares, shareID) {
   return shares.some(share => share.id === shareID);
 }
@@ -31,8 +36,7 @@ function checkIfShareIsOwned (shares, groupID, shareID) {
 async function checkError (call, expectedErrorCode = null) {
   let success = false;
   try {
-    let data = await call();
-    console.log(data);
+    await call();
     success = true
   }
   catch (err) {
@@ -49,6 +53,7 @@ function sleep (ms) {
 module.exports = {
   initCenter,
   createShare,
+  addUserToGroup,
   contains,
   createGroup,
   checkIfShareIsOwned,

@@ -83,6 +83,12 @@ contract ShareCenter is GroupManager
         for (uint i = 0; i < groupIDs.length; i++)
         {
             Group storage group = groups[groupIDs[i]];
+            if (group.id == 0)
+            {
+                emit Error(uint(ErrorCode.GROUP_NOT_ACTIVE));
+                found = true;
+                break;
+            }
             if (group.owner != msg.sender && !group.writers.contains(msg.sender))
             {
                 emit Error(uint(ErrorCode.NOT_OWNER_OF_GROUP));
@@ -205,6 +211,7 @@ contract ShareCenter is GroupManager
     }
 
     function createShareRequest(uint[] memory groupIDs, bytes32 host, bytes32 path, uint time, uint access) public
+    areNotBlacklisted(groupIDs)
     {
         for (uint i = 0; i < groupIDs.length; i++)
         {

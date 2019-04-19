@@ -23,7 +23,7 @@ contract('Test Doctor Patient Get All Shares', function (accounts) {
 
   it('should share a record', async function () {
     // Sharing method: send a request to doctor and have him accept
-    const requestID = await patient.createShareRequest([doctorPersonalGroupID], 'PatientURI', 0, 2);
+    const { requestID } = (await patient.createShareRequest([doctorPersonalGroupID], 'PatientURI', 0, 2)).value;
     const { shareIDs } = (await doctor.acceptShareRequest(requestID)).value;
     const shares = await doctor.getAllShares();
 
@@ -45,11 +45,12 @@ contract('Test Banner Verdad Case', function (accounts) {
 
     bannerGroupID = await createGroup(bannerDoctor);
     verdadGroupID = await createGroup(verdadDoctor);
-    shareID = await createShare(bannerDoctor, 'BannerURI', bannerGroupID);
+    shareID = await createShare(bannerDoctor, 'BannerURI', [bannerGroupID]);
   });
 
   it('should give Verdad group access to share', async function () {
-    await bannerDoctor.addShareGroup(bannerGroupID, verdadGroupID);
+    const { requestID } = (await verdadDoctor.createJoinRequest(verdadGroupID, bannerGroupID)).value;
+    await bannerDoctor.acceptRequest(requestID);
     const shares = await verdadDoctor.getAllShares();
 
     checkIfShareIsOwned(shares, bannerGroupID, shareID)
@@ -132,9 +133,9 @@ contract('Test Get Shares with multiple shares', function (accounts) {
    * @param {number} numShares the number of shares to add
    * @returns {Array} the shareIDs of all the shares added
    */
-  async function addShares (numShares) {
-    let shares = [...Array(numShares)].map(() => createShare(user, URI, groupID)); // TODO: get rid of spread syntax maybe?
-    return await Promise.all(shares);
+  function addShares(numShares) {
+    return Array(numShares).map(() => createShare(user, URI, [groupID])
+      .then(result => result.value.shareID));
   }
 
   function checkIfSharesAreOwned (shares, shareIDs) {
@@ -145,7 +146,7 @@ contract('Test Get Shares with multiple shares', function (accounts) {
 contract('It should test the time limit of authorize claims', function (accounts) {
   let centerAddress, userAddress,
     center, user,
-    groupID;
+    groupID, userPersonalGroupID;
 
   before('setup', async function () {
     centerAddress = accounts[0];
@@ -156,11 +157,13 @@ contract('It should test the time limit of authorize claims', function (accounts
     await center.createUser(centerAddress);
     await center.createUser(userAddress);
     groupID = await createGroup(center);
-    await center.addUserToGroup(groupID, userAddress)
+    userPersonalGroupID = await user.getPersonalGroupID();
+    const { requestID } = (await center.createInviteRequest(groupID, userPersonalGroupID)).value;
+    await user.acceptRequest(requestID);
   });
 
   it('should give write privileges for only 1 second', async function () {
-    const shareID = await createShare(center, 'uri', groupID, 1); //Set the claim to one second
+    const shareID = await createShare(center, 'uri', [groupID], 1); //Set the claim to one second
 
     let shares = await user.getAllShares();
     checkIfShareIsOwned(shares, groupID, shareID);
