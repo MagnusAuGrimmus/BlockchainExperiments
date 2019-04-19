@@ -1,33 +1,26 @@
-const errorCode = { // TODO: Get eth errors from abi itself
-  // Ethereum Errors passed through from ShareCenter.sol contract
-	IS_NOT_OWNER: 0,
-	USER_ALREADY_EXISTS: 1,
-	IS_NOT_A_USER: 2,
-	IS_NOT_A_REGISTERED_SYSTEM: 3,
-	DOES_NOT_OWN_SHARE: 4,
-	DOES_NOT_HAVE_SHARE: 5,
-	SHARE_DOES_NOT_EXIST: 6,
-	GROUP_NOT_ACTIVE: 7,
-	NOT_IN_GROUP: 8,
-	NOT_OWNER_OF_GROUP: 9,
-	IN_GROUP: 10,
-	BLACKLISTED: 11,
-	INVALID_SHARE_REQUEST: 12,
-	IS_NOT_WRITER: 13,
+// Ethereum Errors passed through from ShareCenter.sol contract
+const ethErrors = require('../build/contracts/Throwable')
+	.ast.nodes[1].nodes[0].members
+	.map(({ name }) => name)
+	.reduce((obj, code, index) => {
+		obj[code] = index;
+		return obj;
+	}, {});
 
+const errorCode = Object.assign(ethErrors, {
 	// ShareCenter.js module specific errors
 	INVALID_URI: 100,
 	CIRCULAR_DEPENDENCY: 101,
 	NEGATIVE_TIME: 102,
 	INVALID_EVENT_NAME: 103,
-  INVALID_GROUPID_FORMAT: 104,
+	INVALID_GROUPID_FORMAT: 104,
 
 	// Node errors passed through from web3/truffle packages
 	INVALID_JSON_RESPONSE: 200,
 	CONNECTION_ERROR: 201,
 	PROVIDER_NOT_SET: 202,
 	CONNECTION_TIMEOUT: 203
-};
+});
 
 const errorMessages = {
 	// Ethereum Errors passed through from ShareCenter.sol contract
@@ -82,7 +75,9 @@ class IDError extends Error {
 	}
 
 	static getMessage (id) {
-		return errorMessages[id] || 'Error'
+		return errorMessages[id]
+			|| Object.keys(errorCode).find(name => errorCode[name] === id)  // Get the name of the errorCode from the abi if no hardcoded error has been found
+			|| 'Error';
 	}
 }
 

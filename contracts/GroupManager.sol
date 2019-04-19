@@ -194,6 +194,9 @@ contract GroupManager is UserManager
     }
 
     function createJoinRequest(uint groupID, uint parentGroupID) public
+    isUser(msg.sender)
+    isActiveGroup(groupID)
+    isActiveGroup(parentGroupID)
     ownsGroup(msg.sender, groupID)
     isNotBlacklisted(parentGroupID, groupID)
     {
@@ -202,6 +205,9 @@ contract GroupManager is UserManager
     }
 
     function createInviteRequest(uint groupID, uint shareGroupID) public
+    isUser(msg.sender)
+    isActiveGroup(groupID)
+    isActiveGroup(shareGroupID)
     ownsGroup(msg.sender, groupID)
     isNotBlacklisted(groupID, shareGroupID)
     {
@@ -211,6 +217,7 @@ contract GroupManager is UserManager
 
 
     function acceptRequest(uint requestID) public
+    isUser(msg.sender)
     isActiveRequest(requestID)
     canAcceptRequest(requestID)
     {
@@ -222,6 +229,7 @@ contract GroupManager is UserManager
     }
 
     function addWriter(uint groupID, address addr) public
+    isUser(msg.sender)
     ownsGroup(msg.sender, groupID)
     isInGroup(addr, groupID)
     {

@@ -8,7 +8,9 @@ const CONTRACT_ADDRESS = undefined; // Waiting for deployment of contract to eth
 const GAS_DEFAULT = 4712388; // Default cap on the amount of gas that can be spent on an ethereum call
 
 // List of events triggered by the contract
-const EVENTS = ShareCenterArtifact.abi.filter(({ type }) => type === 'event').map(({ name }) => name);
+const EVENTS = ShareCenterArtifact.abi
+  .filter(({ type }) => type === 'event')
+  .map(({ name }) => name);
 
 /**
  * ShareCenter API
@@ -297,6 +299,17 @@ class ShareCenter {
     return { value: { groupID }, logs: result.logs };
   }
 
+  /**
+   * Creates a request to access the shares of another group. Default way to ask permission for shares
+   *
+   * @param {number} groupID Your group ID
+   * @param {number} parentGroupID The group ID of the group who's shares you want to access
+   * @returns {Promise<{value: { requestID: number }, logs: Array}>}
+   *
+   * @throws Both groups must be active
+   * @throws Sender must own the group referenced by groupID
+   * @throws groupID cannot be blacklisted by parentGroupID
+   */
   async createJoinRequest(groupID, parentGroupID) {
     const instance = await this.getInstance();
     const result = await instance.createJoinRequest(groupID, parentGroupID);
@@ -305,6 +318,17 @@ class ShareCenter {
     return { value: { requestID }, logs: result.logs };
   }
 
+  /**
+   * Creates a request to grant someone access to your shares.
+   * Must use this method if you do not have write privileges to shareGroup
+   * @param groupID Your group ID
+   * @param shareGroupID The group ID of the group you want to give access to your shares
+   * @returns {Promise<{value: { requestID: number }, logs: Array}>}
+   *
+   * @throws Both groups must be active
+   * @throws Sender must own the group referenced by groupID
+   * @throws shareGroupID cannot be blacklisted by groupID
+   */
   async createInviteRequest(groupID, shareGroupID) {
     const instance = await this.getInstance();
     const result = await instance.createInviteRequest(groupID, shareGroupID);
@@ -313,11 +337,24 @@ class ShareCenter {
     return { value: { requestID }, logs: result.logs };
   }
 
+  /**
+   * Accept a share
+   * @param {number} requestID the id of the request event
+   * @returns {Promise<{logs: Array}>}
+   *
+   * @throws Sender must own the group referenced by shareGroupID
+   */
   acceptRequest (requestID) {
     const call = instance => instance.acceptRequest(requestID);
     return this._transact(call);
   }
 
+  /**
+   * Give a user write privileges in a group
+   * @param {number} groupID
+   * @param {string} addr The address to give write privileges to
+   * @returns {Promise<{logs: Array}>}
+   */
   addWriter (groupID, addr) {
     const call = instance => instance.addWriter(groupID, addr);
     return this._transact(call);

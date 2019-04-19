@@ -1,4 +1,4 @@
-const { initCenter, createShare, createGroup, checkError, addUserToGroup } = require('./TestingUtils');
+const { initCenter, createShare, createGroup, checkError, addUserToGroup, checkIfShareIsOwned } = require('./TestingUtils');
 const { errorCode } = require('../../src/errors');
 
 
@@ -66,7 +66,7 @@ contract('ShareCenter Error Testing', function (accounts) {
   });
 
   describe('Get Group IDs', () => {
-    it('should throw error code 2 when getGroupIDs is called on fake user', async function () {
+    it('should throw error code 2 when getGroupIDs is called with fake user', async function () {
       const call = () => fakeUser.getGroupIDs();
       await checkError(call, errorCode.IS_NOT_A_USER);
     });
@@ -83,6 +83,20 @@ contract('ShareCenter Error Testing', function (accounts) {
     it('should throw error code 2 when createGroup is called from fake user', async function () {
       const call = () => fakeUser.createGroup();
       await checkError(call, errorCode.IS_NOT_A_USER);
+    });
+  });
+
+  describe('Create Join Request', () => {
+    it('should throw error code 7 when createJoinRequest is called with fake group', async function () {
+      let call = () => center.createJoinRequest(groupID, fakeID);
+      await checkError(call, errorCode.GROUP_NOT_ACTIVE);
+      call = () => center.createJoinRequest(fakeID, groupID);
+      await checkError(call, errorCode.GROUP_NOT_ACTIVE);
+    });
+
+    it('should throw error code 13 when addShareGroup is called from non-owner', async function () {
+      const call = () => user1.addShareGroup(groupID, emptyGroupID);
+      await checkError(call, errorCode.IS_NOT_WRITER);
     });
   });
 
@@ -137,8 +151,8 @@ contract('ShareCenter Error Testing', function (accounts) {
       await checkError(call, errorCode.GROUP_NOT_ACTIVE);
     });
 
-    it('should throw error code 13 when createShare is called with non-owned group', async function () {
-      const call = () => center.createShare('uri', [emptyGroupID], center.DURATION.INDEFINITE, center.ACCESS.WRITE);
+    it('should throw error code 13 when createShare is called with a non-writer group', async function () {
+      const call = () => center.createShare('uri', [groupID, emptyGroupID], center.DURATION.INDEFINITE, center.ACCESS.WRITE);
       await checkError(call, errorCode.IS_NOT_WRITER);
     });
 
@@ -168,7 +182,8 @@ contract('ShareCenter Error Testing', function (accounts) {
 
 contract('Test Circular Dependencies With Share Groups', function (accounts) {
   let center, user,
-    groupMasterID, groupChildID, groupGrandChildID;
+    groupMasterID, groupChildID, groupGrandChildID,
+    shareID;
 
   before('setup', async function () {
     center = initCenter(accounts[0]);
@@ -186,6 +201,8 @@ contract('Test Circular Dependencies With Share Groups', function (accounts) {
     const requestID2 = (await user.createInviteRequest(groupChildID, groupGrandChildID)).value.requestID;
     await user.acceptRequest(requestID1);
     await user.acceptRequest(requestID2);
+
+    shareID = await createShare(center, 'uri', [groupMasterID]);
   });
 
   it('should throw an error when user tries to add a group into itself', async function () {
@@ -196,10 +213,18 @@ contract('Test Circular Dependencies With Share Groups', function (accounts) {
   it('should throw an error when user tries to add a group that would create a circular dependency', async function () {
     const call = () => user.addShareGroup(groupGrandChildID, groupMasterID);
     await checkError(call, errorCode.CIRCULAR_DEPENDENCY);
-  })
+  });
+
+  it('should still getAllShares even if someone not using the library makes a circular dependency', async function () {
+    const instance = await user.getInstance();
+    await instance.addShareGroup(groupGrandChildID, groupChildID);
+
+    const shares = await user.getAllShares();
+    checkIfShareIsOwned(shares, groupMasterID, shareID);
+  });
 });
 
-contract('Test Blacklist', function (accounts) { // TODO: Check this
+contract('Test Blacklist', function (accounts) {
   var centerAddress, badUserAddress,
     center, badUser,
     groupID, badGroupID;
@@ -221,7 +246,7 @@ contract('Test Blacklist', function (accounts) { // TODO: Check this
     });
 
     it('should prevent badGroup from adding center to group', async function () {
-      await center.blacklistGroup(groupID, badGroupID); // Permissive: Block a group, can be a personal Group ID CODE REVIEW: Create a wrapper for a permissive blacklist user
+      await center.blacklistGroup(groupID, badGroupID); // Permissive: Block a group, can be a personal Group ID
 
       const call = () => badUser.createInviteRequest(badGroupID, groupID);
       await checkError(call, errorCode.BLACKLISTED);
