@@ -18,6 +18,7 @@ contract ShareCenter is GroupManager
     }
 
     struct ShareRequestData {
+        bool active;
         address sender;
         uint[] shareGroupIDs;
         bool[] accepted;
@@ -91,7 +92,7 @@ contract ShareCenter is GroupManager
             }
             if (group.owner != msg.sender && !group.writers.contains(msg.sender))
             {
-                emit Error(uint(ErrorCode.NOT_OWNER_OF_GROUP));
+                emit Error(uint(ErrorCode.IS_NOT_WRITER));
                 found = true;
                 break;
             }
@@ -220,7 +221,7 @@ contract ShareCenter is GroupManager
         }
         uint shareID = _createShare(host, path, time, access, msg.sender);
         bool[] memory accepted = new bool[](groupIDs.length);
-        shareRequests[++shareRequestCounter] = ShareRequestData(msg.sender, groupIDs, accepted, shareID);
+        shareRequests[++shareRequestCounter] = ShareRequestData(true, msg.sender, groupIDs, accepted, shareID);
         emit ShareRequest(shareRequestCounter, groupIDs, host, path, time, access, msg.sender);
     }
 

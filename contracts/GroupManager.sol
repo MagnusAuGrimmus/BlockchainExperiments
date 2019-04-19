@@ -27,6 +27,7 @@ contract GroupManager is UserManager
     }
 
     struct Request {
+        bool active;
         address sender;
         uint groupID;
         uint shareGroupID;
@@ -131,6 +132,14 @@ contract GroupManager is UserManager
             _;
     }
 
+    modifier isActiveRequest(uint id)
+    {
+        if (!requests[id].active)
+            emit Error(uint(ErrorCode.INACTIVE_REQUEST));
+        else
+            _;
+    }
+
     function isBlacklisted(uint groupID, uint shareGroupID) public view
     returns (bool)
     {
@@ -188,7 +197,7 @@ contract GroupManager is UserManager
     ownsGroup(msg.sender, groupID)
     isNotBlacklisted(parentGroupID, groupID)
     {
-        requests[++requestCounter] = Request(msg.sender, parentGroupID, groupID, RequestType.JoinGroup);
+        requests[++requestCounter] = Request(true, msg.sender, parentGroupID, groupID, RequestType.JoinGroup);
         emit JoinGroupRequest(requestCounter, parentGroupID, groupID, msg.sender);
     }
 
@@ -196,12 +205,13 @@ contract GroupManager is UserManager
     ownsGroup(msg.sender, groupID)
     isNotBlacklisted(groupID, shareGroupID)
     {
-        requests[++requestCounter] = Request(msg.sender, groupID, shareGroupID, RequestType.Invite);
+        requests[++requestCounter] = Request(true, msg.sender, groupID, shareGroupID, RequestType.Invite);
         emit InviteRequest(requestCounter, groupID, shareGroupID, msg.sender);
     }
 
 
     function acceptRequest(uint requestID) public
+    isActiveRequest(requestID)
     canAcceptRequest(requestID)
     {
         Request memory request = requests[requestID];
@@ -243,10 +253,12 @@ contract GroupManager is UserManager
     {
         Group storage group = groups[groupCounter + 1];
         group.id = ++groupCounter;
-        group.isPersonal = isPersonal;
-        groups[group.id] = group;
+        if (isPersonal)
+            group.isPersonal = true;
+        else
+            groups[users[addr].personalGroupID].shareGroups.add(group.id);
         group.owner = addr;
-        groups[users[addr].personalGroupID].shareGroups.add(group.id);
+        groups[group.id] = group;
         emit GroupCreated(group.id, addr);
         return group.id;
     }

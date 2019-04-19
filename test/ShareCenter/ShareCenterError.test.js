@@ -126,7 +126,7 @@ contract('ShareCenter Error Testing', function (accounts) {
     });
   });
 
-  describe('Add Share', () => {
+  describe('Create Share', () => {
     it('should throw error code 2 when createShare is called from fake user', async function () {
       const call = () => fakeUser.createShare('uri', [groupID], center.DURATION.INDEFINITE, center.ACCESS.WRITE);
       await checkError(call, errorCode.IS_NOT_A_USER);
@@ -135,6 +135,11 @@ contract('ShareCenter Error Testing', function (accounts) {
     it('should throw error code 7 when createShare is called with fake group', async function () {
       const call = () => center.createShare('uri', [fakeID], center.DURATION.INDEFINITE, center.ACCESS.WRITE);
       await checkError(call, errorCode.GROUP_NOT_ACTIVE);
+    });
+
+    it('should throw error code 13 when createShare is called with non-owned group', async function () {
+      const call = () => center.createShare('uri', [emptyGroupID], center.DURATION.INDEFINITE, center.ACCESS.WRITE);
+      await checkError(call, errorCode.IS_NOT_WRITER);
     });
 
     it('should throw error code 100 when createShare is called with really long URL', async function () {
