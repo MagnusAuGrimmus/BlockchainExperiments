@@ -6,7 +6,7 @@ const { toUtf8 } = new Web3();
 /**
  * Split a uri into its host and path
  * @param uri
- * @returns {{host: String.host, path: String.path}}
+ * @returns {{host: String, path: String}}
  */
 function parseURI(uri) {
   let { host, path } = url.parse(uri);

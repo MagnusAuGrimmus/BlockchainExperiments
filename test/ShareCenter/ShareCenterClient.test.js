@@ -1,4 +1,4 @@
-const { initCenter, createShare, checkIfShareIsOwned, createGroup } = require('./TestingUtils');
+const { initCenter, createShare, createGroup } = require('./TestingUtils');
 
 contract('Test System Added', function (accounts) {
   let center;

@@ -109,7 +109,7 @@ contract ShareCenter is GroupManager
     function canRead(address addr, uint shareID) public view
     returns (bool)
     {
-        (, uint[] memory groupIDs) = getGroupIDs(addr);
+        (, uint[] memory groupIDs) = getUserGroupIDs(addr);
         for(uint i = 0; i < groupIDs.length; i++)
             if(canRead(groupIDs[i], shareID))
                 return true;
@@ -150,7 +150,7 @@ contract ShareCenter is GroupManager
         return (users[addr].active, users[addr].personalGroupID);
     }
 
-    function getGroupIDs(address addr) public view
+    function getUserGroupIDs(address addr) public view
     returns (bool, uint[] memory)
     {
         return getGroupIDs(users[addr].personalGroupID);

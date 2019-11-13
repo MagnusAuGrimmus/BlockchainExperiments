@@ -17,14 +17,16 @@ contract('Estimate Gas Prices', function(accounts) {
     it("should log the ether costs of all mutator methods", async function() {
         console.log("Create User: ", await estimateGas(instance.createUser, [accounts[9]]));
         console.log("Create Group", await estimateGas(instance.createGroup, []));
-      console.log("Create Share: ", await estimateGas(instance.createShare, ['hub2.nucleus.io', '/statShare/r7oPSzh8bwbWTAa9P', [groupID], 0, 2]));
+        const host = web3.utils.asciiToHex('hub2.nucleus.io');
+        const path = web3.utils.asciiToHex('/statShare/r7oPSzh8bwbWTAa9P');
+        console.log("Create Share: ", await estimateGas(instance.createShare, [host, path, [groupID], 0, 2]));
         console.log("Delete Share: ", await estimateGas(instance.deleteShare, [shareID]));
     });
 
   async function estimateGas (func, params) {
     const gas = await func.estimateGas(...params);
-    const gasPrice = await web3.eth.gasPrice.toNumber();
-    const eth = await web3.fromWei(gas * gasPrice);
+    const gasPrice = parseInt(await web3.eth.getGasPrice());
+    const eth = await web3.utils.fromWei((gas * gasPrice).toString());
     return `${gas} gas, ${eth} eth`;
   }
 });

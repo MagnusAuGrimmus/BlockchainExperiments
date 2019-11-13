@@ -1,6 +1,6 @@
+const Web3 = require('web3');
 const { initCenter, createShare, createGroup, checkError, addUserToGroup, checkIfShareIsOwned } = require('./TestingUtils');
 const { errorCode } = require('../../src/errors');
-
 
 contract('ShareCenter Error Testing', function (accounts) {
   let center, user1, user2, fakeUser,

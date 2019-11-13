@@ -1,7 +1,7 @@
 let ShareCenter = artifacts.require('ShareCenter');
 const { initCenter, createShare, createGroup, sleep } = require('./TestingUtils');
 
-contract('ShareCenter Event Test', function(accounts) {
+contract.skip('ShareCenter Event Test', function(accounts) {
   let groupID, center;
 
   before('setup', async function() {

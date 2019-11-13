@@ -1,5 +1,5 @@
 const ShareCenter = require('../../src/shareCenter');
-const { HTTP_PROVIDER } = require('../config.json');
+const { PROVIDER } = require('../config.json');
 const { initCenter, checkIfShareIsOwned, sleep, createGroup, createShare, checkError } = require('./TestingUtils');
 
 contract('Test Doctor Patient Get All Shares', function (accounts) {
@@ -75,7 +75,7 @@ contract('Test multiple ShareCenter Instances', function (accounts) {
   it('should instantiate both centers', async function () {
     center1 = initCenter(accounts[0]);
     const contractAddress = await getContractAddress(center1);
-    center2 = new ShareCenter(HTTP_PROVIDER, accounts[0], { contractAddress });
+    center2 = new ShareCenter(PROVIDER, accounts[0], { contractAddress });
     await center1.addSystem(accounts[0]);
     await center1.createUser(accounts[0])
   });
@@ -100,7 +100,7 @@ contract('Test Get Shares with multiple shares', function (accounts) {
 
   beforeEach('setup test case', async function () {
     // Instantiate a new user every test case
-    user = new ShareCenter(HTTP_PROVIDER, accounts[++accountIndex], { testingMode: true });
+    user = new ShareCenter(PROVIDER, accounts[++accountIndex], { testingMode: true });
     await center.createUser(accounts[accountIndex]);
     groupID = await createGroup(user)
   });

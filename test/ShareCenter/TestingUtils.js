@@ -1,9 +1,8 @@
 const ShareCenter = require('../../src/shareCenter');
-const { HTTP_PROVIDER } = require('../config.json');
-
+const { PROVIDER } = require('../config.json');
 function initCenter (account) {
   if(account)
-    return new ShareCenter(HTTP_PROVIDER, account, {testingMode: true});
+    return new ShareCenter(PROVIDER, account, {testingMode: true});
   return ShareCenter;
 }
 

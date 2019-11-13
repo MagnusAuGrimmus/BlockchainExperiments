@@ -1,11 +1,12 @@
-const contract = require('truffle-contract');
+const contract = require('@truffle/contract');
 const Web3 = require('web3');
 const ShareCenterArtifact = require('../build/contracts/ShareCenter');
 const { errorCode, EthError, EthNodeError, InputError, handleEthErrors, handleTimeError, handleURIError, handleGroupIDFormatError } = require('./errors');
 const { parseURI, makeURIs, zip, parseEvent, formatGroupIDs, convertBigNumbers, getDuration } = require('./methods');
 
 const CONTRACT_ADDRESS = undefined; // Waiting for deployment of contract to ethnet
-const GAS_DEFAULT = 4712388; // Default cap on the amount of gas that can be spent on an ethereum call
+// const GAS_DEFAULT = 4712388; // Default cap on the amount of gas that can be spent on an ethereum call
+const GAS_DEFAULT = 50000000;
 
 // List of events triggered by the contract
 const EVENTS = ShareCenterArtifact.abi
@@ -20,7 +21,7 @@ const EVENTS = ShareCenterArtifact.abi
 class ShareCenter {
   /**
    * @constructor
-   * @param {Object} httpProvider Location of web3 instance
+   * @param {Object} provider of web3 instance
    * @param {String} userAddress Blockchain address of the user
    * @param {Object} [options] Options for configuring the ShareCenter contract
    * @param {number} [options.gas=4712388] Maximum amount of gas a contract method can use
@@ -30,9 +31,9 @@ class ShareCenter {
    * @param {String} [options.contractAddress] optional address to load contract from.
    * Should not be used for production, only for specific test scenarios.
    */
-  constructor (httpProvider, userAddress, options = {}) {
+  constructor (provider, userAddress, options = {}) {
     this.sender = userAddress;
-    this.web3 = new Web3(new Web3.providers.HttpProvider(httpProvider));
+    this.web3 = new Web3(provider);
     const contractOptions = {
       from: userAddress,
       gas: options.gas || GAS_DEFAULT,
@@ -101,7 +102,7 @@ class ShareCenter {
       this._setEventListener(event, listeners[event]);
     const instance = await this.getInstance();
     for (let event in this.eventListeners)
-      instance[event]({}, {
+      instance.events[event]({}, {
         fromBlock,
         toBlock: 'latest'
       }).watch((err, response) => ShareCenter._listen(err, response, this.eventListeners[event]));
@@ -150,7 +151,9 @@ class ShareCenter {
    */
   async getPersonalGroupID (addr = this.sender) {
     const instance = await this.getInstance();
-    const [found, personalGroupID] = await instance.getPersonalGroupID.call(addr);
+    const [found, personalGroupID] = Object.values(
+      await instance.getPersonalGroupID.call(addr)
+    );
     if (found) {
       return personalGroupID.toNumber();
     }
@@ -166,7 +169,9 @@ class ShareCenter {
    */
   async getGroupIDs (addr = this.sender) {
     const instance = await this.getInstance();
-    const [found, result] = await instance.getGroupIDs.call(addr);
+    const [found, result] = Object.values(
+      await instance.getUserGroupIDs.call(addr)
+    );
     if (found) {
       return convertBigNumbers(result);
     }
@@ -182,7 +187,9 @@ class ShareCenter {
    */
   async getShareGroups (groupID) {
     const instance = await this.getInstance();
-    const [found, result] = await instance.getShareGroups.call(groupID);
+    const [found, result] = Object.values(
+      await instance.getShareGroups.call(groupID)
+    );
     if (found) {
       return convertBigNumbers(result);
     }
@@ -198,9 +205,11 @@ class ShareCenter {
    * @throws groupID must be registered
    */
   async getShares (groupID) {
-    const toUtf8 = uri => this.web3.toUtf8(uri);
+    const toUtf8 = uri => this.web3.utils.toUtf8(uri);
     const instance = await this.getInstance();
-    let [found, length, shareIDs, hosts, paths] = await instance.getShares.call(groupID);
+    let [found, length, shareIDs, hosts, paths] = Object.values(
+      await instance.getShares.call(groupID)
+    );
     if (found) {
       shareIDs = convertBigNumbers(shareIDs.slice(0, length));
       hosts = hosts.slice(0, length).map(toUtf8);
@@ -443,7 +452,13 @@ class ShareCenter {
     handleTimeError(time);
 
     const instance = await this.getInstance();
-    const result = await instance.createShareRequest(groupIDs, host, path, time, access);
+    const result = await instance.createShareRequest(
+      groupIDs,
+      web3.utils.asciiToHex(host),
+      web3.utils.asciiToHex(path),
+      time,
+      access
+    );
     handleEthErrors(result);
 
     let log = result.logs.find(log => log.event === 'ShareRequest'); // Check if the share was added
@@ -483,7 +498,7 @@ class ShareCenter {
     handleTimeError(time);
 
     const instance = await this.getInstance();
-    const result = await instance.createShare(host, path, groupIDs, time, access);
+    const result = await instance.createShare(this.web3.utils.asciiToHex(host), this.web3.utils.asciiToHex(path), groupIDs, time, access);
     handleEthErrors(result);
 
     let log = result.logs.find(log => log.event === 'ShareAdded'); // Check if the share was added

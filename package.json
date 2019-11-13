@@ -22,17 +22,17 @@
     "test": "test"
   },
   "dependencies": {
-    "truffle": "^4.1.12",
-    "truffle-contract": "^3.0.6",
+    "@truffle/contract": "^4.1.0",
     "url": "^0.11.0",
-    "web3": "^0.20.3"
+    "web3": "^1.2.2"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/MagnusAuGrimmus/BlockchainExperiments"
   },
   "devDependencies": {
-    "deep-equal": "^1.0.1"
+    "deep-equal": "^1.1.1",
+    "truffle": "^5.1.0"
   },
   "scripts": {
     "test": "./test/test.sh",
