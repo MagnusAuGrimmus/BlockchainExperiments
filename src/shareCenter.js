@@ -462,7 +462,7 @@ class ShareCenter {
     handleEthErrors(result);
 
     let log = result.logs.find(log => log.event === 'ShareRequest'); // Check if the share was added
-    const requestID = log.args.id.toNumber();
+    const requestID = log.args.shareRequestID.toNumber();
     return { value: { requestID }, logs: result.logs };
   }
 

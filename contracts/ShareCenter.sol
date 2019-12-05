@@ -36,7 +36,7 @@ contract ShareCenter is GroupManager
     event SystemAdded(address addr, address sender);
     event ShareAdded(uint shareID, uint groupID, bytes32 host, bytes32 path, uint time, uint access, address sender);
     event ShareDeleted(uint id, address sender);
-    event ShareRequest(uint id, uint[] shareGroupIDs, bytes32 host, bytes32 path, uint time, uint access, address sender);
+    event ShareRequest(uint shareRequestID, uint pendingShareID, uint[] shareGroupIDs, bytes32 host, bytes32 path, uint time, uint access, address sender);
 
     modifier isOwner()
     {
@@ -222,7 +222,7 @@ contract ShareCenter is GroupManager
         uint shareID = _createShare(host, path, time, access, msg.sender);
         bool[] memory accepted = new bool[](groupIDs.length);
         shareRequests[++shareRequestCounter] = ShareRequestData(true, msg.sender, groupIDs, accepted, shareID);
-        emit ShareRequest(shareRequestCounter, groupIDs, host, path, time, access, msg.sender);
+        emit ShareRequest(shareRequestCounter, shareID, groupIDs, host, path, time, access, msg.sender);
     }
 
     function acceptShareRequest(uint requestID) public // For the current sender, accepts the share into all the groups they own
