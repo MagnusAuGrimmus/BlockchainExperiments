@@ -34,7 +34,5 @@
     "deep-equal": "^1.1.1",
     "truffle": "^5.1.0"
   },
-  "scripts": {
-    "postinstall": "truffle compile"
-  }
+  "scripts": {}
 }
